@@ -3,7 +3,7 @@
 Plugin Name: Big Blue Button Plugin With Custom Post Type Example
 Plugin URI: 
 Description: Big Blue Button Plugin With Custom Post Type Example
-Version: 0.1
+Version: 0.3
 Author: Steve Puddick
 Author URI: http://webrockstar.net/
 */
@@ -14,7 +14,6 @@ define("BIGBLUEBUTTON_DIR", WP_PLUGIN_URL . '/bbb-custom-post-type/' );
 define('BIGBLUEBUTTON_PLUGIN_URL', plugin_dir_url( __FILE__ ));
 
 //constant message definition
-define('BIGBLUEBUTTON_STRING_WELCOME', '<br>Welcome to <b>%%CONFNAME%%</b>!<br><br>To understand how BigBlueButton works see our <a href="event:http://www.bigbluebutton.org/content/videos"><u>tutorial videos</u></a>.<br><br>To join the audio bridge click the headset icon (upper-left hand corner). <b>Please use a headset to avoid causing noise for others.</b>');
 define('BIGBLUEBUTTON_STRING_MEETING_RECORDED', '<br><br>This session is being recorded.');
 
 
@@ -25,14 +24,11 @@ define('BIGBLUEBUTTON_STRING_MEETING_RECORDED', '<br><br>This session is being r
 require('php/bbb_api.php');
 
 
-if (is_admin()) {
-    /*
-     * If we want to show a message such as 'error creating BBB room' on post creation event,
-     * we will need to store this message in the $_SESSION global variable. In order to do this,
-     * we need to start the session.
-     */
-    if (!session_id())
+add_action('init', 'myStartSession', 1);
+function myStartSession() {
+    if(!session_id()) {
         session_start();
+    }
 }
 
 /*
@@ -93,9 +89,62 @@ function bbb_post_type_init()  {
     'supports' => array('title','editor' )
   ); 
   register_post_type('bbb-room',$args);
+  /*
+    notice how we have set 'capability_type' => 'bbb-room'. This allows us to use wordpress's built in permission/role system
+    rather than creating our own. This makes everything much easier. We will need an additional plugin such as http://wordpress.org/plugins/members/ 
+    to manage the permissions and roles
+   * 
+   */
 }
 
+/* 
+ * ***********************************
+ * BBB ROOM TAXONOMY 
+ * ***********************************
+ * 
+ * */
+function build_bbb_room_taxonomies() {
+	
+    $labels = array(
+        'name' => _x( 'BBB Room Categories', 'taxonomy general name' ),
+        'singular_name' => _x( 'BBB Room Category', 'taxonomy singular name' ),
+        'search_items' =>  __( 'Search BBB Room Categories' ),
+        'popular_items' => __( 'Popular BBB Room  Categories' ),
+        'all_items' => __( 'All BBB Room  Categories' ),
+        'parent_item' => null,
+        'parent_item_colon' => null,
+        'edit_item' => __( 'Edit BBB Room Category' ), 
+        'update_item' => __( 'Update BBB Room Category' ),
+        'add_new_item' => __( 'Add New BBB Room Category' ),
+        'new_item_name' => __( 'New BBB Room Category Name' ),
+        'separate_items_with_commas' => __( 'Separate BBB room categories with commas' ),
+        'add_or_remove_items' => __( 'Add or remove BBB room categories' ),
+        'choose_from_most_used' => __( 'Choose from the most used BBB room categories' ),
+        'menu_name' => __( 'BBB room Categories' )
+    ); 
 
+    register_taxonomy('bbb-room-category',array('bbb-room'),array(
+            'hierarchical' => true,
+            'labels' => $labels,
+            'show_ui' => true,
+            'update_count_callback' => '_update_post_term_count',
+            'query_var' => true,
+            'hierarchical' => true,
+            'rewrite' => array( 'slug' => 'bbb-room-category'),
+            'capabilities' => array(
+                                'manage_terms' => 'manage_bbb-cat',
+                                'edit_terms' => 'edit_bbb-cat',
+                                'delete_terms' => 'delete_bbb-cat',
+                                'assign_terms' => 'assign_bbb-cat' ) 
+
+    ));
+    /*
+     * Again, we will need an additional plugin such as http://wordpress.org/plugins/members/  to map the bbb-room-category
+     * capabilities to roles
+     */
+}
+
+add_action( 'init', 'build_bbb_room_taxonomies', 0 );
 
 
 
@@ -172,11 +221,12 @@ function bbb_room_details_metabox($post) {
 }
 
 function bbb_room_recordings_metabox($post) {	
-?>
 
-    <p>There are no recordings for this room.</p>
-
-    <?php
+    /*
+     * Rooms recordings that are specific to this bbb post (and subsquently the meetingID associated with the bbb post) 
+     * will be listed here
+     */
+    echo bigbluebutton_list_recordings($post->ID);
 }
 
 
@@ -221,62 +271,14 @@ function save_bbb_data($post_id) {
 }
 
 
-add_action( 'before_delete_post', 'my_func' );
-function my_func( $postid ){
+add_action( 'before_delete_post', 'before_bbb_delete' );
+function before_bbb_delete( $postid ){
 
-    // We check if the global post type isn't ours and just return
     /*
-    global $post_type;   
-    if ( $post_type != 'my_custom_post_type' ) return;
-	*/
-    // My custom stuff for deleting my custom post type here
+     * If we want to do anything when the BBB post in wordpress is deleted, we can hook into here.
+     */
 }
 
-
-/* 
- * ***********************************
- * BBB ROOM TAXONOMY 
- * ***********************************
- * 
- * */
-function build_bbb_room_taxonomies() {
-	
-    $labels = array(
-        'name' => _x( 'BBB Room Categories', 'taxonomy general name' ),
-        'singular_name' => _x( 'BBB Room Category', 'taxonomy singular name' ),
-        'search_items' =>  __( 'Search BBB Room Categories' ),
-        'popular_items' => __( 'Popular BBB Room  Categories' ),
-        'all_items' => __( 'All BBB Room  Categories' ),
-        'parent_item' => null,
-        'parent_item_colon' => null,
-        'edit_item' => __( 'Edit BBB Room Category' ), 
-        'update_item' => __( 'Update BBB Room Category' ),
-        'add_new_item' => __( 'Add New BBB Room Category' ),
-        'new_item_name' => __( 'New BBB Room Category Name' ),
-        'separate_items_with_commas' => __( 'Separate BBB room categories with commas' ),
-        'add_or_remove_items' => __( 'Add or remove BBB room categories' ),
-        'choose_from_most_used' => __( 'Choose from the most used BBB room categories' ),
-        'menu_name' => __( 'BBB room Categories' )
-    ); 
-
-    register_taxonomy('bbb-room-category',array('bbb-room'),array(
-            'hierarchical' => true,
-            'labels' => $labels,
-            'show_ui' => true,
-            'update_count_callback' => '_update_post_term_count',
-            'query_var' => true,
-            'hierarchical' => true,
-            'rewrite' => array( 'slug' => 'bbb-room-category'),
-            'capabilities' => array(
-                                'manage_terms' => 'manage_bbb-room-categorys',
-                                'edit_terms' => 'edit_bbb-room-categorys',
-                                'delete_terms' => 'delete_bbb-room-categorys',
-                                'assign_terms' => 'assign_bbb-room-categorys' ) 
-
-    ));
-}
-
-add_action( 'init', 'build_bbb_room_taxonomies', 0 );
 
 
 
@@ -284,51 +286,22 @@ add_action( 'init', 'build_bbb_room_taxonomies', 0 );
  * CONTENT FILTER TO ADD BBB BUTTON
  */
 function bbb_filter($content) {
-/*
- * if (logged_in and (can_auto_join_as_attendee || (is_post_author && can_join_as_moderator)  ))
 
 
-    else if (form data submitted)
-            if (form_data_good)
-                    auto direct to room
-            else
-                    show entry form with error note 
-
-    else
-            show entry form 
- * 
- * 
- * 
- * 
- */    
-
-
-
-
-
-
-//target only BBB post type
+    /*
+     * Target only bbb-room post type, and on the 'single' page (not archive)
+     * 
+     * If we do not meet these requirements, output the content as usual.
+     * 
+     * If we do meet requirements, a button to go to the room will be attached at the bottom of the
+     * regular page content
+     */
     if ( 'bbb-room' == get_post_type( $post ) && is_single()  ) {
     
         global $wp_version, $current_site, $current_user, $wp_roles, $post;
         //Initializes the variable that will collect the output
         $out = '';
 
-        //Set the role for the current user if is logged in
-        /*
-        $role = null;
-        if( $current_user->ID ) {
-            $role = "unregistered";
-            foreach($wp_roles->role_names as $_role => $Role) {
-                if (array_key_exists($_role, $current_user->caps)){
-                    $role = $_role;
-                    break;
-                }
-            }
-        } else {
-            $role = "anonymous";
-        }
-        */
         
         $bbb_settings = get_option( "bbb_settings");
         
@@ -336,18 +309,6 @@ function bbb_filter($content) {
         $url_val = $bbb_settings['bbb_url'];
         $salt_val = $bbb_settings['bbb_salt'];
         
-        //Read in existing permission values from database
-        //$permissions = get_option('bigbluebutton_permissions');
-
-        //Gets all the meetings from wordpress database
-        //$listOfMeetings = $wpdb->get_results("SELECT meetingID, meetingName, meetingVersion, attendeePW, moderatorPW FROM ".$table_name." ORDER BY meetingName");
-
-        $dataSubmitted = false;
-        $meetingExist = false;
-
-        $dataSubmitted = true;
-        $meetingExist = true;
-
         
         $bbb_attendee_password = get_post_meta($post->ID, '_bbb_attendee_password', TRUE);
 	$bbb_moderator_password = get_post_meta($post->ID, '_bbb_moderator_password', TRUE);
@@ -360,19 +321,16 @@ function bbb_filter($content) {
         
         $meetingID = $bbb_room_token;
 
-        //$found = $wpdb->get_row("SELECT * FROM ".$table_name." WHERE meetingID = '".$meetingID."'");
-        
         $meetingID = bigbluebutton_normalizeMeetingID($meetingID);
 
         if( !$current_user->ID ) {
             /*
-            $name = isset($_POST['display_name']) && $_POST['display_name'] ? $_POST['display_name']: $role;
-
-            if( bigbluebutton_validate_defaultRole($role, 'none') ) {
-                $password = $_POST['pwd'];
-            } else {
-                $password = $permissions[$role]['defaultRole'] == 'none'? $found->moderatorPW: $found->attendeePW;
-            }
+             * Right now no functionality is present to handle user's who are not logged in. That functionality
+             * will go here
+             * 
+             * $name = $_POST['display_name'];
+             * $password = $_POST['pwd'];
+           
             */
         } else {
 
@@ -387,12 +345,15 @@ function bbb_filter($content) {
                 $name = $role;
             }
 
-            //admin
-            if (current_user_can( 'manage_options') )
+            /*
+             * To make things easier and allow deeper integration with other plugins, we are using wordpress's
+             * built in permission and capability functions rather than something custom. For more info check out:
+             * http://codex.wordpress.org/Function_Reference/current_user_can
+             */
+            if (current_user_can( 'edit_bbb-room', $post->ID) )
                 $password = $bbb_moderator_password;
-            elseif (current_user_can( 'edit_posts') ) //other logged in user beside admin
+            elseif (current_user_can( 'read') ) 
                 $password = $bbb_attendee_password;
-            //$password = $permissions[$role]['defaultRole'] == 'moderator'? $found->moderatorPW: $found->attendeePW;
 
         }
 
@@ -401,7 +362,7 @@ function bbb_filter($content) {
         $welcome = $bbb_room_welcome_msg;
         $duration = 0;
         $voicebridge = 0;
-        $logouturl = (is_ssl()? "https://": "http://") . $_SERVER['HTTP_HOST']  . $_SERVER['REQUEST_URI'];
+        $logouturl = (is_ssl()? "https://": "http://") . $_SERVER['HTTP_HOST']  . $_SERVER['REQUEST_URI'] . '?logout=true';
 
         //Metadata for tagging recordings
         $metadata = Array(
@@ -413,35 +374,41 @@ function bbb_filter($content) {
             'meta_originurl' => $logouturl
         );
         
-//Call for creating meeting on the bigbluebutton server
+        //Call for creating meeting on the bigbluebutton server
         $response = BigBlueButton::createMeetingArray($name, $meetingID, $bbb_meeting_name, $bbb_room_welcome_msg, $bbb_moderator_password, $bbb_attendee_password, $salt_val, $url_val, $logouturl, $recorded? 'true':'false', $duration, $voicebridge, $metadata );
-
+        
         //Analyzes the bigbluebutton server's response
         if(!$response || $response['returncode'] == 'FAILED' ){//If the server is unreachable, or an error occured
-            $out .= "Sorry an error occured while joining the meeting.";
-            //return $out;
+            $out .= "<p class='error'>". __('Sorry an error occured while creating the meeting room.','bbb'). "</p>";
+            
+        } else { //The user can join the meeting, as it is valid
 
-        } else{ //The user can join the meeting, as it is valid
-
-            if( !isset($response['messageKey']) || $response['messageKey'] == '' ){
-                // The meeting was just created, insert the create event to the log
-                //$rows_affected = $wpdb->insert( $table_logs_name, array( 'meetingID' => $found->meetingID, 'recorded' => $found->recorded, 'timestamp' => time(), 'event' => 'Create' ) );
-            }
 
             $bigbluebutton_joinURL = BigBlueButton::getJoinURL($meetingID, $name, $password, $salt_val, $url_val );
             //If the meeting is already running or the moderator is trying to join or a viewer is trying to join and the
             //do not wait for moderator option is set to false then the user is immediately redirected to the meeting
+            
+            /*
+             * At the moment BigBlueButton::isMeetingRunning always returns false which only allows users to join in certain cases
+             */
             if ( (BigBlueButton::isMeetingRunning( $meetingID, $url_val, $salt_val ) && ($bbb_moderator_password == $password || $bbb_attendee_password == $password ) )
                     || $response['moderatorPW'] == $password
                     || ($response['attendeePW'] == $password && !$bbb_must_wait_for_admin_start)  ){
-                //If the password submitted is correct then the user gets redirected
 
-                //Note: change this to click action on button rather than direct link
-                $out .= '
-                            <p><a class="bbb" style="display:inline-block;border-radius:5px;padding:20px;border:1px solid #1862DB;background-color:#C3D7F7" href="'.$bigbluebutton_joinURL .'" target="_blank">Enter BBB Room</a></p>
-                        ';
+                if ($bbb_moderator_password == $password ) {
+                    $button_text = 'Join Room as Moderator';
+                    $out .= '<p><a class="bbb" style="display:inline-block;border-radius:5px;padding:20px;border:1px solid #1862DB;background-color:#C3D7F7" href="'.$bigbluebutton_joinURL .'" target="_blank">'.$button_text.'</a></p>';
+
+                    
+                } else if ($bbb_attendee_password == $password ) {
+                    $button_text = 'Join Room as Attendee';
+                    $out .= '<p><a class="bbb" style="display:inline-block;border-radius:5px;padding:20px;border:1px solid #1862DB;background-color:#C3D7F7" href="'.$bigbluebutton_joinURL .'" target="_blank">'.$button_text.'</a></p>';
+
+                } 
+
                 //return $out;
             }
+            
             //If the viewer has the correct password, but the meeting has not yet started they have to wait
             //for the moderator to start the meeting
             else if ($bbb_attendee_password == $password) {
@@ -456,8 +423,12 @@ function bbb_filter($content) {
         
     
   }
-  //$room_button = '<p><a class="bbb" style="display:inline-block;border-radius:5px;padding:20px;border:1px solid #1862DB;background-color:#C3D7F7" href="#">Enter BBB Room</a></p>';
   
+  /*
+   * Show a listing of the recordings below the content and the 'join room' button. 
+   * At the moment the listing of recordings is not working.
+   */
+  $out .= bigbluebutton_list_recordings($post->ID);
   return $content . $out;
 }
 
@@ -729,6 +700,9 @@ add_shortcode( 'bbb', 'bbbRenderShortcode' );
 
 //Displays the javascript that handles redirecting a user, when the meeting has started
 //the meetingName is the meetingID
+/*
+ * At the moment this does not work since the broker always returns false when checking if the meeting has started
+ */
 function bigbluebutton_display_redirect_script($bigbluebutton_joinURL, $meetingID, $meetingName, $name){
     $out = '
     <script type="text/javascript">
@@ -744,7 +718,8 @@ function bigbluebutton_display_redirect_script($bigbluebutton_joinURL, $meetingI
                     }
                 },
                 error : function(xmlHttpRequest, status, error) {
-                    console.debug(xmlHttpRequest);
+                    //console.debug(xmlHttpRequest);
+                    console.debug(status);
                 }
             });
 
@@ -771,35 +746,179 @@ function bigbluebutton_display_redirect_script($bigbluebutton_joinURL, $meetingI
 }
 
 
+//================================================================================
+//---------------------------------List Recordings----------------------------------
+//================================================================================
+// Displays all the recordings available in the bigbluebutton server
+/*
+ * Keep in mind that although this has the same function name as the previous version of the plugin, 
+ * this functions quite differently. It only lists the recordings for the specific post, not all of the 
+ * recordings on the server. 
+ * 
+ * Also, editing controls are only displayed in the backend, to users with the appropriate permissions
+ * 
+ * Right now this does not seem to be functional.
+ */
+function bigbluebutton_list_recordings($postID = 0) {
+    global $current_user;
+    
+    $bbb_room_token = get_post_meta($postID, '_bbb_room_token', TRUE);
+    $meetingID = $bbb_room_token;
+    
+    //Initializes the variable that will collect the output
+    $out = '';
+
+    $bbb_settings = get_option( "bbb_settings");
+
+    //Read in existing option value from database
+    $url_val = $bbb_settings['bbb_url'];
+    $salt_val = $bbb_settings['bbb_salt'];
+
+    
+    $_SESSION['mt_bbb_url'] = $url_val;
+    $_SESSION['mt_salt'] = $salt_val;
+
+
+    $listOfRecordings = Array();
+    if( $meetingID != '' ){
+        $recordingsArray = BigBlueButton::getRecordingsArray($meetingID, $url_val, $salt_val);
+        if( $recordingsArray['returncode'] == 'SUCCESS' && !$recordingsArray['messageKey'] ){
+            $listOfRecordings = $recordingsArray['recordings'];
+        }
+    }
+
+    //Checks to see if there are no meetings in the wordpress db and if so alerts the user
+    if(count($listOfRecordings) == 0){
+        $out .= '<div class="updated"><p><strong>There are no recordings available.</strong></p></div>';
+        return $out;
+    }
+
+
+    if ( current_user_can( 'edit_bbb-room', $postID) && is_admin()  ) {
+        $out .= '
+        <script type="text/javascript">
+            wwwroot = \''.get_bloginfo('url').'\'
+            function actionCall(action, recordingid) {
+
+                action = (typeof action == \'undefined\') ? \'publish\' : action;
+         
+                if (action == \'publish\' || (action == \'delete\' && confirm("Are you sure to delete this recording?"))) {
+                    if (action == \'publish\') {
+                        var el_a = document.getElementById(\'actionbar-publish-a-\'+ recordingid);
+                        if (el_a) {
+                            var el_img = document.getElementById(\'actionbar-publish-img-\'+ recordingid);
+                            if (el_a.title == \'Hide\' ) {
+                                action = \'unpublish\';
+                                el_a.title = \'Show\';
+                                el_img.src = wwwroot + \'/wp-content/plugins/bigbluebutton/images/show.gif\';
+                            } else {
+                                action = \'publish\';
+                                el_a.title = \'Hide\';
+                                el_img.src = wwwroot + \'/wp-content/plugins/bigbluebutton/images/hide.gif\';
+                            }
+                        }
+                    } else {
+                        // Removes the line from the table
+                        jQuery(document.getElementById(\'actionbar-tr-\'+ recordingid)).remove();
+                    }
+                    actionurl = wwwroot + "/wp-content/plugins/bigbluebutton/php/broker.php?action=" + action + "&recordingID=" + recordingid;
+                    jQuery.ajax({
+                            url : actionurl,
+                            async : false,
+                            success : function(response){
+                            },
+                            error : function(xmlHttpRequest, status, error) {
+                                console.debug(xmlHttpRequest);
+                            }
+                        });
+                }
+            }
+        </script>';
+    }
+
+
+    //Print begining of the table
+    $out .= '
+    <div id="bbb-recordings-div" class="bbb-recordings">
+    <table class="stats" cellspacing="5">
+      <tr>
+        <th class="hed" colspan="1">Recording</td>
+        <th class="hed" colspan="1">Meeting Room Name</td>
+        <th class="hed" colspan="1">Date</td>
+        <th class="hed" colspan="1">Duration</td>';
+    if ( current_user_can( 'edit_bbb-room', $postID) && is_admin() ) {
+        $out .= '
+        <th class="hedextra" colspan="1">Toolbar</td>';
+    }
+    $out .= '
+      </tr>';
+    foreach( $listOfRecordings as $recording){
+        
+            /// Prepare playback recording links
+            $type = '';
+            foreach ( $recording['playbacks'] as $playback ){
+                if ($recording['published'] == 'true'){
+                    $type .= '<a href="'.$playback['url'].'" target="_new">'.$playback['type'].'</a>&#32;';
+                } else {
+                    $type .= $playback['type'].'&#32;';
+                }
+            }
+
+            /// Prepare duration
+            $endTime = isset($recording['endTime'])? floatval($recording['endTime']):0;
+            $endTime = $endTime - ($endTime % 1000);
+            $startTime = isset($recording['startTime'])? floatval($recording['startTime']):0;
+            $startTime = $startTime - ($startTime % 1000);
+            $duration = intval(($endTime - $startTime) / 60000);
+
+            /// Prepare date
+            //Make sure the startTime is timestamp
+            if( !is_numeric($recording['startTime']) ){
+                $date = new DateTime($recording['startTime']);
+                $recording['startTime'] = date_timestamp_get($date);
+            } else {
+                $recording['startTime'] = ($recording['startTime'] - $recording['startTime'] % 1000) / 1000;
+            }
+
+            //Format the date
+            //$formatedStartDate = gmdate("M d Y H:i:s", $recording['startTime']);
+            $formatedStartDate = date_i18n( "M d Y H:i:s", $recording['startTime'], false );
+
+            //Print detail
+            $out .= '
+            <tr id="actionbar-tr-'.$recording['recordID'].'">
+              <td>'.$type.'</td>
+              <td>'.$recording['meetingName'].'</td>
+              <td>'.$formatedStartDate.'</td>
+              <td>'.$duration.' min</td>';
+
+            /// Prepare actionbar if role is allowed to manage the recordings
+            if ( current_user_can( 'edit_bbb-room', $postID)  && is_admin() ) {
+                $action = ($recording['published'] == 'true')? 'Hide': 'Show';
+                $actionbar = "<a id=\"actionbar-publish-a-".$recording['recordID']."\" title=\"".$action."\" href=\"#\"><img id=\"actionbar-publish-img-".$recording['recordID']."\" src=\"".get_bloginfo('url')."/wp-content/plugins/bigbluebutton/images/".strtolower($action).".gif\" class=\"iconsmall\" onClick=\"actionCall('publish', '".$recording['recordID']."'); return false;\" /></a>";
+                $actionbar .= "<a id=\"actionbar-delete-a-".$recording['recordID']."\" title=\"Delete\" href=\"#\"><img id=\"actionbar-delete-img-".$recording['recordID']."\" src=\"".get_bloginfo('url')."/wp-content/plugins/bigbluebutton/images/delete.gif\" class=\"iconsmall\" onClick=\"actionCall('delete', '".$recording['recordID']."'); return false;\" /></a>";
+                $out .= '
+                <td>'.$actionbar.'</td>';
+            }
+
+            $out .= '
+            </tr>';
+        
+    }
+
+    //Print end of the table
+    $out .= '  </table>
+    </div>';
+
+    return $out;
+
+}
+
 
 //================================================================================
 //------------------------------- Helping functions ------------------------------
 //================================================================================
 //Validation methods
-
-
-function bigbluebutton_can_participate($role){
-    $permissions = get_option('bigbluebutton_permissions');
-    if( $role == 'unregistered' ) $role = 'anonymous';
-    return ( isset($permissions[$role]['participate']) && $permissions[$role]['participate'] );
-
-}
-
-function bigbluebutton_can_manageRecordings($role){
-    $permissions = get_option('bigbluebutton_permissions');
-    if( $role == 'unregistered' ) $role = 'anonymous';
-    return ( isset($permissions[$role]['manageRecordings']) && $permissions[$role]['manageRecordings'] );
-
-}
-
-function bigbluebutton_validate_defaultRole($wp_role, $bbb_role){
-    $permissions = get_option('bigbluebutton_permissions');
-    if( $wp_role == null || $wp_role == 'unregistered' || $wp_role == '' )
-        $role = 'anonymous';
-    else
-        $role = $wp_role;
-    return ( isset($permissions[$role]['defaultRole']) && $permissions[$role]['defaultRole'] == $bbb_role );
-}
 
 function bigbluebutton_generateToken($tokenLength=6){
     $token = '';
