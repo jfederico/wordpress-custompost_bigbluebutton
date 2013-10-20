@@ -27,3 +27,40 @@ table.bbb-shortcode small {
 table.bbb-shortcode p#shortcode {
 	background-color:#F9F954;
 }
+
+textarea[name="bbb_room_welcome_msg"] {
+    width:230px;
+    height:100px;
+}
+
+.bbb-recordings table.stats th,
+.bbb-recordings table.stats td,
+table.custom-admin-table th,
+table.custom-admin-table td{
+    text-align:left;
+    padding-right:10px;
+}
+
+table.custom-admin-table th,
+table.custom-admin-table td{
+   padding-bottom:10px;
+   vertical-align: top;
+}
+
+.bbb-recordings table.stats p,
+table.custom-admin-table p{
+    margin-top:0;
+}
+
+a.end-meeting {
+    background-color: #EA1729;
+    border-radius: 4px 4px 4px 4px;
+    color: #000000;
+    padding: 10px;
+    text-decoration: none;
+}
+
+    a.end-meeting:hover {
+        background-color:#ED3645;
+        
+    }

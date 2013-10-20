@@ -39,7 +39,7 @@ $meetingID_name = 'meetingID';
 //================================================================================
 //Retrieves the bigbluebutton url, and salt from the seesion
 if ( !isset($_SESSION[$salt_name]) || !isset($_SESSION[$url_name]) ) {
-    header("HTTP/1.0 400 Bad Request. BigBlueButton Url or Salt are not accessible.");
+    header("HTTP/1.0 400 Bad Request. BigBlueButton_CPT Url or Salt are not accessible.");
     
 } else if ( !isset($_GET[$action_name]) ) {
     header("HTTP/1.0 400 Bad Request. [action] parameter was not included in this query.");
@@ -55,7 +55,7 @@ if ( !isset($_SESSION[$salt_name]) || !isset($_SESSION[$url_name]) ) {
                 header("HTTP/1.0 400 Bad Request. [recordingID] parameter was not included in this query.");
             } else {    
                 $recordingID = $_GET[$recordingID_name];
-                echo BigBlueButton::doPublishRecordings($recordingID, 'true', $url_val, $salt_val);
+                echo BigBlueButton_CPT::doPublishRecordings($recordingID, 'true', $url_val, $salt_val);
             }
             break;
         case "unpublish":
@@ -64,7 +64,7 @@ if ( !isset($_SESSION[$salt_name]) || !isset($_SESSION[$url_name]) ) {
                 header("HTTP/1.0 400 Bad Request. [recordingID] parameter was not included in this query.");
             } else {    
                 $recordingID = $_GET[$recordingID_name];
-                echo BigBlueButton::doPublishRecordings($recordingID, 'false', $url_val, $salt_val);
+                echo BigBlueButton_CPT::doPublishRecordings($recordingID, 'false', $url_val, $salt_val);
             }
             break;
         case "delete":
@@ -73,7 +73,7 @@ if ( !isset($_SESSION[$salt_name]) || !isset($_SESSION[$url_name]) ) {
                 header("HTTP/1.0 400 Bad Request. [recordingID] parameter was not included in this query.");
             } else {    
                 $recordingID = $_GET[$recordingID_name];
-                echo BigBlueButton::doDeleteRecordings($recordingID, $url_val, $salt_val);
+                echo BigBlueButton_CPT::doDeleteRecordings($recordingID, $url_val, $salt_val);
             }
             break;
         case "ping":
@@ -83,13 +83,13 @@ if ( !isset($_SESSION[$salt_name]) || !isset($_SESSION[$url_name]) ) {
                 header("HTTP/1.0 400 Bad Request. [meetingID] parameter was not included in this query.");
             } else {
                 $meetingID = $_GET[$meetingID_name];
-                $response = BigBlueButton::getMeetingXML( $meetingID, $url_val, $salt_val );
+                $response = BigBlueButton_CPT::getMeetingXML( $meetingID, $url_val, $salt_val );
                 echo "<response>".$response."</response>";
             }
             break;
         default:
             header('Content-Type: text/plain; charset=utf-8');
-            echo BigBlueButton::getServerVersion($url_val);
+            echo BigBlueButton_CPT::getServerVersion($url_val);
     }
 }
 
