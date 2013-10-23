@@ -16,6 +16,27 @@ Releases:
 */
 
 
+register_activation_hook(__FILE__, 'bbb_install' );
+
+function bbb_install() {
+
+    $bbb_settings = get_option('bbb_settings');
+    if( !isset($bbb_settings) ){
+        $bbb_settings['bbb_url'] = 'http://test-install.blindsidenetworks.com/bigbluebutton/';
+        $bbb_settings['bbb_salt'] = '8cd8ef52e8e101574e400365b55e11a6';
+    } else {
+        if( !isset($bbb_settings['bbb_url']) ){
+            $bbb_settings['bbb_url'] = 'http://test-install.blindsidenetworks.com/bigbluebutton/';
+        }
+        if( !isset($bbb_settings['bbb_salt']) ){
+            $bbb_settings['bbb_salt'] = '8cd8ef52e8e101574e400365b55e11a6';
+        }
+    }
+
+    update_option( 'bbb_settings', $bbb_settings );
+}
+
+
 
 //constant definition
 
@@ -24,9 +45,6 @@ define("BIGBLUEBUTTON_DIR", WP_PLUGIN_URL . '/bbb-custom-post-type/' );
 define('BIGBLUEBUTTON_PLUGIN_URL', plugin_dir_url( __FILE__ ));
 
 require_once('php/bbb_api.php');
-
-
-
 
 add_action('init', 'myStartSession', 1);
 function myStartSession() {
@@ -243,7 +261,7 @@ function bbb_room_recordings_metabox($post) {
 
 function bbb_room_status_metabox($post) {
     
-    $bbb_settings = get_option( "bbb_settings");
+    $bbb_settings = get_option('bbb_settings');
         
     //Read in existing option value from database
     $url_val = $bbb_settings['bbb_url'];
@@ -484,9 +502,8 @@ add_filter( 'the_content', 'bbb_filter' );
 
 
 //should also check to make sure we are on the BBB settings page
-if ( is_admin() && isset( $_POST['bbb_url'] ) || isset( $_POST['bbb_salt'] ) || isset( $_POST['bbb_auth_key'] )   ) {
+if ( is_admin() && (isset( $_POST['bbb_url'] ) || isset( $_POST['bbb_salt'] )) ) {
 
-        
     $bbb_settings = get_option( "bbb_settings");
     $do_update = 0;
     if ( isset( $_POST['bbb_url']) && ($bbb_settings['bbb_url'] != $_POST['bbb_url']  ) ) {
@@ -495,10 +512,6 @@ if ( is_admin() && isset( $_POST['bbb_url'] ) || isset( $_POST['bbb_salt'] ) || 
     }
     if ( isset( $_POST['bbb_salt']) && ($bbb_settings['bbb_salt'] != $_POST['bbb_salt']) ) {
         $bbb_settings['bbb_salt'] = $_POST['bbb_salt'];
-        $do_update = 1;
-    }
-    if ( isset( $_POST['bbb_auth_key']) && ($bbb_settings['bbb_auth_key'] != $_POST['bbb_auth_key']) ) {
-        $bbb_settings['bbb_auth_key'] = $_POST['bbb_auth_key'];
         $do_update = 1;
     }
     if ($do_update) {
@@ -540,7 +553,7 @@ function bbb_update_notice_no_change(){
 add_action('admin_menu', 'register_site_options_page');
 
 function register_site_options_page() {
-    add_submenu_page( 'options-general.php', 'Site Options', 'BBB Options', 'edit_pages', 'site-options', 'bbb_options_page_callback' ); 
+    add_submenu_page( 'options-general.php', 'Site Options', 'BigBlueButton CPT', 'edit_pages', 'site-options', 'bbb_options_page_callback' ); 
 }
 
 function bbb_options_page_callback() { 
@@ -552,24 +565,17 @@ function bbb_options_page_callback() {
     <form  action="<?php echo $_SERVER["REQUEST_URI"]; ?>" method="post" name="site_options_page" >
         <table class="custom-admin-table">
             <tr>
-                <th>URL of BBB Server</th>
+                <th>BigBlueButton Server URL</th>
                 <td>
                     <input type="text" size="56" name="bbb_url" value="<?php echo $bbb_settings['bbb_url']; ?>" />
-                    <p>Example: http://test-install.blindsidenetworks.com/bigbluebutton_custom_post_type/</p>
+                    <p>Example: http://test-install.blindsidenetworks.com/bigbluebutton/</p>
                 </td>
             </tr>
             <tr>
-                <th>Salt of BBB server</th>
+                <th>BigBlueButton Shared Secret</th>
                 <td>
                     <input type="text" size="56" name="bbb_salt" value="<?php echo $bbb_settings['bbb_salt']; ?>" />
                     <p>Example: 8cd8ef52e8e101574e400365b55e11a6</p>
-                </td>
-            </tr>
-            <tr>
-                <th>BBB Authentication Key</th>
-                <td>
-                    <input type="text" size="56" name="bbb_auth_key" value="<?php echo $bbb_settings['bbb_auth_key']; ?>" />
-                    <p>Example: </p>
                 </td>
             </tr>
             <tr>
@@ -587,7 +593,7 @@ add_action('admin_menu', 'register_shortcode_generator_page');
 
 function register_shortcode_generator_page() {
     global $shortcode_generator_page;	
-    $shortcode_generator_page = add_submenu_page( 'tools.php', 'BBB Shortcode Generator', 'BBB Shortcode Generator', 'edit_pages', 'bbb-shortcode', 'bbb_shortcode_page_callback' ); 
+    $shortcode_generator_page = add_submenu_page( 'tools.php', 'BigBlueButton Shortcodes', 'BigBlueButton Shortcodes', 'edit_pages', 'bbb-shortcode', 'bbb_shortcode_page_callback' );
 }
 
 function bbb_shortcode_page_callback() { ?>
@@ -614,7 +620,7 @@ function bbb_shortcode_page_callback() { ?>
                     $count = count($terms);
                     if ( $count > 0 ){
                          echo "<select multiple id='bbb-categories'>";
-                         echo "<option value='0' >All BBB Categories</option>";
+                         echo "<option value='0' >All BigBlueButton Categories</option>";
                          foreach ( $terms as $term ) {
                            echo "<option value=". $term->term_id ." >" . $term->name . "</option>";
                          }
