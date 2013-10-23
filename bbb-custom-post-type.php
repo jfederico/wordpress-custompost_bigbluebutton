@@ -1,12 +1,20 @@
 <?php
 /*
-Plugin Name: Big Blue Button Plugin With Custom Post Type Example
-Plugin URI: 
-Description: Big Blue Button Plugin With Custom Post Type Example
-Version: 0.3
-Author: Steve Puddick
-Author URI: http://webrockstar.net/
+Plugin Name: BigBlueButton CPT
+Plugin URI: http://blindsidenetworks.com/integration
+Description: BigBlueButton is an open source web conferencing system. This plugin integrates BigBlueButton into WordPress allowing bloggers to create and manage meetings rooms by using Custom Post Type. For more information on setting up your own BigBlueButton server or for using an external hosting provider visit http://bigbluebutton.org/support
+Version: 0.3.1
+Author: Blindside Networks
+Author URI: http://blindsidenetworks.com/
+License: GPLv2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
 */
+
+/*
+Releases:
+    0.3.0  --  Initial version written by Steve Puddick
+*/
+
 
 
 //constant definition
