@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: BigBlueButton CPT
+Plugin Name: BigBlueButtonBN
 Plugin URI: http://blindsidenetworks.com/integration
 Description: BigBlueButton is an open source web conferencing system. This plugin integrates BigBlueButton into WordPress allowing bloggers to create and manage meetings rooms by using Custom Post Type. For more information on setting up your own BigBlueButton server or for using an external hosting provider visit http://bigbluebutton.org/support
 Version: 0.3.1
@@ -12,7 +12,8 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 /*
 Releases:
-    0.3.0  --  Initial version written by Steve Puddick
+    0.3.0  --  Written by Steve Puddick
+    0.3.1  --  Updated by Jesus Federico
 */
 
 
@@ -553,7 +554,7 @@ function bbb_update_notice_no_change(){
 add_action('admin_menu', 'register_site_options_page');
 
 function register_site_options_page() {
-    add_submenu_page( 'options-general.php', 'Site Options', 'BigBlueButton CPT', 'edit_pages', 'site-options', 'bbb_options_page_callback' ); 
+    add_submenu_page( 'options-general.php', 'Site Options', 'BigBlueButtonBN', 'edit_pages', 'site-options', 'bbb_options_page_callback' ); 
 }
 
 function bbb_options_page_callback() { 
@@ -561,7 +562,8 @@ function bbb_options_page_callback() {
     $bbb_settings = get_option( "bbb_settings");
    
     ?>
-    <h1>BigBlueButton Settings</h1>
+    <div class="wrap">
+    <div id="icon-options-general" class="icon32"><br /></div><h2>BigBlueButtonBN Settings</h2>
     <form  action="<?php echo $_SERVER["REQUEST_URI"]; ?>" method="post" name="site_options_page" >
         <table class="custom-admin-table">
             <tr>
@@ -580,10 +582,11 @@ function bbb_options_page_callback() {
             </tr>
             <tr>
                 <th></th>
-                <td><input type="submit" value="Save Settings" /></td>
+                <td><input type="submit" class="button-primary" value="Save Settings" /></td>
             </tr>
         </table>
     </form>
+    </div>
 <?php }
  
 /*
