@@ -25,11 +25,11 @@ Versions:
 ///================================================================================
 //------------------Required Libraries and Global Variables-----------------------
 //================================================================================
-require('bbb_api.php');
+require('includes/bbb_api.php');
 session_start();
 
-$url_name = 'mt_bbb_url';
-$salt_name = 'mt_salt';
+$bbb_endpoint_name = 'mt_bbb_endpoint';
+$bbb_secret_name = 'mt_bbb_secret';
 $action_name = 'action';
 $recordingID_name = 'recordingID';
 $meetingID_name = 'meetingID';
@@ -38,15 +38,15 @@ $meetingID_name = 'meetingID';
 //------------------------------------Main----------------------------------------
 //================================================================================
 //Retrieves the bigbluebutton url, and salt from the seesion
-if ( !isset($_SESSION[$salt_name]) || !isset($_SESSION[$url_name]) ) {
+if ( !isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name]) ) {
     header("HTTP/1.0 400 Bad Request. BigBlueButton_CPT Url or Salt are not accessible.");
     
 } else if ( !isset($_GET[$action_name]) ) {
     header("HTTP/1.0 400 Bad Request. [action] parameter was not included in this query.");
 
 } else {
-    $salt_val = $_SESSION[$salt_name];
-    $url_val = $_SESSION[$url_name];
+    $salt_val = $_SESSION[$bbb_secret_name];
+    $url_val = $_SESSION[$bbb_endpoint_name];
     $action = $_GET[$action_name];
     switch ($action) {
         case "publish":
