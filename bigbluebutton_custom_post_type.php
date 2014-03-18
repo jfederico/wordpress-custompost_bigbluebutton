@@ -73,24 +73,23 @@ add_action( 'admin_notices', 'my_admin_notices' );
 /*
  * This displays some CSS we need for the BigBlueButton Custom Post Type plugin, in the backend
  */
-add_action( 'admin_enqueue_scripts', 'bigbluebutton_custom_post_type_css_enqueue' );
 function bigbluebutton_custom_post_type_css_enqueue($hook) {
     $bigbluebutton_custom_post_type_style = plugins_url('css/bigbluebutton_custom_post_type.css', __FILE__); 
     wp_register_style('bigbluebutton_custom_post_type_style', $bigbluebutton_custom_post_type_style);
     wp_enqueue_style('bigbluebutton_custom_post_type_style'); 
 }
+add_action( 'admin_enqueue_scripts', 'bigbluebutton_custom_post_type_css_enqueue' );
 
-add_action( 'wp_enqueue_scripts', 'bigbluebutton_custom_post_type_scripts' );
 function bigbluebutton_custom_post_type_scripts() {
     wp_enqueue_style( 'bigbluebutton_custom_post_type_front-end', plugins_url('css/bigbluebutton_custom_post_type_front-end.css', __FILE__) );
 
 }
+add_action( 'wp_enqueue_scripts', 'bigbluebutton_custom_post_type_scripts' );
 
 
 /*******************************
 BBB ROOM CUSTOM POST TYPE DECLARATION
 ********************************/
-add_action('init', 'bigbluebutton_custom_post_type_init');
 function bigbluebutton_custom_post_type_init()  {
   $labels = array(
     'name' => _x('BBB Rooms', 'post type general name'),
@@ -131,6 +130,7 @@ function bigbluebutton_custom_post_type_init()  {
    * 
    */
 }
+add_action('init', 'bigbluebutton_custom_post_type_init');
 
 /* 
  * ***********************************
@@ -178,21 +178,7 @@ function build_bbb_room_taxonomies() {
      * capabilities to roles
      */
 }
-
 add_action( 'init', 'build_bbb_room_taxonomies', 0 );
-
-
-/*
- * This adds the 'Room Details' box and 'Room Recordings' box below the main content
- * area in a BigBlueButton Custom Post Type post
- */
-add_action('add_meta_boxes', 'bigbluebutton_custom_post_type_meta_boxes');
-function bigbluebutton_custom_post_type_meta_boxes() {
-    add_meta_box('room-details', __('Room Details'),  'bigbluebutton_custom_post_type_room_details_metabox', 'bbb-room', 'normal', 'low');
-    add_meta_box('room-recordings', __('Room Recordings'),  'bigbluebutton_custom_post_type_room_recordings_metabox', 'bbb-room', 'normal', 'low');
-    add_meta_box('room-status', __('Room Status'),  'bigbluebutton_custom_post_type_room_status_metabox', 'bbb-room', 'normal', 'low');
-
-}
 
 
 /*
@@ -284,14 +270,20 @@ function bigbluebutton_custom_post_type_room_status_metabox($post) {
        echo "The meeting room is currently running.";
        echo "<p><a class='end-meeting' href='$end_meeting_url' target='_blank' >End Meeting Now</a></p>";
     }
-            
-            
-    
 }
 
+/*
+ * This adds the 'Room Details' box and 'Room Recordings' box below the main content
+* area in a BigBlueButton Custom Post Type post
+*/
+function bigbluebutton_custom_post_type_meta_boxes() {
+    add_meta_box('room-details', __('Room Details'),  'bigbluebutton_custom_post_type_room_details_metabox', 'bbb-room', 'normal', 'low');
+    add_meta_box('room-recordings', __('Room Recordings'),  'bigbluebutton_custom_post_type_room_recordings_metabox', 'bbb-room', 'normal', 'low');
+    add_meta_box('room-status', __('Room Status'),  'bigbluebutton_custom_post_type_room_status_metabox', 'bbb-room', 'normal', 'low');
+}
+add_action('add_meta_boxes', 'bigbluebutton_custom_post_type_meta_boxes');
+
 // Add to admin_init function
-add_action('save_post', 'save_bbb_data' );
- 
 function save_bbb_data($post_id) {	
 	
     $new_nonce = wp_create_nonce( 'bbb' );
@@ -328,21 +320,20 @@ function save_bbb_data($post_id) {
     }
     return $post_id;
 }
+add_action('save_post', 'save_bbb_data' );
 
-
-add_action( 'before_delete_post', 'before_bbb_delete' );
 function before_bbb_delete( $postid ){
 
     /*
      * If we want to do anything when the BBB post in wordpress is deleted, we can hook into here.
      */
 }
+add_action( 'before_delete_post', 'before_bbb_delete' );
 
 
 /*
  * CONTENT FILTER TO ADD BBB BUTTON
  */
-add_filter( 'the_content', 'bigbluebutton_custom_post_type_filter' );
 function bigbluebutton_custom_post_type_filter($content) {
     /*
      * Target only bbb-room post type, and on the 'single' page (not archive)
@@ -497,6 +488,7 @@ function bigbluebutton_custom_post_type_filter($content) {
   
   return $content . $out;
 }
+add_filter( 'the_content', 'bigbluebutton_custom_post_type_filter' );
 
 
 //should also check to make sure we are on the BBB settings page
@@ -548,12 +540,6 @@ function bigbluebutton_custom_post_type_update_notice_no_change(){
 /*
  *  OPTIONS PAGE 
  */
-add_action('admin_menu', 'register_site_options_page');
-
-function register_site_options_page() {
-    add_submenu_page( 'options-general.php', 'Site Options', 'BigBlueButton', 'edit_pages', 'site-options', 'bigbluebutton_custom_post_type_options_page_callback' ); 
-}
-
 function bigbluebutton_custom_post_type_options_page_callback() { 
     
     $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
@@ -584,17 +570,24 @@ function bigbluebutton_custom_post_type_options_page_callback() {
         </table>
     </form>
     </div>
-<?php }
- 
+<?php
+}
+
+function register_site_options_page() {
+    add_submenu_page( 'options-general.php', 'Site Options', 'BigBlueButton', 'edit_pages', 'site-options', 'bigbluebutton_custom_post_type_options_page_callback' );
+}
+add_action('admin_menu', 'register_site_options_page');
+
+
 /*
  *  SHORTCODE GENERATOR PAGE 
  */
-add_action('admin_menu', 'register_shortcode_generator_page');
-
 function register_shortcode_generator_page() {
     global $shortcode_generator_page;	
     $shortcode_generator_page = add_submenu_page( 'tools.php', 'BigBlueButton Shortcodes', 'BigBlueButton Shortcodes', 'edit_pages', 'bigbluebutton_custom_post_type-shortcode', 'bigbluebutton_custom_post_type_shortcode_page_callback' );
 }
+add_action('admin_menu', 'register_shortcode_generator_page');
+
 
 function bigbluebutton_custom_post_type_shortcode_page_callback() { ?>
     <h1>BBB Shortcode Generator</h1>
@@ -678,8 +671,6 @@ function bigbluebutton_custom_post_type_shortcode_page_callback() { ?>
 	
 <?php } 
 
-
-add_action( 'admin_enqueue_scripts', 'bigbluebutton_custom_post_type_shortcode_enqueue' );
 function bigbluebutton_custom_post_type_shortcode_enqueue($hook) {
     global $shortcode_generator_page;
     $screen = get_current_screen();
@@ -693,7 +684,7 @@ function bigbluebutton_custom_post_type_shortcode_enqueue($hook) {
      }
 	
 }
-	
+add_action( 'admin_enqueue_scripts', 'bigbluebutton_custom_post_type_shortcode_enqueue' );
 
 function bigbluebutton_custom_post_type_renderShortcode( $atts ) {
     extract( shortcode_atts( array(
@@ -975,7 +966,6 @@ function bigbluebutton_custom_post_type_list_room_recordings($postID = 0) {
     </div>';
 
     return $out;
-
 }
 
 
