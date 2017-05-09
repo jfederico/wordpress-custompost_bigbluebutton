@@ -123,7 +123,7 @@ function bigbluebutton_custom_post_type_init()
         'show_in_menu' => true,
         'query_var' => true,
         'rewrite' => array('slug' => 'bbb-room', 'with_front' => false),
-        'capability_type' => 'page',
+      //  'capability_type' => 'page',
         'map_meta_cap' => true,
         'has_archive' => true,
         'hierarchical' => false,
