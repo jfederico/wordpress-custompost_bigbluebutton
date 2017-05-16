@@ -101,34 +101,46 @@ function bigbluebutton_custom_post_type_init()
     $plural = 'BBB Rooms';
 
     $labels = array(
-        'name' => _x('BBB Rooms', 'post type general name'),
-        'singular_name' => _x($singular, 'post type singular name'),
-        'add_new' => _x('Add New', 'bbb'),
-        'add_new_item' => __('Add New '.$singular),
-        'edit_item' => __('Edit '.$singular),
-        'new_item' => __('New '.$singular),
-        'all_items' => __('All '.$plural),
-        'view_item' => __('View '.$singular),
-        'search_items' => __('Search '.$plural),
-        'not_found' => __('No '.$plural.' found'),
+        'name'               => _x($plural, 'post type general name'),
+        'singular_name'      => _x($singular, 'post type singular name'),
+        'add_new'            => _x('Add New BBB Room', 'bbb'),
+        'add_new_item'       => __('Add New '.$singular),
+        'edit_item'          => __('Edit '.$singular),
+        'new_item'           => __('New '.$singular),
+        'all_items'          => __('All '.$plural),
+        'view_item'          => __('View '.$singular),
+        'search_items'       => __('Search '.$plural),
+        'not_found'          => __('No '.$plural.' found'),
         'not_found_in_trash' => __('No '.$plural.' found in Trash'),
-        'parent_item_colon' => '',
-        'menu_name' => $plural,
+        'parent_item_colon'  => '',
+        'menu_name'          => $plural,
     );
     $args = array(
-        'labels' => $labels,
-        'public' => true,
+        'labels'             => $labels,
+        'public'             => true,
         'publicly_queryable' => true,
-        'show_ui' => true,
-        'show_in_menu' => true,
-        'query_var' => true,
-        'rewrite' => array('slug' => 'bbb-room', 'with_front' => false),
-      //  'capability_type' => 'page',
-        'map_meta_cap' => true,
-        'has_archive' => true,
-        'hierarchical' => false,
-        'menu_position' => null,
-        'supports' => array('title', 'editor', 'page-attributes', 'author'),
+        'show_ui'            => true,
+        'show_in_menu'       => true,
+        'query_var'          => true,
+        'rewrite'            => array('slug' => 'bbb-room', 'with_front' => false),
+        'capability_type'    => 'bbb-room',
+        'capabilities'       => array(
+          'publish_posts'    => 'create_rooms',
+          'read_post'        => 'read_rooms',
+          'edit_post'        => 'edit_room_own',
+          'edit_posts'       => 'edit_rooms_all',
+          //'edit_others_posts' => 'edit_rooms_all',
+          'publish_posts'    => 'manage_recordings',
+          'delete_post'      => 'delete_recordings_own',
+          'delete_posts'     => 'delete_recordings_all',
+          //'delete_others_posts' => 'delete_recordings_all',
+          'read_post'        => 'read_bbb-room'
+        ),
+        'map_meta_cap'       => true,
+        'has_archive'        => true,
+        'hierarchical'       => false,
+        'menu_position'      => null,
+        'supports'           => array('title', 'editor', 'page-attributes', 'author'),
     );
     register_post_type('bbb-room', $args);
   /*
@@ -139,6 +151,51 @@ function bigbluebutton_custom_post_type_init()
    */
 }
 add_action('init', 'bigbluebutton_custom_post_type_init');
+
+/**
+* Used http://justintadlock.com/archives/2010/07/10/meta-capabilities-for-custom-post-types code as per below
+* This function is basically mapping all the initilized capabilies and putting it in the array (detailed functionality can be seen in the above link)
+*/
+function bbb_map_meta_cap( $cap, $user_id) {
+  $args = array_slice( func_get_args(), 2 );
+  $caps = array();
+	/* If editing, deleting, or reading a room, get the post and post type object. */
+	if ( 'edit_room_own' == $cap || 'delete_recordings_own' == $cap || 'read_bbb-room' == $cap ) {
+		$post = get_post( $args[0] );
+		$post_type = get_post_type_object( $post->post_type );
+	}
+
+	/* If editing a room, assign the required capability. */
+	if ( 'edit_room_own' == $cap ) {
+		if ( $user_id == $post->post_author )
+			$caps[] = $post_type->cap->edit_posts;
+		else
+			$caps[] = $post_type->cap->edit_others_posts;
+	}
+
+	/* If deleting a room, assign the required capability. */
+	elseif ( 'delete_recordings_own' == $cap ) {
+		if ( $user_id == $post->post_author )
+			$caps[] = $post_type->cap->delete_posts;
+		else
+			$caps[] = $post_type->cap->delete_others_posts;
+	}
+
+  /* If reading a private movie, assign the required capability. */
+  elseif ( 'read_bbb-room' == $cap ) {
+    if ( 'private' != $post->post_status )
+      $caps[] = 'read';
+    elseif ( $user_id == $post->post_author )
+      $caps[] = 'read';
+    else
+      $caps[] = $post_type->cap->read_private_posts;
+  }
+
+   return $caps;
+
+}
+add_filter( 'map_meta_cap', 'bbb_map_meta_cap', 10, 4);
+
 
 /*
  * ***********************************
@@ -152,36 +209,36 @@ function build_bbb_room_taxonomies()
     $plural = 'BBB Rooms';
 
     $labels = array(
-        'name' => _x($singular.' Categories', 'taxonomy general name'),
-        'singular_name' => _x($singular.' Category', 'taxonomy singular name'),
-        'search_items' => __('Search '.$singular.' Categories'),
-        'popular_items' => __('Popular '.$singular.'  Categories'),
-        'all_items' => __('All '.$singular.'  Categories'),
-        'parent_item' => null,
-        'parent_item_colon' => null,
-        'edit_item' => __('Edit '.$singular.' Category'),
-        'update_item' => __('Update '.$singular.' Category'),
-        'add_new_item' => __('Add New '.$singular.' Category'),
-        'new_item_name' => __('New '.$singular.' Category Name'),
+        'name'                       => _x($singular.' Categories', 'taxonomy general name'),
+        'singular_name'              => _x($singular.' Category', 'taxonomy singular name'),
+        'search_items'               => __('Search '.$singular.' Categories'),
+        'popular_items'              => __('Popular '.$singular.'  Categories'),
+        'all_items'                  => __('All '.$singular.'  Categories'),
+        'parent_item'                => null,
+        'parent_item_colon'          => null,
+        'edit_item'                  => __('Edit '.$singular.' Category'),
+        'update_item'                => __('Update '.$singular.' Category'),
+        'add_new_item'               => __('Add New '.$singular.' Category'),
+        'new_item_name'              => __('New '.$singular.' Category Name'),
         'separate_items_with_commas' => __('Separate '.$singular.' categories with commas'),
-        'add_or_remove_items' => __('Add or remove '.$singular.' categories'),
-        'choose_from_most_used' => __('Choose from the most used '.$singular.' categories'),
-        'menu_name' => __($singular.' Categories'),
+        'add_or_remove_items'        => __('Add or remove '.$singular.' categories'),
+        'choose_from_most_used'      => __('Choose from the most used '.$singular.' categories'),
+        'menu_name'                  => __($singular.' Categories'),
     );
 
     register_taxonomy('bbb-room-category', array('bbb-room'), array(
-            'hierarchical' => true,
-            'labels' => $labels,
-            'show_ui' => true,
-            'update_count_callback' => '_update_post_term_count',
-            'query_var' => true,
-            'hierarchical' => true,
-            'rewrite' => array('slug' => 'bbb-room-category'),
-            'capabilities' => array(
-                                'manage_terms' => 'manage_bbb-cat',
-                                'edit_terms' => 'edit_bbb-cat',
-                                'delete_terms' => 'delete_bbb-cat',
-                                'assign_terms' => 'assign_bbb-cat', ),
+            'hierarchical'                    => true,
+            'labels'                          => $labels,
+            'show_ui'                         => true,
+            'update_count_callback'           => '_update_post_term_count',
+            'query_var'                       => true,
+            'hierarchical'                    => true,
+            'rewrite'                         => array('slug' => 'bbb-room-category'),
+            'capabilities'                    => array(
+                    'manage_terms' => 'manage_bbb-cat',
+                    'edit_terms'   => 'edit_bbb-cat',
+                    'delete_terms' => 'delete_bbb-cat',
+                    'assign_terms' => 'assign_bbb-cat', ),
 
     ));
     /*
@@ -190,6 +247,40 @@ function build_bbb_room_taxonomies()
      */
 }
 add_action('init', 'build_bbb_room_taxonomies', 0);
+
+/**
+* Adding default roles
+*/
+function bbb_default_roles()
+{
+    $adminRole = get_role('administrator');
+
+    $authorRole = get_role('author');
+    $authorRole->add_cap($adminRole);
+
+    $contributorRole = get_role('contributor');
+    $contributorRole->add_cap($adminRole);
+
+    $editorRole = get_role('editor');
+    $editorRole->add_cap($adminRole);
+
+    $subscriberRole = get_role('subscriber');
+    $subscriberRole->add_cap('read_private_posts');
+}
+add_action('init', 'bbb_default_roles');
+
+function my_error_notice() {
+$screen = get_current_screen();
+   if ( $screen->id == 'bbb-room' ) {
+
+    ?>
+    <div class="notice notice-warning is-dismissible">
+  	<p><strong>To change the default capabilities for each user, please install the "Members" plugin.</strong></p>
+    </div>
+    <?php
+ }
+}
+add_action( 'admin_notices', 'my_error_notice' );
 
 /*
  * Content for the 'Room Details' box
@@ -270,6 +361,11 @@ function bigbluebutton_custom_post_type_room_recordings_metabox($post)
     echo bigbluebutton_custom_post_type_list_room_recordings($post->ID);
 }
 
+function confirmEnd()
+{
+   return confirm('Are you sure you want to delete the meeting?');
+}
+
 function bigbluebutton_custom_post_type_room_status_metabox($post)
 {
     $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
@@ -286,11 +382,13 @@ function bigbluebutton_custom_post_type_room_status_metabox($post)
     if (!BigBlueButton::isMeetingRunning($meetingID, $endpoint_val, $secret_val)) {
         echo '<p>The meeting room is currently not running.</p>';
     } else {
-        $end_meeting_url = BigBlueButton::getEndMeetingURL($meetingID, $bbb_moderator_password, $endpoint_val, $secret_val);
-        echo 'The meeting room is currently running.';
-        echo "<p><a class='end-meeting' href='$end_meeting_url' target='_blank' >End Meeting Now</a></p>";
+      $end_meeting_url = BigBlueButton::getEndMeetingURL($meetingID, $bbb_moderator_password, $endpoint_val, $secret_val);
+      echo 'The meeting room is currently running.';
+      echo "<p><a class='end-meeting' href='$end_meeting_url' target='_blank' >End Meeting Now</a></p>";
     }
 }
+
+
 
 /*
  * This adds the 'Room Details' box and 'Room Recordings' box below the main content
@@ -319,7 +417,7 @@ function save_bbb_data($post_id)
         return $post_id;
     }
 
-    if (current_user_can('edit_bbb-room', $post_id)) {
+    if (!current_user_can('edit_bbb-rooms', $post_id)) {
         return $post_id;
     }
 
@@ -332,8 +430,23 @@ function save_bbb_data($post_id)
             update_post_meta($post_id, '_bbb_room_token', $meetingID);
         }
 
-        update_post_meta($post_id, '_bbb_attendee_password', esc_attr($_POST['bbb_attendee_password']));
-        update_post_meta($post_id, '_bbb_moderator_password', esc_attr($_POST['bbb_moderator_password']));
+        $attendeePW = $_POST[ 'bbb_attendee_password' ]? $_POST[ 'bbb_attendee_password' ]: bigbluebutton_generatePasswd(6, 2);
+        $moderatorPW = $_POST[ 'bbb_moderator_password' ]? $_POST[ 'bbb_moderator_password' ]: bigbluebutton_generatePasswd(6, 2, $attendeePW);
+
+        if(!empty(get_post_meta($post->ID, '_bbb_attendee_password', true))){
+           update_post_meta($post_id, '_bbb_attendee_password', esc_attr($_POST['bbb_attendee_password']));
+        }
+        else {
+          update_post_meta($post_id, '_bbb_attendee_password', $attendeePW);
+        }
+
+        if(!empty(get_post_meta($post->ID, '_bbb_moderator_password', true))){
+          update_post_meta($post_id, '_bbb_moderator_password', esc_attr($_POST['bbb_moderator_password']));
+        }
+        else {
+          update_post_meta($post_id, '_bbb_moderator_password', $moderatorPW);
+        }
+
         update_post_meta($post_id, '_bbb_must_wait_for_admin_start', esc_attr($_POST['bbb_must_wait_for_admin_start']));
         update_post_meta($post_id, '_bbb_is_recorded', esc_attr($_POST['bbb_is_recorded']));
         update_post_meta($post_id, '_bbb_room_welcome_msg', esc_attr($_POST['bbb_room_welcome_msg']));
@@ -342,6 +455,21 @@ function save_bbb_data($post_id)
     return $post_id;
 }
 add_action('save_post', 'save_bbb_data');
+
+
+function bigbluebutton_generatePasswd($numAlpha=6, $numNonAlpha=2, $salt='') {
+    $listAlpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    $listNonAlpha = ',;:!?.$/*-+&@_+;./*&?$-!,';
+
+    $pepper = '';
+    do{
+        $pepper = str_shuffle( substr(str_shuffle($listAlpha),0,$numAlpha) . substr(str_shuffle($listNonAlpha),0,$numNonAlpha) );
+    } while($pepper == $salt);
+
+    return $pepper;
+}
+
+
 
 function before_bbb_delete($postid)
 {
@@ -438,12 +566,12 @@ function bigbluebutton_custom_post_type_filter($content)
 
             //Metadata for tagging recordings
             $metadata = array(
-                'meta_origin' => 'WordPress',
-                'meta_originversion' => $wp_version,
-                'meta_origintag' => 'wp_plugin-bigbluebutton_custom_post_type '.BIGBLUEBUTTON_CUSTOM_POST_TYPE_PLUGIN_VERSION,
-                'meta_originservername' => home_url(),
+                'meta_origin'                 => 'WordPress',
+                'meta_originversion'          => $wp_version,
+                'meta_origintag'              => 'wp_plugin-bigbluebutton_custom_post_type '.BIGBLUEBUTTON_CUSTOM_POST_TYPE_PLUGIN_VERSION,
+                'meta_originservername'       => home_url(),
                 'meta_originservercommonname' => get_bloginfo('name'),
-                'meta_originurl' => $logouturl,
+                'meta_originurl'              => $logouturl,
             );
 
             //Call for creating meeting on the bigbluebutton_custom_post_type server
@@ -464,13 +592,13 @@ function bigbluebutton_custom_post_type_filter($content)
                 if ((BigBlueButton::isMeetingRunning($meetingID, $endpoint_val, $secret_val) && ($bbb_moderator_password == $password || $bbb_attendee_password == $password))
                         || $response['moderatorPW'] == $password
                         || ($response['attendeePW'] == $password && !$bbb_must_wait_for_admin_start)) {
-                    if ($bbb_moderator_password == $password) {
-                        $button_text = 'Join Room as Moderator';
-                        $out .= '<p><a class="bbb" style="" href="'.$bigbluebutton_custom_post_type_joinURL.'" target="_blank">'.$button_text.'</a></p>';
-                    } elseif ($bbb_attendee_password == $password) {
-                        $button_text = 'Join Room as Attendee';
-                        $out .= '<p><a class="bbb"  href="'.$bigbluebutton_custom_post_type_joinURL.'" target="_blank">'.$button_text.'</a></p>';
-                    }
+                        if ($bbb_moderator_password == $password) {
+                            $button_text = 'Join Room as Moderator';
+                            $out .= '<a href="'.$bigbluebutton_custom_post_type_joinURL.'"><button>'.$button_text.'</button></a>';
+                        } elseif ($bbb_attendee_password == $password) {
+                            $button_text = 'Join Room as Attendee';
+                            $out .= '<a href="'.$bigbluebutton_custom_post_type_joinURL.'"><button>'.$button_text.'</button></a>';
+                        }
 
                     //return $out;
                 }
@@ -693,55 +821,63 @@ function bigbluebutton_custom_post_type_shortcode_enqueue($hook)
 }
 add_action('admin_enqueue_scripts', 'bigbluebutton_custom_post_type_shortcode_enqueue');
 
-function bigbluebutton_custom_post_type_renderShortcode($atts)
+function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
 {
-    extract(shortcode_atts(array(
-                            'link_type' => 'wordpress',
-                            'bbb_categories' => '0',
-                            'bbb_posts' => '',
-                            ), $atts));
+  if($tag == 'bigbluebutton'){
+      extract(shortcode_atts(array(
+                              'link_type'      => 'wordpress',
+                              'bbb_categories' => '0',
+                              'bbb_posts'      => '',
+                              ), $atts));
 
-    $output_string = '';
+      $output_string = '';
 
-    $args = array('post_type' => 'bbb-room',
-                    'orderby' => 'name',
-                    'posts_per_page' => -1,
-                    'order' => 'DESC',
+      $args = array('post_type'        => 'bbb-room',
+                      'orderby'        => 'name',
+                      'posts_per_page' => -1,
+                      'order'          => 'DESC',
 
-    );
+      );
 
-    if ($bbb_categories) {
-        $args['tax_query'] = array(
-                                array(
-                                        'taxonomy' => 'bbb-room-category',
-                                        'field' => 'id',
-                                        'terms' => explode(',', $bbb_categories),
-                                        ),
-                                );
-    }
+      if ($bbb_categories) {
+          $args['tax_query'] = array(
+                                  array(
+                                          'taxonomy' => 'bbb-room-category',
+                                          'field'    => 'id',
+                                          'terms'    => explode(',', $bbb_categories),
+                                          ),
+                                  );
+      }
 
-    if ($bbb_posts) {
-        $args['post__in'] = explode(',', $bbb_posts);
-    }
+      if ($bbb_posts) {
+          $args['post__in'] = explode(',', $bbb_posts);
+      }
 
-    $bbb_posts = new WP_Query($args); ?>
+      $bbb_posts = new WP_Query($args); ?>
 
-    <?php if ($bbb_posts->have_posts()) :
-            $output_string = '<select onchange="location = this.options[this.selectedIndex].value;" >';
-    while ($bbb_posts->have_posts()) : $bbb_posts->the_post();
+      <?php if ($bbb_posts->have_posts()) :
+              $output_string = '<select onchange="location = this.options[this.selectedIndex].value;" >';
+      while ($bbb_posts->have_posts()) : $bbb_posts->the_post();
 
-    $output_string .= "<option value='".get_permalink()."' >".get_the_title().'</option>';
+      $output_string .= "<option value='".get_permalink()."' >".get_the_title().'</option>';
 
-    endwhile;
+      endwhile;
 
-    $output_string .= '</select>';
-    wp_reset_postdata(); else:
-      //$output_string .= '<p>' . __( 'No BBB Rooms have been created yet.' ) . '</p>';
-    endif;
+      $output_string .= '</select>';
+      wp_reset_postdata(); else:
+        //$output_string .= '<p>' . __( 'No BBB Rooms have been created yet.' ) . '</p>';
+      endif;
 
-    return $output_string;
+      return $output_string;
+  }
+  else
+  {
+      return 'This is the second shortcode';
+  }
 }
 add_shortcode('bigbluebutton', 'bigbluebutton_custom_post_type_renderShortcode');
+add_shortcode('bigbluebutton2', 'bigbluebutton_custom_post_type_renderShortcode');
+
 
 //Displays the javascript that handles redirecting a user, when the meeting has started
 //the meetingName is the meetingID
@@ -861,11 +997,11 @@ function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
                             if (el_a.title == \'Hide\' ) {
                                 action = \'unpublish\';
                                 el_a.title = \'Show\';
-                                el_img.src = wwwroot + \'/wp-content/plugins/bbb-custom-post-type/images/show.gif\';
+                                el_img.src = wwwroot + \'/wp-content/plugins/wordpress-custompost_bigbluebutton/img/show.gif\';
                             } else {
                                 action = \'publish\';
                                 el_a.title = \'Hide\';
-                                el_img.src = wwwroot + \'/wp-content/plugins/bbb-custom-post-type/images/hide.gif\';
+                                el_img.src = wwwroot + \'/wp-content/plugins/wordpress-custompost_bigbluebutton/img/hide.gif\';
                             }
                         }
                     } else {
@@ -915,7 +1051,7 @@ function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
         }
 
             /// Prepare duration
-            $endTime = isset($recording['endTime']) ? floatval($recording['endTime']) : 0;
+        $endTime = isset($recording['endTime']) ? floatval($recording['endTime']) : 0;
         $endTime = $endTime - ($endTime % 1000);
         $startTime = isset($recording['startTime']) ? floatval($recording['startTime']) : 0;
         $startTime = $startTime - ($startTime % 1000);
@@ -947,8 +1083,8 @@ function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
                 /// Prepare actionbar if role is allowed to manage the recordings
                 if (current_user_can('edit_bbb-room', $postID) && is_admin()) {
                     $action = ($recording['published'] == 'true') ? 'Hide' : 'Show';
-                    $actionbar = '<a id="actionbar-publish-a-'.$recording['recordID'].'" title="'.$action.'" href="#"><img id="actionbar-publish-img-'.$recording['recordID'].'" src="'.get_bloginfo('url').'/wp-content/plugins/bbb-custom-post-type/images/'.strtolower($action).".gif\" class=\"iconsmall\" onClick=\"actionCall('publish', '".$recording['recordID']."'); return false;\" /></a>";
-                    $actionbar .= '<a id="actionbar-delete-a-'.$recording['recordID'].'" title="Delete" href="#"><img id="actionbar-delete-img-'.$recording['recordID'].'" src="'.get_bloginfo('url')."/wp-content/plugins/bbb-custom-post-type/images/delete.gif\" class=\"iconsmall\" onClick=\"actionCall('delete', '".$recording['recordID']."'); return false;\" /></a>";
+                    $actionbar = '<a id="actionbar-publish-a-'.$recording['recordID'].'" title="'.$action.'" href="#"><img id="actionbar-publish-img-'.$recording['recordID'].'" src="'.get_bloginfo('url').'/wp-content/plugins/wordpress-custompost_bigbluebutton/img/'.strtolower($action).".gif\" class=\"iconsmall\" onClick=\"actionCall('publish', '".$recording['recordID']."'); return false;\" /></a>";
+                    $actionbar .= '<a id="actionbar-delete-a-'.$recording['recordID'].'" title="Delete" href="#"><img id="actionbar-delete-img-'.$recording['recordID'].'" src="'.get_bloginfo('url')."/wp-content/plugins/wordpress-custompost_bigbluebutton/img/delete.gif\" class=\"iconsmall\" onClick=\"actionCall('delete', '".$recording['recordID']."'); return false;\" /></a>";
                     $out .= '
                     <td>'.$actionbar.'</td>';
                 }
