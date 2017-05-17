@@ -257,6 +257,7 @@ function bigbluebutton_custom_post_type_room_details_metabox($post)
 {
     wp_nonce_field(basename(__FILE__), 'bbb_rooms_nonce');
     $bbb_attendee_password = get_post_meta($post->ID, '_bbb_attendee_password', true);
+    error_log('META GET ATTENDEE: '.get_post_meta($post->ID, '_bbb_attendee_password', true)."\n");
     $bbb_moderator_password = get_post_meta($post->ID, '_bbb_moderator_password', true);
     $bbb_must_wait_for_admin_start = get_post_meta($post->ID, '_bbb_must_wait_for_admin_start', true);
     $bbb_is_recorded = get_post_meta($post->ID, '_bbb_is_recorded', true);
@@ -381,22 +382,25 @@ function save_bbb_data($post_id)
             $meetingID = bigbluebutton_custom_post_type_generateToken();
             update_post_meta($post_id, '_bbb_room_token', $meetingID);
         }
-        $attendeePW =  bigbluebutton_custom_post_type_generatePasswd(6, 2);
+        $attendeePW = bigbluebutton_custom_post_type_generatePasswd(6, 2);
         $moderatorPW = bigbluebutton_custom_post_type_generatePasswd(6, 2, $attendeePW);
-        error_log("*******************************************TESST");
-        if(!empty(get_post_meta($post->ID, '_bbb_attendee_password', true))){
-           update_post_meta($post_id, '_bbb_attendee_password', esc_attr($_POST['bbb_attendee_password']));
 
+        if(empty($_POST['bbb_attendee_password']))
+        {
+          update_post_meta($post_id, '_bbb_attendee_password',$attendeePW);
         }
         else {
-          update_post_meta($post_id, '_bbb_attendee_password', $attendeePW);
+          update_post_meta($post_id, '_bbb_attendee_password', esc_attr($_POST['bbb_attendee_password']));
         }
-        if(!empty(get_post_meta($post->ID, '_bbb_moderator_password', true))){
+
+        if(empty($_POST['bbb_moderator_password']))
+        {
+          update_post_meta($post_id, '_bbb_moderator_password',$moderatorPW);
+        }
+        else {
           update_post_meta($post_id, '_bbb_moderator_password', esc_attr($_POST['bbb_moderator_password']));
         }
-        else {
-          update_post_meta($post_id, '_bbb_moderator_password', $moderatorPW);
-        }
+
         update_post_meta($post_id, '_bbb_must_wait_for_admin_start', esc_attr($_POST['bbb_must_wait_for_admin_start']));
         update_post_meta($post_id, '_bbb_is_recorded', esc_attr($_POST['bbb_is_recorded']));
         update_post_meta($post_id, '_bbb_room_welcome_msg', esc_attr($_POST['bbb_room_welcome_msg']));
