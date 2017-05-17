@@ -44,8 +44,6 @@ function bigbluebutton_custom_post_type_install()
 }
 //constant definition
 define('BIGBLUEBUTTON_CUSTOM_POST_TYPE_PLUGIN_VERSION', bigbluebutton_custom_post_type_get_version());
-//define("BIGBLUEBUTTON_CUSTOM_POST_TYPE_DIR", WP_PLUGIN_URL . '/bigbluebutton_custom_post_type/' );
-//define('BIGBLUEBUTTON_CUSTOM_POST_TYPE_PLUGIN_URL', plugin_dir_url( __FILE__ ));
 require_once 'includes/bbb_api.php';
 add_action('init', 'myStartSession', 1);
 function myStartSession()
@@ -116,11 +114,9 @@ function bigbluebutton_custom_post_type_init()
           'read_post'        => 'read_rooms',
           'edit_post'        => 'edit_room_own',
           'edit_posts'       => 'edit_rooms_all',
-          //'edit_others_posts' => 'edit_rooms_all',
           'publish_posts'    => 'manage_recordings',
           'delete_post'      => 'delete_recordings_own',
           'delete_posts'     => 'delete_recordings_all',
-          //'delete_others_posts' => 'delete_recordings_all',
           'read_post'        => 'read_bbb-room'
         ),
         'map_meta_cap'       => true,
@@ -761,44 +757,6 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
   }
   else
   {
-    // extract(shortcode_atts(array(
-    //                         'link_type'      => 'wordpress',
-    //                         'bbb_categories' => '0',
-    //                         'bbb_posts'      => '',
-    //                         ), $atts));
-    // $output_string = '';
-    // $args = array('post_type'        => 'bbb-room',
-    //                 'orderby'        => 'name',
-    //                 'posts_per_page' => -1,
-    //                 'order'          => 'DESC',
-    // );
-    // if ($bbb_categories) {
-    //     $args['tax_query'] = array(
-    //                             array(
-    //                                     'taxonomy' => 'bbb-room-category',
-    //                                     'field'    => 'id',
-    //                                     'terms'    => explode(',', $bbb_categories),
-    //                                     ),
-    //                             );
-    // }
-    // if ($bbb_posts) {
-    //     $args['post__in'] = explode(',', $bbb_posts);
-    // }
-    // $bbb_posts = new WP_Query($args);
-    //
-    //
-    //         $output_string = '<form>';
-    //         $output_string .= '<select onchange="this.options[this.selectedIndex];" >';
-    // while ($bbb_posts->have_posts()) : $bbb_posts->the_post();
-    // $output_string .= "<option value='".get_permalink()."' >".get_the_title().'</option>';
-    // endwhile;
-    // $output_string .= '</select>';
-    // $output_string .= '<input type="submit" location = this.options[this.selectedIndex].value;">';
-    // $output_string .= '</form>';
-    // wp_reset_postdata(); else:
-    //   //$output_string .= '<p>' . __( 'No BBB Rooms have been created yet.' ) . '</p>';
-    // endif;
-    // return $output_string;
     return 'Second Shortcode Here';
   }
 }
