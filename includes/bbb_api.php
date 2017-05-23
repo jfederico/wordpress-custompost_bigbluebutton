@@ -87,7 +87,6 @@ class BigBlueButton
             $this->securitySalt = func_get_arg(5);
             $this->URL = func_get_arg(6);
 
-            $arg_list = func_get_args();
         }// end else if
     }
 

@@ -66,7 +66,7 @@ add_action('admin_notices', 'my_admin_notices');
 /*
  * This displays some CSS we need for the BigBlueButton Custom Post Type plugin, in the backend
  */
-function bigbluebutton_custom_post_type_css_enqueue($hook)
+function bigbluebutton_custom_post_type_css_enqueue()
 {
     $bigbluebutton_custom_post_type_style = plugins_url('css/bigbluebutton_custom_post_type.css', __FILE__);
     wp_register_style('bigbluebutton_custom_post_type_style', $bigbluebutton_custom_post_type_style);
@@ -181,7 +181,6 @@ add_filter( 'map_meta_cap', 'bbb_map_meta_cap', 10, 4);
 function build_bbb_room_taxonomies()
 {
     $singular = 'BBB Room';
-    $plural = 'BBB Rooms';
     $labels = array(
         'name'                       => _x($singular.' Categories', 'taxonomy general name'),
         'singular_name'              => _x($singular.' Category', 'taxonomy singular name'),
@@ -253,7 +252,6 @@ function bigbluebutton_custom_post_type_room_details_metabox($post)
 {
     wp_nonce_field(basename(__FILE__), 'bbb_rooms_nonce');
     $bbb_attendee_password = get_post_meta($post->ID, '_bbb_attendee_password', true);
-    error_log('META GET ATTENDEE: '.get_post_meta($post->ID, '_bbb_attendee_password', true)."\n");
     $bbb_moderator_password = get_post_meta($post->ID, '_bbb_moderator_password', true);
     $bbb_must_wait_for_admin_start = get_post_meta($post->ID, '_bbb_must_wait_for_admin_start', true);
     $bbb_is_recorded = get_post_meta($post->ID, '_bbb_is_recorded', true);
@@ -271,7 +269,7 @@ function bigbluebutton_custom_post_type_room_details_metabox($post)
             <td>
                 <input type="text" name='bbb_moderator_password'  class='' value='<?php echo $bbb_moderator_password; ?>' />
             </td>
-        </tr>bigbluebutton_custom_post_type_room_details_metabox
+        </tr>
         <tr>
             <th>Wait for Admin to start meeting?</th>
             <td>
@@ -299,6 +297,7 @@ function bigbluebutton_custom_post_type_room_details_metabox($post)
             <th>Room Token</th>
             <td>
                 <p>The room token is set when the post is saved. This is not editable.</p>
+                <input type="hidden" name="bbb_room_token" value="<?php echo $bbb_room_token ? $bbb_room_token : 'Token Not Set'; ?>">
                 <p>Room Token: <strong><?php echo $bbb_room_token ? $bbb_room_token : 'Token Not Set'; ?></strong></p>
             </td>
         </tr>
@@ -322,10 +321,7 @@ function bigbluebutton_custom_post_type_room_recordings_metabox($post)
      */
     echo bigbluebutton_custom_post_type_list_room_recordings($post->ID);
 }
-function confirmEnd()
-{
-   return confirm('Are you sure you want to delete the meeting?');
-}
+
 function bigbluebutton_custom_post_type_room_status_metabox($post)
 {
     $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
@@ -336,14 +332,20 @@ function bigbluebutton_custom_post_type_room_status_metabox($post)
     $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
     $meetingID = $bbb_room_token;
     $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($meetingID);
+
+    if($_POST['SubmitList'] == 'End Meeting Now' ) {
+      $response = BigBlueButton::endMeeting(bigbluebutton_custom_post_type_normalizeMeetingID($_POST['bbb_room_token']), $_POST['bbb_moderator_password'], $endpoint_val, $secret_val );
+    }
+
     if (!BigBlueButton::isMeetingRunning($meetingID, $endpoint_val, $secret_val)) {
         echo '<p>The meeting room is currently not running.</p>';
     } else {
-      $end_meeting_url = BigBlueButton::getEndMeetingURL($meetingID, $bbb_moderator_password, $endpoint_val, $secret_val);
-      echo 'The meeting room is currently running.';
-      echo "<p><a class='end-meeting' href='$end_meeting_url' target='_blank' >End Meeting Now</a></p>";
+        echo '<input type="submit" name="SubmitList" class="button-primary" value="End Meeting Now" />&nbsp';
     }
+
 }
+add_action('wp_insert_post_data', 'bigbluebutton_custom_post_type_room_status_metabox', 1);
+
 /*
  * This adds the 'Room Details' box and 'Room Recordings' box below the main content
 * area in a BigBlueButton Custom Post Type post
@@ -360,7 +362,6 @@ function save_bbb_data($post_id)
 {
     $new_nonce = wp_create_nonce('bbb');
     if ($_POST['"bbb-noncename'] == $new_nonce) {
-        //die('nonce fail');
         return $post_id;
     }
     // verify if this is an auto save routine. If it is our form has not been submitted, so we dont want to do anything
@@ -405,7 +406,7 @@ function save_bbb_data($post_id)
 }
 add_action('save_post', 'save_bbb_data');
 
-function before_bbb_delete($postid)
+function before_bbb_delete()
 {
     /*
      * If we want to do anything when the BBB post in wordpress is deleted, we can hook into here.
@@ -481,7 +482,6 @@ function bigbluebutton_custom_post_type_filter($content)
             }
             //Extra parameters
             $recorded = $bbb_is_recorded;
-            $welcome = $bbb_room_welcome_msg;
             $duration = 0;
             $voicebridge = 0;
             $logouturl = (is_ssl() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout=true';
@@ -511,12 +511,12 @@ function bigbluebutton_custom_post_type_filter($content)
                         || ($response['attendeePW'] == $password && !$bbb_must_wait_for_admin_start)) {
                         if ($bbb_moderator_password == $password) {
                             $button_text = 'Join Room as Moderator';
-                            $out .= '<a href="'.$bigbluebutton_custom_post_type_joinURL.'"><button>'.$button_text.'</button></a>';
+                            $out .= '<a href="'.$bigbluebutton_custom_post_type_joinURL.'"><button>'.$button_text.'</button></a>';                            
                         } elseif ($bbb_attendee_password == $password) {
                             $button_text = 'Join Room as Attendee';
                             $out .= '<a href="'.$bigbluebutton_custom_post_type_joinURL.'"><button>'.$button_text.'</button></a>';
                         }
-                    //return $out;
+
                 }
                 //If the viewer has the correct password, but the meeting has not yet started they have to wait
                 //for the moderator to start the meeting
@@ -527,7 +527,6 @@ function bigbluebutton_custom_post_type_filter($content)
                     //Displays the javascript to automatically redirect the user when the meeting begins
                     $out .= '<div id="bbb-join-container"></div>';
                     $out .= bigbluebutton_custom_post_type_display_reveal_script($bigbluebutton_custom_post_type_joinURL, $meetingID, $bbb_meeting_name, $name);
-                    //return $out;
                 }
             }
             $out .= bigbluebutton_custom_post_type_list_room_recordings($post->ID);
@@ -540,6 +539,8 @@ function bigbluebutton_custom_post_type_filter($content)
   return $content.$out;
 }
 add_filter('the_content', 'bigbluebutton_custom_post_type_filter');
+
+
 //should also check to make sure we are on the BBB settings page
 if (is_admin() && (isset($_POST['endpoint']) || isset($_POST['secret']))) {
     $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
@@ -562,7 +563,6 @@ if (is_admin() && (isset($_POST['endpoint']) || isset($_POST['secret']))) {
     } else {
         add_action('admin_notices', 'bigbluebutton_custom_post_type_update_notice_no_change');
     }
-    //add_action('admin_notices', 'update_notice');
 }
 function bigbluebutton_custom_post_type_update_notice_success()
 {
@@ -705,7 +705,7 @@ function bigbluebutton_custom_post_type_shortcode_page_callback()
 
 <?php
 }
-function bigbluebutton_custom_post_type_shortcode_enqueue($hook)
+function bigbluebutton_custom_post_type_shortcode_enqueue()
 {
     global $shortcode_generator_page;
     $screen = get_current_screen();
@@ -757,6 +757,7 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
   }
   else
   {
+
     return 'Second Shortcode Here';
   }
 }
@@ -929,7 +930,6 @@ function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
                 $recording['startTime'] = ($recording['startTime'] - $recording['startTime'] % 1000) / 1000;
             }
             //Format the date
-            //$formatedStartDate = gmdate("M d Y H:i:s", $recording['startTime']);
             $formatedStartDate = date_i18n('M d Y H:i:s', $recording['startTime'], false);
             //Print detail
             if ($recording['published'] == 'true' || is_admin()) {
@@ -981,7 +981,6 @@ function bigbluebutton_custom_post_type_generatePasswd($numAlpha = 6, $numNonAlp
 {
     $listAlpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     $listNonAlpha = ',;:!?.$/*-+&@_+;./*&?$-!,';
-    $pepper = '';
     do {
         $pepper = str_shuffle(substr(str_shuffle($listAlpha), 0, $numAlpha).substr(str_shuffle($listNonAlpha), 0, $numNonAlpha));
     } while ($pepper == $salt);
