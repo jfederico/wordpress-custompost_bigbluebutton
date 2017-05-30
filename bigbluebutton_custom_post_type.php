@@ -511,7 +511,7 @@ function bigbluebutton_custom_post_type_filter($content)
                         || ($response['attendeePW'] == $password && !$bbb_must_wait_for_admin_start)) {
                         if ($bbb_moderator_password == $password) {
                             $button_text = 'Join Room as Moderator';
-                            $out .= '<a href="'.$bigbluebutton_custom_post_type_joinURL.'"><button>'.$button_text.'</button></a>';                            
+                            $out .= '<a href="'.$bigbluebutton_custom_post_type_joinURL.'"><button>'.$button_text.'</button></a>';
                         } elseif ($bbb_attendee_password == $password) {
                             $button_text = 'Join Room as Attendee';
                             $out .= '<a href="'.$bigbluebutton_custom_post_type_joinURL.'"><button>'.$button_text.'</button></a>';
@@ -716,6 +716,8 @@ function bigbluebutton_custom_post_type_shortcode_enqueue()
     }
 }
 add_action('admin_enqueue_scripts', 'bigbluebutton_custom_post_type_shortcode_enqueue');
+
+
 function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
 {
   if($tag == 'bigbluebutton'){
@@ -749,7 +751,7 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
       while ($bbb_posts->have_posts()) : $bbb_posts->the_post();
       $output_string .= "<option value='".get_permalink()."' >".get_the_title().'</option>';
       endwhile;
-      $output_string .= '</select>';
+      $output_string .= '</select> ';
       wp_reset_postdata(); else:
         //$output_string .= '<p>' . __( 'No BBB Rooms have been created yet.' ) . '</p>';
       endif;
