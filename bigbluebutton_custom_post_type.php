@@ -261,7 +261,7 @@ function bigbluebutton_custom_post_type_room_details_metabox($post)
         <tr>
             <th>Attendee Password</th>
             <td>
-                <input type="text" name='bbb_attendee_password' id ="bbb_attendee_password" class='' value='<?php echo $bbb_attendee_password; ?>' />
+                <input type="text" name='bbb_attendee_password' id="bbb_attendee_password" class='' value='<?php echo $bbb_attendee_password; ?>' />
             </td>
         </tr>
         <tr>
@@ -344,7 +344,8 @@ function bigbluebutton_custom_post_type_room_status_metabox($post)
     }
 
 }
-add_action('wp_insert_post_data', 'bigbluebutton_custom_post_type_room_status_metabox', 1);
+//add_action('wp_insert_post_data', 'bigbluebutton_custom_post_type_room_status_metabox', 1);
+add_action('admin_menu', 'bigbluebutton_custom_post_type_room_status_metabox', 1);
 
 /*
  * This adds the 'Room Details' box and 'Room Recordings' box below the main content
@@ -418,6 +419,7 @@ add_action('before_delete_post', 'before_bbb_delete');
  */
 function bigbluebutton_custom_post_type_filter($content)
 {
+  error_log("*** TEST ***");
     /*
      * Target only bbb-room post type, and on the 'single' page (not archive)
      *
@@ -494,8 +496,10 @@ function bigbluebutton_custom_post_type_filter($content)
                 'meta_originservercommonname' => get_bloginfo('name'),
                 'meta_originurl'              => $logouturl,
             );
+              error_log("*** TEST ***");
             //Call for creating meeting on the bigbluebutton_custom_post_type server
             $response = BigBlueButton::createMeetingArray($name, $meetingID, $bbb_meeting_name, $bbb_room_welcome_msg, $bbb_moderator_password, $bbb_attendee_password, $secret_val, $endpoint_val, $logouturl, $recorded ? 'true' : 'false', $duration, $voicebridge, $metadata);
+            error_log("*** RESPONSE ***". json_encode($response));
             if (!$response || $response['returncode'] == 'FAILED') {
                 //If the server is unreachable, or an error occured
                 $out .= "<p class='error'>".__('Sorry an error occured while creating the meeting room.', 'bbb').'</p>';
@@ -720,7 +724,7 @@ add_action('admin_enqueue_scripts', 'bigbluebutton_custom_post_type_shortcode_en
 
 function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
 {
-  if($tag == 'bigbluebutton'){
+
       extract(shortcode_atts(array(
                               'link_type'      => 'wordpress',
                               'bbb_categories' => '0',
@@ -746,21 +750,43 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
       }
       $bbb_posts = new WP_Query($args); ?>
 
-      <?php if ($bbb_posts->have_posts()) :
-              $output_string = '<select onchange="location = this.options[this.selectedIndex].value;" >';
+      <?php
+      if($tag == 'bigbluebutton')
+      {
+        if ($bbb_posts->have_posts()) :
+                $output_string = '
+                <form id="form1" style="background-color: #f6f6f6; border-radius: 5px; border: 1px solid #ccc; padding:20px 30px 30px 30px; box-shadow: 0 1px 2px rgba(0, 0, 0, .1); border-radius: 5px; width: 300px;">
+                <label>Room:</label>
+                <select onchange="location = this.options[this.selectedIndex].value;" style="color: #777; border-radius: 2px;background: #fff; width: 100%;">';
+        while ($bbb_posts->have_posts()) : $bbb_posts->the_post();
+        $output_string .= "<option value='".get_permalink()."' >".get_the_title().'</option>';
+        endwhile;
+        $output_string .= '
+              </select>
+              </form>';
+        wp_reset_postdata(); else:
+          //$output_string .= '<p>' . __( 'No BBB Rooms have been created yet.' ) . '</p>';
+        endif;
+        return $output_string;
+  }
+  else
+  {
+      if ($bbb_posts->have_posts()) :
+              $output_string = '
+              <form id="form1" style="background-color: #f6f6f6; border-radius: 5px; border: 1px solid #ccc; padding:20px 30px 20px 30px; box-shadow: 0 1px 2px rgba(0, 0, 0, .1); border-radius: 5px; width: 300px;">
+              <label>Meeting(not working):</label>
+              <select onchange="this.options[this.selectedIndex].value;" style="color: #777; border-radius: 2px;background: #fff; width: 100%;">';
       while ($bbb_posts->have_posts()) : $bbb_posts->the_post();
-      $output_string .= "<option value='".get_permalink()."' >".get_the_title().'</option>';
+      $output_string .= "<option >".get_the_title().'</option>';
       endwhile;
-      $output_string .= '</select> ';
+      $output_string .= '
+            </select>
+              <input type="submit" onClick="location='.get_permalink().' " name="SubmitForm" value="Join" style="width: 100%; margin: 5px 0px 10px 0; margin-top:15px;  background-color: #66add6; border: 1px solid #66add6; box-shadow: 0 1px 2px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .5);   background-image: linear-gradient(top left 90deg, #acd6ef 0%, #6ec2e8 100%);  background-image: -webkit-gradient(linear, left top, left bottom, from(#acd6ef), to(#6ec2e8));">
+            </form>';
       wp_reset_postdata(); else:
         //$output_string .= '<p>' . __( 'No BBB Rooms have been created yet.' ) . '</p>';
       endif;
       return $output_string;
-  }
-  else
-  {
-
-    return 'Second Shortcode Here';
   }
 }
 add_shortcode('bigbluebutton', 'bigbluebutton_custom_post_type_renderShortcode');
