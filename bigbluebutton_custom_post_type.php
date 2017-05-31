@@ -516,6 +516,7 @@ function bigbluebutton_custom_post_type_filter($content)
                         if ($bbb_moderator_password == $password) {
                             $button_text = 'Join Room as Moderator';
                             $out .= '<a href="'.$bigbluebutton_custom_post_type_joinURL.'"><button>'.$button_text.'</button></a>';
+
                         } elseif ($bbb_attendee_password == $password) {
                             $button_text = 'Join Room as Attendee';
                             $out .= '<a href="'.$bigbluebutton_custom_post_type_joinURL.'"><button>'.$button_text.'</button></a>';
@@ -724,7 +725,6 @@ add_action('admin_enqueue_scripts', 'bigbluebutton_custom_post_type_shortcode_en
 
 function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
 {
-
       extract(shortcode_atts(array(
                               'link_type'      => 'wordpress',
                               'bbb_categories' => '0',
@@ -768,26 +768,43 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
           //$output_string .= '<p>' . __( 'No BBB Rooms have been created yet.' ) . '</p>';
         endif;
         return $output_string;
-  }
-  else
-  {
-      if ($bbb_posts->have_posts()) :
-              $output_string = '
-              <form id="form1" style="background-color: #f6f6f6; border-radius: 5px; border: 1px solid #ccc; padding:20px 30px 20px 30px; box-shadow: 0 1px 2px rgba(0, 0, 0, .1); border-radius: 5px; width: 300px;">
-              <label>Meeting(not working):</label>
-              <select onchange="this.options[this.selectedIndex].value;" style="color: #777; border-radius: 2px;background: #fff; width: 100%;">';
-      while ($bbb_posts->have_posts()) : $bbb_posts->the_post();
-      $output_string .= "<option >".get_the_title().'</option>';
-      endwhile;
-      $output_string .= '
-            </select>
-              <input type="submit" onClick="location='.get_permalink().' " name="SubmitForm" value="Join" style="width: 100%; margin: 5px 0px 10px 0; margin-top:15px;  background-color: #66add6; border: 1px solid #66add6; box-shadow: 0 1px 2px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .5);   background-image: linear-gradient(top left 90deg, #acd6ef 0%, #6ec2e8 100%);  background-image: -webkit-gradient(linear, left top, left bottom, from(#acd6ef), to(#6ec2e8));">
-            </form>';
-      wp_reset_postdata(); else:
-        //$output_string .= '<p>' . __( 'No BBB Rooms have been created yet.' ) . '</p>';
-      endif;
-      return $output_string;
-  }
+    }
+    else
+    {
+      $output_string = '
+                <script type="text/javascript">
+                function goToNewPageNew(dropdownlist)
+                {
+                  console.log("(2)*******************************");
+                  var url = dropdownlist.options[dropdownlist.selectedIndex].value;
+                  if (url != "")
+                  {
+                  window.open(url);
+                  }
+                }
+                </script>';
+        if ($bbb_posts->have_posts()) :
+                $output_string .= '
+                <form name="dropdownNew" style="background-color: #f6f6f6; border-radius: 5px; border: 1px solid #ccc; padding:20px 30px 20px 30px; box-shadow: 0 1px 2px rgba(0, 0, 0, .1); border-radius: 5px; width: 300px;">
+                <label>Meeting:</label>
+                <label>*implementation in progress*</label>
+                <select name="list" accesskey="E"  style="color: #777; border-radius: 2px;background: #fff; width: 100%;">';
+            while ($bbb_posts->have_posts()) :
+              $bbb_posts->the_post();
+              $output_string .= "<option value='".get_permalink()."' >".get_the_title().'</option>';
+            endwhile;
+            $output_string .= '
+                  </select>
+                    <input type="submit"  onclick="goToNewPageNew(document.dropdownNew.list)"  name="SubmitForm" value="Join" style="width: 100%; margin: 5px 0px 10px 0; margin-top:15px;  background-color: #66add6; border: 1px solid #66add6; box-shadow: 0 1px 2px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .5);   background-image: linear-gradient(top left 90deg, #acd6ef 0%, #6ec2e8 100%);  background-image: -webkit-gradient(linear, left top, left bottom, from(#acd6ef), to(#6ec2e8));">
+                  </form>
+                  ';
+            wp_reset_postdata();
+        else://onClick="'.get_permalink().'""
+          //onclick="window.open(\'http://www.w3schools.com\')"  *** WORKS **
+          //$output_string .= '<p>' . __( 'No BBB Rooms have been created yet.' ) . '</p>';
+        endif;
+        return $output_string;
+    }
 }
 add_shortcode('bigbluebutton', 'bigbluebutton_custom_post_type_renderShortcode');
 add_shortcode('bigbluebutton2', 'bigbluebutton_custom_post_type_renderShortcode');
