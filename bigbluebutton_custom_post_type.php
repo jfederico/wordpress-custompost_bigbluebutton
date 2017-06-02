@@ -487,7 +487,6 @@ function bigbluebutton_custom_post_type_filter($content)
              * built in permission and capability functions rather than something custom. For more info check out:
              * http://codex.wordpress.org/Function_Reference/current_user_can
              */
-             error_log("\n\n*** POST ID *** ".json_encode($post->ID)."\n");
 
             if (in_array( 'subscriber', $current_user->roles )) {
               $password = $bbb_attendee_password;
@@ -512,18 +511,11 @@ function bigbluebutton_custom_post_type_filter($content)
             );
             //Call for creating meeting on the bigbluebutton_custom_post_type server
             $response = BigBlueButton::createMeetingArray($name, $meetingID, $bbb_meeting_name, $bbb_room_welcome_msg, $bbb_moderator_password, $bbb_attendee_password, $secret_val, $endpoint_val, $logouturl, $recorded ? 'true' : 'false', $duration, $voicebridge, $metadata);
-            error_log("\n\n*** (1) RESPONSE ***". json_encode($response));
+
             if (!$response || $response['returncode'] == 'FAILED') {
                 //If the server is unreachable, or an error occured
                 $out .= "<p class='error'>".__('Sorry an error occured while creating the meeting room.', 'bbb').'</p>';
             } else { //The user can join the meeting, as it is valid
-               error_log("\n\n*** JOIN URL PARAMETERS ***"."\n");
-               error_log("\n\n*** (1) Metting ID ***".$meetingID."\n");
-               error_log("\n\n*** (1) NAME ***".$name."\n");
-               error_log("\n\n*** (1) Password ***".$password."\n");
-               error_log("\n\n*** (1) Secret val ***".$secret_val."\n");
-               error_log("\n\n*** (1) Endpoint val ***".$endpoint_val."\n");
-               error_log("\n\n***************************"."\n");
                 $bigbluebutton_custom_post_type_joinURL = BigBlueButton::getJoinURL($meetingID, $name, $password, $secret_val, $endpoint_val);
                 //If the meeting is already running or the moderator is trying to join or a viewer is trying to join and the
                 //do not wait for moderator option is set to false then the user is immediately redirected to the meeting
