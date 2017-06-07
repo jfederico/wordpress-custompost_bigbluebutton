@@ -352,8 +352,7 @@ function bigbluebutton_custom_post_type_room_status_metabox($post)
     }
 
 }
-//add_action('wp_insert_post_data', 'bigbluebutton_custom_post_type_room_status_metabox', 1);
-add_action('admin_menu', 'bigbluebutton_custom_post_type_room_status_metabox', 1);
+add_action('save_post', 'bigbluebutton_custom_post_type_room_status_metabox', 1);
 
 /*
  * This adds the 'Room Details' box and 'Room Recordings' box below the main content
@@ -735,6 +734,18 @@ function bigbluebutton_custom_post_type_shortcode_enqueue()
 add_action('admin_enqueue_scripts', 'bigbluebutton_custom_post_type_shortcode_enqueue');
 
 
+
+
+function the_slug($echo=true){
+  $slug = basename(get_permalink());
+  do_action('before_slug', $slug);
+  $slug = apply_filters('slug_filter', $slug);
+  if( $echo ) echo $slug;
+  do_action('after_slug', $slug);
+  return $slug;
+}
+
+
 function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
 {
       extract(shortcode_atts(array(
@@ -749,7 +760,6 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
                       'order'          => 'DESC',
       );
 
-      error_log("\n\n*** BBB CATEGORIES IN SHORTCODES *** ". json_encode($bbb_categories)."\n");
       if ($bbb_categories) {
 
           $args['tax_query'] = array(
@@ -760,19 +770,18 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
                                           ),
                                   );
       }
-      error_log("\n\n*** BBB *POSTS* IN SHORTCODES *** ". json_encode($bbb_posts)."\n");
+
       if ($bbb_posts) {
 
           $args['post__in'] = explode(',', $bbb_posts);
       }
+
       $bbb_posts = new WP_Query($args); ?>
 
       <?php
       if($tag == 'bigbluebutton')
       {
         if ($bbb_posts->have_posts()) :
-          error_log("\n\n*** BBB *POSTS*->HAVE POSTS IN SHORTCODES *** ". json_encode($bbb_posts->have_posts())."\n");
-          error_log("\n\n*** BBB *POSTS* POSTS IN SHORTCODES *** ". json_encode($bbb_posts)."\n");
                 $output_string = '
                 <form id="form1" style="background-color: #f6f6f6; border-radius: 5px; border: 1px solid #ccc; padding:20px 30px 30px 30px; box-shadow: 0 1px 2px rgba(0, 0, 0, .1); border-radius: 5px; width: 300px;">
                 <label>Room:</label>
@@ -791,33 +800,14 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
     }
     else
     {
-      error_log("\n\n*** POST IN SHORTCODES *** ". json_encode($post)."\n");
-
       $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
-      error_log("\n\n(2)*** Room Token *** ".$bbb_room_token."\n");
-
       $meetingID = $bbb_room_token;
-      error_log("\n\n(2)*** Meeting ID *** ".$meetingID."\n");
-
       $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($meetingID);
-      error_log("\n\n(3)*** Meeting ID *** ".$meetingID."\n");
-
       $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
-
       $endpoint_val = $bigbluebutton_custom_post_type_settings['endpoint'];
-      error_log("\n\n(2)*** Endpoint val *** ".$endpoint_val."\n");//
-
       $secret_val = $bigbluebutton_custom_post_type_settings['secret'];
-      error_log("\n\n(2)*** Secret val *** ".$secret_val."\n");//
-
       $bbb_attendee_password = get_post_meta($post->ID, '_bbb_attendee_password', true);
-      error_log("\n\n(2)*** Attendee Password ***".$bbb_attendee_password."\n");
-
       $bbb_moderator_password = get_post_meta($post->ID, '_bbb_moderator_password', true);
-      error_log("\n\n(2)*** Moderator Password ***".$bbb_attendee_password."\n");
-
-      $bigbluebutton_custom_post_type_joinURL = BigBlueButton::getJoinURL($meetingID, 'supriyag', $password, $secret_val, $endpoint_val);
-      error_log("\n\n*** JOIN URL *** ".$bigbluebutton_custom_post_type_joinURL."\n");
 
       $output_string = '
                 <script type="text/javascript">
@@ -835,11 +825,18 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
                 $output_string .= '
                 <form name="dropdownNew" style="background-color: #f6f6f6; border-radius: 5px; border: 1px solid #ccc; padding:20px 30px 20px 30px; box-shadow: 0 1px 2px rgba(0, 0, 0, .1); border-radius: 5px; width: 300px;">
                 <label>Meeting:</label>
-                <label style="color: #FF0000;">Implementation In Progress</label>
+                <!--<label style="color: #FF0000;">Implementation In Progress</label>-->
                 <select name="list" accesskey="E"  style="color: #777; border-radius: 2px;background: #fff; width: 100%;">';
             while ($bbb_posts->have_posts()) :
               $bbb_posts->the_post();
-              $output_string .= "<option value='".get_permalink()."' >".get_the_title().'</option>';
+              $slug = the_slug();
+          if ($post = get_page_by_path($slug, OBJECT, 'bbb-room'))
+                $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
+                $meetingID = $bbb_room_token;
+                $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($meetingID);
+                $bbb_moderator_password = get_post_meta($post->ID, '_bbb_moderator_password', true);
+                $bigbluebutton_custom_post_type_joinURL = BigBlueButton::getJoinURL($meetingID, 'supriyag', $bbb_moderator_password, $secret_val, $endpoint_val);
+                $output_string .= "<option value='".$bigbluebutton_custom_post_type_joinURL."' >".get_the_title().'</option>';
             endwhile;
             $output_string .= '
                   </select>
@@ -855,6 +852,8 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
 }
 add_shortcode('bigbluebutton', 'bigbluebutton_custom_post_type_renderShortcode');
 add_shortcode('bigbluebutton2', 'bigbluebutton_custom_post_type_renderShortcode');
+
+
 //Displays the javascript that handles redirecting a user, when the meeting has started
 //the meetingName is the meetingID
 /*
