@@ -748,6 +748,7 @@ function the_slug($echo=true){
 
 function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
 {
+   global  $current_user;
       extract(shortcode_atts(array(
                               'link_type'      => 'wordpress',
                               'bbb_categories' => '0',
@@ -800,14 +801,12 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
     }
     else
     {
-      $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
-      $meetingID = $bbb_room_token;
-      $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($meetingID);
       $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
       $endpoint_val = $bigbluebutton_custom_post_type_settings['endpoint'];
       $secret_val = $bigbluebutton_custom_post_type_settings['secret'];
-      $bbb_attendee_password = get_post_meta($post->ID, '_bbb_attendee_password', true);
-      $bbb_moderator_password = get_post_meta($post->ID, '_bbb_moderator_password', true);
+      $logouturl = (is_ssl() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout=true';
+      $duration = 0;
+      $voicebridge = 0;
 
       $output_string = '
                 <script type="text/javascript">
@@ -830,18 +829,35 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
             while ($bbb_posts->have_posts()) :
               $bbb_posts->the_post();
               $slug = the_slug();
-          if ($post = get_page_by_path($slug, OBJECT, 'bbb-room'))
-                $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
-                $meetingID = $bbb_room_token;
-                $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($meetingID);
-                $bbb_moderator_password = get_post_meta($post->ID, '_bbb_moderator_password', true);
-                $bigbluebutton_custom_post_type_joinURL = BigBlueButton::getJoinURL($meetingID, 'supriyag', $bbb_moderator_password, $secret_val, $endpoint_val);
-                $output_string .= "<option value='".$bigbluebutton_custom_post_type_joinURL."' >".get_the_title().'</option>';
+              if ($post = get_page_by_path($slug, OBJECT, 'bbb-room'))
+              {
+
+                  $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
+                  $meetingID = $bbb_room_token;
+                  $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($meetingID);
+                  $bbb_attendee_password = get_post_meta($post->ID, '_bbb_attendee_password', true);
+                  $bbb_moderator_password = get_post_meta($post->ID, '_bbb_moderator_password', true);
+                  $name = $current_user->display_name;
+                  $bbb_meeting_name = get_the_title($post->ID);
+                  $bbb_room_welcome_msg = get_post_meta($post->ID, '_bbb_room_welcome_msg', true);
+                  $bbb_is_recorded = get_post_meta($post->ID, '_bbb_is_recorded', true);
+                  $recorded = $bbb_is_recorded;
+                  $response = BigBlueButton::createMeetingArray($name, $meetingID, $bbb_meeting_name, $bbb_room_welcome_msg, $bbb_moderator_password, $bbb_attendee_password, $secret_val, $endpoint_val, $logouturl, $recorded ? 'true' : 'false', $duration, $voicebridge, $metadata);
+                  if (!$response || $response['returncode'] == 'FAILED')
+                  {
+                    //If the server is unreachable, or an error occured
+                    $out .= "<p class='error'>".__('Sorry an error occured while creating the meeting room.', 'bbb').'</p>';
+                  }
+                  else
+                  {
+                    $bigbluebutton_custom_post_type_joinURL = BigBlueButton::getJoinURL($meetingID, $name , $bbb_moderator_password, $secret_val, $endpoint_val);
+                  }
+                  $output_string .= "<option value='".$bigbluebutton_custom_post_type_joinURL."' >".get_the_title().'</option>';
+              }
             endwhile;
             $output_string .= '
                   </select>
                     <input type="submit"  onclick="goToNewPageNew(document.dropdownNew.list)"  name="SubmitForm" value="Join" style="width: 100%; margin: 5px 0px 10px 0; margin-top:15px;  background-color: #66add6; border: 1px solid #66add6; box-shadow: 0 1px 2px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .5);   background-image: linear-gradient(top left 90deg, #acd6ef 0%, #6ec2e8 100%);  background-image: -webkit-gradient(linear, left top, left bottom, from(#acd6ef), to(#6ec2e8));">
-                    <!--<input type="submit"  onclick="goToNewPageNew(document.dropdownNew.list)"  name="SubmitForm" value="Join" style=" color: #FF0000; background-color: #66add6; border: 1px solid #66add6;">-->
                   </form>
                   ';
             wp_reset_postdata();
