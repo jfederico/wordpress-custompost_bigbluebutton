@@ -132,11 +132,13 @@ class BigBlueButton
         }
 
         $meta = '';
+        if($metadata != ''){
         foreach ($metadata as $key => $value) {
             $meta = $meta.'&'.$key.'='.urlencode($value);
         }
+      }
 
-        $params = 'name='.urlencode($name).'&meetingID='.urlencode($meetingID).'&attendeePW='.urlencode($attendeePW).'&moderatorPW='.urlencode($moderatorPW).'&voiceBridge='.$voiceBridge.'&logoutURL='.urlencode($logoutURL).'&record='.$record.$meta;
+       $params = 'name='.urlencode($name).'&meetingID='.urlencode($meetingID).'&attendeePW='.urlencode($attendeePW).'&moderatorPW='.urlencode($moderatorPW).'&voiceBridge='.$voiceBridge.'&logoutURL='.urlencode($logoutURL).'&record='.$record.$meta;
 
         $duration = intval($duration);
         if ($duration > 0) {

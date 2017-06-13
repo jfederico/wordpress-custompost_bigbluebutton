@@ -45,7 +45,7 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 header('HTTP/1.0 400 Bad Request. [recordingID] parameter was not included in this query.');
             } else {
                 $recordingID = $_GET[$recordingID_name];
-                echo BigBlueButton_CPT::doPublishRecordings($recordingID, 'true', $url_val, $salt_val);
+                echo BigBlueButton::doPublishRecordings($recordingID, 'true', $url_val, $salt_val);
             }
             break;
         case 'unpublish':
@@ -54,7 +54,7 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 header('HTTP/1.0 400 Bad Request. [recordingID] parameter was not included in this query.');
             } else {
                 $recordingID = $_GET[$recordingID_name];
-                echo BigBlueButton_CPT::doPublishRecordings($recordingID, 'false', $url_val, $salt_val);
+                echo BigBlueButton::doPublishRecordings($recordingID, 'false', $url_val, $salt_val);
             }
             break;
         case 'delete':
@@ -63,7 +63,7 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 header('HTTP/1.0 400 Bad Request. [recordingID] parameter was not included in this query.');
             } else {
                 $recordingID = $_GET[$recordingID_name];
-                echo BigBlueButton_CPT::doDeleteRecordings($recordingID, $url_val, $salt_val);
+                echo BigBlueButton::doDeleteRecordings($recordingID, $url_val, $salt_val);
             }
             break;
         case 'ping':
@@ -73,12 +73,13 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 header('HTTP/1.0 400 Bad Request. [meetingID] parameter was not included in this query.');
             } else {
                 $meetingID = $_GET[$meetingID_name];
-                $response = BigBlueButton_CPT::getMeetingXML($meetingID, $url_val, $salt_val);
+                $response = BigBlueButton::getMeetingXML($meetingID, $url_val, $salt_val);
+                error_log("RESPONSE: ".$response);
                 echo '<response>'.$response.'</response>';
             }
             break;
         default:
             header('Content-Type: text/plain; charset=utf-8');
-            echo BigBlueButton_CPT::getServerVersion($url_val);
+            echo BigBlueButton::getServerVersion($url_val);
     }
 }
