@@ -417,7 +417,7 @@ function bigbluebutton_custom_post_type_room_status_metabox($post)
       }
   }
    if (!BigBlueButton::isMeetingRunning($meetingID, $endpoint_val, $secret_val)) {
-       $out .= '<p>The meeting room is currently not running.</p>';
+
    } else {
        $out .= '<input type="submit" name="SubmitList" style="position: absolute; left: 70px;padding: 5x;" class="button-primary" value="End Meeting Now" />&nbsp';
    }
@@ -935,11 +935,9 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
                 <script type="text/javascript">
                 function goToNewPageNew(dropdownlist)
                 {
-                  console.log("IN ON CLICK");
                   var url = dropdownlist.options[dropdownlist.selectedIndex].value;
                   if (url != "")
                   {
-                    console.log("IN ON CLICK");
                     window.open(url);
                   }
                 }
