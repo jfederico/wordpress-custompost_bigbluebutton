@@ -294,6 +294,9 @@ class BigBlueButton
     {
         $xml = bbb_custom_post_type_wrap_simplexml_load_file(self::getCreateMeetingURL($meetingName, $meetingID, $aPW, $mPW, $welcomeString, $logoutURL, $SALT, $URL, $record, $duration, $voiceBridge, $metadata));
 
+        error_log("\n\n****************** XML ******************  ". json_encode($xml) . "\n\n");
+
+
         if ($xml) {
             if ($xml->meetingID) {
                 return array('returncode' => (string) $xml->returncode, 'message' => (string) $xml->message, 'messageKey' => (string) $xml->messageKey, 'meetingID' => (string) $xml->meetingID, 'attendeePW' => (string) $xml->attendeePW, 'moderatorPW' => (string) $xml->moderatorPW, 'hasBeenForciblyEnded' => (string) $xml->hasBeenForciblyEnded);

@@ -71,6 +71,12 @@ a.end-meeting {
 		    color: red;
 		}
 
+	 .oldshortcode{
+			border-radius: 2px;
+			width: 100%;
+			margin-top: 20px;
+		}
+
 		#form1 {
 			background-color: #f6f6f6;
 			border-radius: 5px;
