@@ -73,12 +73,14 @@ function bigbluebutton_custom_post_type_css_enqueue()
     wp_enqueue_style('bigbluebutton_custom_post_type_style');
 }
 add_action('init', 'bigbluebutton_custom_post_type_css_enqueue');
+
+
 function bigbluebutton_custom_post_type_scripts()
 {
   wp_enqueue_style('bigbluebutton_custom_post_type_front-end', plugins_url('css/bigbluebutton_custom_post_type_front-end.css', __FILE__));
 }
 add_action('init', 'bigbluebutton_custom_post_type_scripts');
-//add_action('wp_enqueue_scripts', 'bigbluebutton_custom_post_type_scripts');
+
 /*******************************
 BBB ROOM CUSTOM POST TYPE DECLARATION
 ********************************/
@@ -824,7 +826,7 @@ add_action('admin_enqueue_scripts', 'bigbluebutton_custom_post_type_shortcode_en
 function bigbluebutton_sidebar($args) {
     echo $args['before_widget'];
     echo $args['before_title'] .'BigBlueButtonNew'.$args['after_title'];
-    echo bigbluebutton_custom_post_type_renderShortcode($atts, $content, 'bigbluebutton');
+    echo bigbluebutton_custom_post_type_renderShortcode($atts, $content, 'bigbluebuttonnew');
     echo $args['after_widget'];
 }
 
@@ -832,7 +834,7 @@ function bigbluebutton_sidebar($args) {
 function bigbluebutton_sidebar2($args) {
     echo $args['before_widget'];
     echo $args['before_title'] .'BigBlueButtonOld'.$args['after_title'];
-    echo bigbluebutton_custom_post_type_renderShortcode($atts, $content, 'bigbluebutton2');
+    echo bigbluebutton_custom_post_type_renderShortcode($atts, $content, 'bigbluebuttonold');
     echo $args['after_widget'];
 }
 //Registers the bigbluebutton widget
