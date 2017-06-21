@@ -147,15 +147,12 @@ function bbb_map_meta_cap($cap, $user_id) {
 
   $args = array_slice( func_get_args(), 2 );
   $caps = array();
-	/* If editing, deleting, or reading a room, get the post and post type object. */
-
-
 
 	if ( "edit_rooms_own" == $cap[0] || "delete_rooms_own" == $cap[0] || "read_rooms" == $cap[0] ) {
 		$post = get_post( $args[0] );
 		$post_type = get_post_type_object( $post->post_type );
 	}
-	/* If editing a room, assign the required capability. */
+
 	if ( 'edit_room_own' == $cap[0] ) {
 
 		if ( $user_id == $post->post_author ){
@@ -166,14 +163,14 @@ function bbb_map_meta_cap($cap, $user_id) {
 			$caps[] = $post_type->cap->edit_others_posts;
     }
 	}
-	/* If deleting a room, assign the required capability. */
+
 	elseif ( 'delete_recordings_own' == $cap[0] ) {
 		if ( $user_id == $post->post_author )
 			$caps[] = $post_type->cap->delete_posts;
 		else
 			$caps[] = $post_type->cap->delete_others_posts;
 	}
-  /* If reading a private movie, assign the required capability. */
+
   elseif ( 'read_bbb-room' == $cap[0] ) {
     if ( 'private' != $post->post_status )
       $caps[] = 'read';
@@ -231,6 +228,7 @@ function build_bbb_room_taxonomies()
      */
 }
 add_action('init', 'build_bbb_room_taxonomies', 0);
+
 /**
 * Adding default roles
 */
@@ -364,68 +362,66 @@ function bigbluebutton_custom_post_type_room_status_metabox($post)
       $response = BigBlueButton::endMeeting(bigbluebutton_custom_post_type_normalizeMeetingID($_POST['bbb_room_token']), $_POST['bbb_moderator_password'], $endpoint_val, $secret_val );
     }
 
+    $recorded = $bbb_is_recorded;
+    $duration = 0;
+    $voicebridge = 0;
+    $logouturl = (is_ssl() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout=true';
+    //Metadata for tagging recordings
+    $metadata = array(
+       'meta_origin'                 => 'WordPress',
+       'meta_originversion'          => $wp_version,
+       'meta_origintag'              => 'wp_plugin-bigbluebutton_custom_post_type '.BIGBLUEBUTTON_CUSTOM_POST_TYPE_PLUGIN_VERSION,
+       'meta_originservername'       => home_url(),
+       'meta_originservercommonname' => get_bloginfo('name'),
+       'meta_originurl'              => $logouturl,
+    );
 
-     $recorded = $bbb_is_recorded;
-     $duration = 0;
-     $voicebridge = 0;
-     $logouturl = (is_ssl() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout=true';
-     //Metadata for tagging recordings
-     $metadata = array(
-         'meta_origin'                 => 'WordPress',
-         'meta_originversion'          => $wp_version,
-         'meta_origintag'              => 'wp_plugin-bigbluebutton_custom_post_type '.BIGBLUEBUTTON_CUSTOM_POST_TYPE_PLUGIN_VERSION,
-         'meta_originservername'       => home_url(),
-         'meta_originservercommonname' => get_bloginfo('name'),
-         'meta_originurl'              => $logouturl,
-     );
+    if ($current_user->allcaps["edit_bbb-cat"]) {
+      $password = $bbb_moderator_password;
+    }
+    else if($current_user->allcaps["read"]) {
+      $password = $bbb_attendee_password;
+    }
 
-     if ($current_user->allcaps["edit_bbb-cat"]) {
-       $password = $bbb_moderator_password;
-     }
-     else if($current_user->allcaps["read"]) {
-       $password = $bbb_attendee_password;
-     }
+    if (!$current_user->ID) {
+         $out .= '<div class="login-box" style="background-color:#eee;padding:20px;margin-bottom:20px;" >';
+         if (get_option('users_can_register')) {
+             $out .= '<p>Please login or register to access this room and view room recordings:</p>';
+             $out .= wp_register('<p>', '</p>', false);
+         } else {
+             $out .= '<p>Only registered users can access rooms and view room recordings:</p>';
+         }
+         $out .= '</div>';
+     } else {
+         if ($current_user->display_name != '') {
+             $name = $current_user->display_name;
+         } elseif ($current_user->user_firstname != '' || $current_user->user_lastname != '') {
+             $name = $current_user->user_firstname != '' ? $current_user->user_firstname.' ' : '';
+             $name .= $current_user->user_lastname != '' ? $current_user->user_lastname.' ' : '';
+         } elseif ($current_user->user_login != '') {
+             $name = $current_user->user_login;
+         } else {
+             $name = $role;
+         }
+    }
+    if(get_post_status($post->ID)==='publish'){
 
-      if (!$current_user->ID) {
-           $out .= '<div class="login-box" style="background-color:#eee;padding:20px;margin-bottom:20px;" >';
-           if (get_option('users_can_register')) {
-               $out .= '<p>Please login or register to access this room and view room recordings:</p>';
-               $out .= wp_register('<p>', '</p>', false);
-           } else {
-               $out .= '<p>Only registered users can access rooms and view room recordings:</p>';
-           }
-           $out .= '</div>';
-       } else {
-           if ($current_user->display_name != '') {
-               $name = $current_user->display_name;
-           } elseif ($current_user->user_firstname != '' || $current_user->user_lastname != '') {
-               $name = $current_user->user_firstname != '' ? $current_user->user_firstname.' ' : '';
-               $name .= $current_user->user_lastname != '' ? $current_user->user_lastname.' ' : '';
-           } elseif ($current_user->user_login != '') {
-               $name = $current_user->user_login;
-           } else {
-               $name = $role;
-           }
+      $response = BigBlueButton::createMeetingArray($name, $meetingID, $bbb_meeting_name, $bbb_room_welcome_msg, $bbb_moderator_password, $bbb_attendee_password, $secret_val, $endpoint_val, $logouturl, $recorded ? 'true' : 'false', $duration, $voicebridge, $metadata);
+
+      if (!$response || $response['returncode'] == 'FAILED') {
+          $out .= 'Sorry an error occured while creating the meeting room.';
+      } else {
+          $bigbluebutton_custom_post_type_joinURL = BigBlueButton::getJoinURL($meetingID, $name, $password, $secret_val, $endpoint_val);
+          $button_text = 'Join';
+          $out .= '<input type="button" style=" left: 0;padding: 5x 100px;" class="button-primary" value="'.$button_text.'"  onClick="window.open(\''.$bigbluebutton_custom_post_type_joinURL.'\'); setTimeout(function() {document.location.reload(true);}, 5000);" />';
       }
-      if(get_post_status($post->ID)==='publish'){
-
-        $response = BigBlueButton::createMeetingArray($name, $meetingID, $bbb_meeting_name, $bbb_room_welcome_msg, $bbb_moderator_password, $bbb_attendee_password, $secret_val, $endpoint_val, $logouturl, $recorded ? 'true' : 'false', $duration, $voicebridge, $metadata);
-
-        if (!$response || $response['returncode'] == 'FAILED') {
-            $out .= 'Sorry an error occured while creating the meeting room*********';
-        } else {
-            $bigbluebutton_custom_post_type_joinURL = BigBlueButton::getJoinURL($meetingID, $name, $password, $secret_val, $endpoint_val);
-            $button_text = 'Join';
-            $out .= '<input type="button" style=" left: 0;padding: 5x 100px;" class="button-primary" value="'.$button_text.'"  onClick="window.open(\''.$bigbluebutton_custom_post_type_joinURL.'\'); setTimeout(function() {document.location.reload(true);}, 5000);" />';
-        }
-    }
-    if (!BigBlueButton::isMeetingRunning($meetingID, $endpoint_val, $secret_val)) {
-      $out .= '<p>The meeting room is currently not running.</p>';
-    } else {
-        $out .= '<input type="submit" name="SubmitList" style="position: absolute; left: 70px;padding: 5x;" class="button-primary" value="End Meeting Now" />&nbsp';
-    }
-
-    echo $out;
+  }
+   if (!BigBlueButton::isMeetingRunning($meetingID, $endpoint_val, $secret_val)) {
+       $out .= '<p>The meeting room is currently not running.</p>';
+   } else {
+       $out .= '<input type="submit" name="SubmitList" style="position: absolute; left: 70px;padding: 5x;" class="button-primary" value="End Meeting Now" />&nbsp';
+   }
+  echo $out;
 }
 add_action('save_post', 'bigbluebutton_custom_post_type_room_status_metabox',999);
 
@@ -449,6 +445,7 @@ function save_bbb_data($post_id)
     $endpoint_val = $bigbluebutton_custom_post_type_settings['endpoint'];
     $secret_val = $bigbluebutton_custom_post_type_settings['secret'];
     $new_nonce = wp_create_nonce('bbb');
+
     if ($_POST['"bbb-noncename'] == $new_nonce) {
         return $post_id;
     }
@@ -573,16 +570,6 @@ function bigbluebutton_custom_post_type_filter($content)
              * built in permission and capability functions rather than something custom. For more info check out:
              * http://codex.wordpress.org/Function_Reference/current_user_can
              */
-
-             $current_user->caps["wpcf_custom_post_type_view"]=false;
-
-            if (in_array( 'subscriber', $current_user->roles )) {
-              $password = $bbb_attendee_password;
-            }
-            else {
-              $password = $bbb_moderator_password;
-            }
-
 
             if ($current_user->allcaps["edit_bbb-cat"]) {
               $password = $bbb_moderator_password;
@@ -832,15 +819,8 @@ add_action('admin_enqueue_scripts', 'bigbluebutton_custom_post_type_shortcode_en
 
 
 
-function the_slug($echo=true){
-  $slug = basename(get_permalink());
-  do_action('before_slug', $slug);
-  $slug = apply_filters('slug_filter', $slug);
-  do_action('after_slug', $slug);
-  return $slug;
-}
 
-//Inserts a bigbluebutton widget on the siderbar of the blog
+//Inserts a bigbluebuttonnew widget on the siderbar of the blog
 function bigbluebutton_sidebar($args) {
     echo $args['before_widget'];
     echo $args['before_title'] .'BigBlueButtonNew'.$args['after_title'];
@@ -848,7 +828,7 @@ function bigbluebutton_sidebar($args) {
     echo $args['after_widget'];
 }
 
-//Inserts a bigbluebutton widget on the siderbar of the blog
+//Inserts a bigbluebuttonold widget on the siderbar of the blog
 function bigbluebutton_sidebar2($args) {
     echo $args['before_widget'];
     echo $args['before_title'] .'BigBlueButtonOld'.$args['after_title'];
@@ -867,8 +847,18 @@ wp_register_sidebar_widget('bigbluebuttonsidebarwidget2',
                           array( 'description' => 'Displays a BigBlueButton login form in a sidebar.'));
 }
 add_action('widgets_init', 'bigbluebutton_widget_init');
-//add_filter('widget_text', 'do_shortcode');
 
+
+//Gets the slug of the current post
+function the_slug($echo=true){
+  $slug = basename(get_permalink());
+  do_action('before_slug', $slug);
+  $slug = apply_filters('slug_filter', $slug);
+  do_action('after_slug', $slug);
+  return $slug;
+}
+
+//BigBlueButton shortcodes
 function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
 {
    global  $current_user;
@@ -903,7 +893,7 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
       $bbb_posts = new WP_Query($args); ?>
 
       <?php
-      if($tag == 'bigbluebutton')
+      if($tag == 'bigbluebuttonnew')
       {
         if ($bbb_posts->have_posts()) :
 
@@ -931,14 +921,9 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
           //$output_string .= '<p>' . __( 'No BBB Rooms have been created yet.' ) . '</p>';
         endif;
         return $output_string;
-        error_log("\n\n********************* IN FIRST ***********8\n\n");
-
     }
     else
     {
-
-      error_log("\n\n********************* IN SEONDS ***********8\n\n");
-
       $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
       $endpoint_val = $bigbluebutton_custom_post_type_settings['endpoint'];
       $secret_val = $bigbluebutton_custom_post_type_settings['secret'];
@@ -954,6 +939,7 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
                   var url = dropdownlist.options[dropdownlist.selectedIndex].value;
                   if (url != "")
                   {
+                    console.log("IN ON CLICK");
                     window.open(url);
                   }
                 }
@@ -1009,7 +995,7 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
               			margin-top: 20px;
               		}
                    </style>
-                    <input class="oldshortcode"  type="submit"  onclick="goToNewPageNew(document.dropdownNew.list)"  value="Join"/>
+                    <input class="oldshortcode"  type="submit"  onClick="goToNewPageNew(document.dropdownNew.list)"  value="Join"/>
                   </form>
                   ';
             wp_reset_postdata();
@@ -1018,8 +1004,8 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
         return $output_string;
     }
 }
-add_shortcode('bigbluebutton', 'bigbluebutton_custom_post_type_renderShortcode',1);
-add_shortcode('bigbluebutton2', 'bigbluebutton_custom_post_type_renderShortcode',1);
+add_shortcode('bigbluebuttonnew', 'bigbluebutton_custom_post_type_renderShortcode',1);
+add_shortcode('bigbluebuttonold', 'bigbluebutton_custom_post_type_renderShortcode',1);
 
 
 
@@ -1237,6 +1223,8 @@ function bigbluebutton_custom_post_type_generateToken($tokenLength = 6)
     }
     return $token;
 }
+
+//generates random password
 function bigbluebutton_custom_post_type_generatePasswd($numAlpha = 6, $numNonAlpha = 2, $salt = '')
 {
     $listAlpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -1246,10 +1234,13 @@ function bigbluebutton_custom_post_type_generatePasswd($numAlpha = 6, $numNonAlp
     } while ($pepper == $salt);
     return $pepper;
 }
+
+//normalizing meeting ID
 function bigbluebutton_custom_post_type_normalizeMeetingID($meetingID)
 {
     return (strlen($meetingID) == 12) ? sha1(home_url().$meetingID) : $meetingID;
 }
+
 //Returns current plugin version.
 function bigbluebutton_custom_post_type_get_version()
 {
