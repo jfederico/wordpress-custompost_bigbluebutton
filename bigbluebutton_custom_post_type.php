@@ -138,8 +138,6 @@ function bigbluebutton_custom_post_type_init()
 }
 add_action('init', 'bigbluebutton_custom_post_type_init',0);
 
-
-
 /**
 * Used http://justintadlock.com/archives/2010/07/10/meta-capabilities-for-custom-post-types code as per below
 * This function is basically mapping all the initilized capabilies and putting it in the array (detailed functionality can be seen in the above link)
@@ -149,14 +147,15 @@ function bbb_map_meta_cap($cap, $user_id) {
 
   $args = array_slice( func_get_args(), 2 );
   $caps = array();
-
-	if ( "edit_rooms_own" == $cap[0] || "delete_rooms_own" == $cap[0] || "read_rooms" == $cap[0] ) {
+//edit_rooms_own_bbb-room //delete_rooms_own_bbb-room //read_rooms_bbb-room
+if ( "edit_rooms_own" == $cap[0] || "delete_rooms_own" == $cap[0] || "read_rooms" == $cap[0] ) {
+//  if ( "edit_rooms_own_bbb-room" == $cap[0] || "delete_rooms_own_bbb-room" == $cap[0] || "read_rooms_bbb-room" == $cap[0] ) {
 		$post = get_post( $args[0] );
 		$post_type = get_post_type_object( $post->post_type );
 	}
 
-	if ( 'edit_room_own' == $cap[0] ) {
-
+if ( 'edit_room_own' == $cap[0] ) {
+	//if ( 'edit_rooms_own_bbb-room' == $cap[0] ) {
 		if ( $user_id == $post->post_author ){
 			$caps[] = $post_type->cap->edit_posts;
     }
@@ -166,14 +165,16 @@ function bbb_map_meta_cap($cap, $user_id) {
     }
 	}
 
-	elseif ( 'delete_recordings_own' == $cap[0] ) {
+elseif ( 'delete_recordings_own' == $cap[0] ) {
+//  elseif ( 'delete_rooms_own_bbb-room' == $cap[0] ) {
 		if ( $user_id == $post->post_author )
 			$caps[] = $post_type->cap->delete_posts;
 		else
 			$caps[] = $post_type->cap->delete_others_posts;
 	}
 
-  elseif ( 'read_bbb-room' == $cap[0] ) {
+ elseif ( 'read_bbb-room' == $cap[0] ) {
+  //elseif ( 'read_rooms_bbb-room' == $cap[0] ) {
     if ( 'private' != $post->post_status )
       $caps[] = 'read';
     elseif ( $user_id == $post->post_author )
@@ -806,6 +807,7 @@ function bigbluebutton_custom_post_type_shortcode_page_callback()
 
 <?php
 }
+
 function bigbluebutton_custom_post_type_shortcode_enqueue()
 {
     global $shortcode_generator_page;
@@ -817,9 +819,6 @@ function bigbluebutton_custom_post_type_shortcode_enqueue()
     }
 }
 add_action('admin_enqueue_scripts', 'bigbluebutton_custom_post_type_shortcode_enqueue');
-
-
-
 
 
 //Inserts a bigbluebuttonnew widget on the siderbar of the blog
