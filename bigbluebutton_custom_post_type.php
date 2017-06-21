@@ -364,6 +364,7 @@ function bigbluebutton_custom_post_type_room_status_metabox($post)
       $response = BigBlueButton::endMeeting(bigbluebutton_custom_post_type_normalizeMeetingID($_POST['bbb_room_token']), $_POST['bbb_moderator_password'], $endpoint_val, $secret_val );
     }
 
+
      $recorded = $bbb_is_recorded;
      $duration = 0;
      $voicebridge = 0;
@@ -426,7 +427,7 @@ function bigbluebutton_custom_post_type_room_status_metabox($post)
 
     echo $out;
 }
-//add_action('save_post', 'bigbluebutton_custom_post_type_room_status_metabox', 1);
+add_action('save_post', 'bigbluebutton_custom_post_type_room_status_metabox',999);
 
 /*
  * This adds the 'Room Details' box and 'Room Recordings' box below the main content
@@ -917,7 +918,8 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
                  </style>
                 <form id="form1" class="shortcode">
                 <label>Room:</label>
-                <select onchange="location = this.options[this.selectedIndex].value;" style="color: #777; border-radius: 2px;background: #fff; width: 100%;">';
+                <select onchange="location = this.options[this.selectedIndex].value;" style="color: #777; border-radius: 2px;background: #fff; width: 100%;">
+                <option disabled selected value>select an option</option>';
         while ($bbb_posts->have_posts()) : $bbb_posts->the_post();
         $output_string .= "<option value='".get_permalink()."' >".get_the_title().'</option>';
         endwhile;
@@ -929,9 +931,14 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
           //$output_string .= '<p>' . __( 'No BBB Rooms have been created yet.' ) . '</p>';
         endif;
         return $output_string;
+        error_log("\n\n********************* IN FIRST ***********8\n\n");
+
     }
     else
     {
+
+      error_log("\n\n********************* IN SEONDS ***********8\n\n");
+
       $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
       $endpoint_val = $bigbluebutton_custom_post_type_settings['endpoint'];
       $secret_val = $bigbluebutton_custom_post_type_settings['secret'];
@@ -955,7 +962,8 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
                 $output_string .= '
                 <form name="dropdownNew" class="shortcode">
                 <label>Meeting:</label>
-                <select name="list" accesskey="E"  style="color: #777; border-radius: 2px;background: #fff; width: 100%; ">';
+                <select name="list" accesskey="E"  style="color: #777; border-radius: 2px;background: #fff; width: 100%; ">
+                <option disabled selected value>select an option</option>';
             while ($bbb_posts->have_posts()) :
               $bbb_posts->the_post();
               $slug = the_slug();
