@@ -744,21 +744,21 @@ function register_site_options_page()
 
 add_action('admin_menu', 'register_site_options_page');
 
-// Inserts a bigbluebuttonnew widget on the siderbar of the blog.
+// Inserts a bigbluebuttonrooms widget on the siderbar of the blog.
 function bigbluebutton_sidebar($args)
 {
     echo $args['before_widget'];
-    echo $args['before_title'].'BigBlueButtonNew'.$args['after_title'];
-    echo bigbluebutton_custom_post_type_renderShortcode($atts, $content, 'bigbluebuttonnew');
+    echo $args['before_title'].'BigBlueButton Rooms'.$args['after_title'];
+    echo bigbluebutton_custom_post_type_renderShortcode($atts, $content, 'bigbluebuttonrooms');
     echo $args['after_widget'];
 }
 
-// Inserts a bigbluebuttonold widget on the siderbar of the blog.
+// Inserts a bigbluebutton widget on the siderbar of the blog.
 function bigbluebutton_rooms_sidebar($args)
 {
     echo $args['before_widget'];
-    echo $args['before_title'].'BigBlueButtonOld'.$args['after_title'];
-    echo bigbluebutton_custom_post_type_renderShortcode($atts, $content, 'bigbluebuttonold');
+    echo $args['before_title'].'BigBlueButton'.$args['after_title'];
+    echo bigbluebutton_custom_post_type_renderShortcode($atts, $content, 'bigbluebutton');
     echo $args['after_widget'];
 }
 
@@ -816,10 +816,10 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
     $bbb_posts = new WP_Query($args); ?>
 
       <?php
-      if ($tag == 'bigbluebuttonnew') {
+      if ($tag == 'bigbluebuttonrooms') {
           if ($bbb_posts->have_posts()) :
 
-                $output_string = '
+              $output_string = '
                 <style type="text/css">
                .shortcode{
                   background-color: #f6f6f6;
@@ -831,7 +831,7 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
                 <form id="form1" class="shortcode">
                 <label>Room:</label>
                 <select onchange="location = this.options[this.selectedIndex].value;" style="color: #777; border-radius: 2px;background: #fff; width: 100%;">
-                <option disabled selected value>select an option</option>';
+                <option disabled selected value>select room</option>';
           while ($bbb_posts->have_posts()) : $bbb_posts->the_post();
           $output_string .= "<option value='".get_permalink()."' >".get_the_title().'</option>';
           endwhile;
@@ -868,7 +868,7 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
                 <form name="dropdownNew" class="shortcode">
                 <label>Meeting:</label>
                 <select name="list" accesskey="E"  style="color: #777; border-radius: 2px;background: #fff; width: 100%; ">
-                <option disabled selected value>select an option</option>';
+                <option disabled selected value>select room</option>';
           while ($bbb_posts->have_posts()) :
               $bbb_posts->the_post();
           $slug = the_slug();
@@ -920,8 +920,8 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
       }
 }
 
-add_shortcode('bigbluebuttonnew', 'bigbluebutton_custom_post_type_renderShortcode', 1);
-add_shortcode('bigbluebuttonold', 'bigbluebutton_custom_post_type_renderShortcode', 1);
+add_shortcode('bigbluebuttonrooms', 'bigbluebutton_custom_post_type_renderShortcode', 1);
+add_shortcode('bigbluebutton', 'bigbluebutton_custom_post_type_renderShortcode', 1);
 
 //Displays the javascript that handles redirecting a user, when the meeting has started
 //the meetingName is the meetingID
@@ -930,24 +930,22 @@ add_shortcode('bigbluebuttonold', 'bigbluebutton_custom_post_type_renderShortcod
  */
 function bigbluebutton_custom_post_type_display_reveal_script($bigbluebutton_custom_post_type_joinURL, $meetingID, $meetingName, $name)
 {
+    $pluginbaseurl = bigbluebutton_plugin_base_url();
     $out = '
     <script type="text/javascript">
         function bigbluebutton_custom_post_type_ping() {
             jQuery.ajax({
-                url : "/wp-content/plugins/bbb-custom-post-type/php/broker.php?action=ping&meetingID='.urlencode($meetingID).'",
+                url : "'.$pluginbaseurl.'/php/broker.php?action=ping&meetingID='.urlencode($meetingID).'",
                 async : true,
                 dataType : "xml",
                 success : function(xmlDoc){
                     $xml = jQuery( xmlDoc ), $running = $xml.find( "running" );
                     if($running.text() == "true"){
-                        //window.location = "'.$bigbluebutton_custom_post_type_joinURL.'";
                         if (!jQuery("div#bbb-join-container a").length)
                             jQuery("div#bbb-join-container").append("<p><a class=\'bbb\'  href=\''.$bigbluebutton_custom_post_type_joinURL.'\' target=\'_blank\'>'.'Join as Attendee'.'</a></p>");
                         }
                 },
                 error : function(xmlHttpRequest, status, error) {
-                    //console.debug(xmlHttpRequest);
-                    //console.debug(status);
                 }
             });
         }
@@ -960,7 +958,7 @@ function bigbluebutton_custom_post_type_display_reveal_script($bigbluebutton_cus
           <td>
             Welcome '.$name.'!<br /><br />
             '.$meetingName.' session has not been started yet.<br /><br />
-            <div align="center"><img src="'.get_bloginfo('url').'/wp-content/plugins/wordpress-custompost_bigbluebutton/img/polling.gif" /></div><br />
+            <div align="center"><img src="'.$pluginbaseurl.'/img/polling.gif" /></div><br />
             (Your browser will automatically refresh and join the meeting when it starts.)
           </td>
         </tr>
@@ -968,6 +966,11 @@ function bigbluebutton_custom_post_type_display_reveal_script($bigbluebutton_cus
     </table>';
 
     return $out;
+}
+
+function bigbluebutton_plugin_base_url()
+{
+    return "".pathinfo(plugins_url(plugin_basename(__FILE__), dirname(__FILE__)))['dirname'];
 }
 
 //================================================================================
@@ -986,6 +989,7 @@ function bigbluebutton_custom_post_type_display_reveal_script($bigbluebutton_cus
 function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
 {
     global $current_user;
+    $pluginbaseurl = bigbluebutton_plugin_base_url();
     $bbb_room_token = get_post_meta($postID, '_bbb_room_token', true);
     $meetingID = $bbb_room_token;
     $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($meetingID);
@@ -1017,7 +1021,7 @@ function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
     if (current_user_can('edit_bbb-room', $postID) && is_admin()) {
         $out .= '
         <script type="text/javascript">
-            wwwroot = \''.get_bloginfo('url').'\'
+            var pluginbaseurl = \''.$pluginbaseurl.'\'
             function actionCall(action, recordingid) {
                 action = (typeof action == \'undefined\') ? \'publish\' : action;
                 if (action == \'publish\' || (action == \'delete\' && confirm("Are you sure to delete this recording?"))) {
@@ -1028,18 +1032,18 @@ function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
                             if (el_a.title == \'Hide\' ) {
                                 action = \'unpublish\';
                                 el_a.title = \'Show\';
-                                el_img.src = wwwroot + \'/wp-content/plugins/wordpress-custompost_bigbluebutton/img/show.gif\';
+                                el_img.src = pluginbaseurl + \'/img/show.gif\';
                             } else {
                                 action = \'publish\';
                                 el_a.title = \'Hide\';
-                                el_img.src = wwwroot + \'/wp-content/plugins/wordpress-custompost_bigbluebutton/img/hide.gif\';
+                                el_img.src = pluginbaseurl + \'/img/hide.gif\';
                             }
                         }
                     } else {
                         // Removes the line from the table
                         jQuery(document.getElementById(\'actionbar-tr-\'+ recordingid)).remove();
                     }
-                    actionurl = wwwroot + "/wp-content/plugins/bbb-custom-post-type/php/broker.php?action=" + action + "&recordingID=" + recordingid;
+                    actionurl = pluginbaseurl + "/php/broker.php?action=" + action + "&recordingID=" + recordingid;
                     jQuery.ajax({
                             url : actionurl,
                             async : false,
@@ -1105,8 +1109,8 @@ function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
                 /// Prepare actionbar if role is allowed to manage the recordings
                 if (current_user_can('edit_bbb-room', $postID) && is_admin()) {
                     $action = ($recording['published'] == 'true') ? 'Hide' : 'Show';
-                    $actionbar = '<a id="actionbar-publish-a-'.$recording['recordID'].'" title="'.$action.'" href="#"><img id="actionbar-publish-img-'.$recording['recordID'].'" src="'.get_bloginfo('url').'/wp-content/plugins/wordpress-custompost_bigbluebutton/img/'.strtolower($action).".gif\" class=\"iconsmall\" onClick=\"actionCall('publish', '".$recording['recordID']."'); return false;\" /></a>";
-                    $actionbar .= '<a id="actionbar-delete-a-'.$recording['recordID'].'" title="Delete" href="#"><img id="actionbar-delete-img-'.$recording['recordID'].'" src="'.get_bloginfo('url')."/wp-content/plugins/wordpress-custompost_bigbluebutton/img/delete.gif\" class=\"iconsmall\" onClick=\"actionCall('delete', '".$recording['recordID']."'); return false;\" /></a>";
+                    $actionbar = '<a id="actionbar-publish-a-'.$recording['recordID'].'" title="'.$action.'" href="#"><img id="actionbar-publish-img-'.$recording['recordID'].'" src="'.$pluginbaseurl."/img/".strtolower($action).".gif\" class=\"iconsmall\" onClick=\"actionCall('publish', '".$recording['recordID']."'); return false;\" /></a>";
+                    $actionbar .= '<a id="actionbar-delete-a-'.$recording['recordID'].'" title="Delete" href="#"><img id="actionbar-delete-img-'.$recording['recordID'].'" src="'.$pluginbaseurl."/img/delete.gif\" class=\"iconsmall\" onClick=\"actionCall('delete', '".$recording['recordID']."'); return false;\" /></a>";
                     $out .= '
                     <td>'.$actionbar.'</td>';
                 }
