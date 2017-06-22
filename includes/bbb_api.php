@@ -87,7 +87,6 @@ class BigBlueButton
             $this->securitySalt = func_get_arg(5);
             $this->URL = func_get_arg(6);
 
-            $arg_list = func_get_args();
         }// end else if
     }
 
@@ -133,11 +132,13 @@ class BigBlueButton
         }
 
         $meta = '';
+        if($metadata != ''){
         foreach ($metadata as $key => $value) {
             $meta = $meta.'&'.$key.'='.urlencode($value);
         }
+      }
 
-        $params = 'name='.urlencode($name).'&meetingID='.urlencode($meetingID).'&attendeePW='.urlencode($attendeePW).'&moderatorPW='.urlencode($moderatorPW).'&voiceBridge='.$voiceBridge.'&logoutURL='.urlencode($logoutURL).'&record='.$record.$meta;
+       $params = 'name='.urlencode($name).'&meetingID='.urlencode($meetingID).'&attendeePW='.urlencode($attendeePW).'&moderatorPW='.urlencode($moderatorPW).'&voiceBridge='.$voiceBridge.'&logoutURL='.urlencode($logoutURL).'&record='.$record.$meta;
 
         $duration = intval($duration);
         if ($duration > 0) {
@@ -292,6 +293,9 @@ class BigBlueButton
     public function createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $mPW, $aPW, $SALT, $URL, $logoutURL, $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array())
     {
         $xml = bbb_custom_post_type_wrap_simplexml_load_file(self::getCreateMeetingURL($meetingName, $meetingID, $aPW, $mPW, $welcomeString, $logoutURL, $SALT, $URL, $record, $duration, $voiceBridge, $metadata));
+
+        error_log("\n\n****************** XML ******************  ". json_encode($xml) . "\n\n");
+
 
         if ($xml) {
             if ($xml->meetingID) {
