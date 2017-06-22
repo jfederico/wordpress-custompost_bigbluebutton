@@ -74,7 +74,7 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
             } else {
                 $meetingID = $_GET[$meetingID_name];
                 $response = BigBlueButton::getMeetingXML($meetingID, $url_val, $salt_val);
-                error_log("RESPONSE: ".$response);
+                error_log('RESPONSE: '.$response);
                 echo '<response>'.$response.'</response>';
             }
             break;
