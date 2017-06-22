@@ -86,12 +86,12 @@ BBB ROOM CUSTOM POST TYPE DECLARATION
 ********************************/
 function bigbluebutton_custom_post_type_init()
 {
-    $singular = 'BBB Room';
-    $plural = 'BBB Rooms';
+    $singular = 'Room';
+    $plural = 'Rooms';
     $labels = array(
         'name'               => _x($plural, 'post type general name'),
         'singular_name'      => _x($singular, 'post type singular name'),
-        'add_new'            => _x('Add New BBB Room', 'bbb'),
+        'add_new'            => _x('Add New', 'bbb'),
         'add_new_item'       => __('Add New '.$singular),
         'edit_item'          => __('Edit '.$singular),
         'new_item'           => __('New '.$singular),
@@ -193,7 +193,7 @@ add_filter( 'map_meta_cap', 'bbb_map_meta_cap', 10, 4);
  * */
 function build_bbb_room_taxonomies()
 {
-    $singular = 'BBB Room';
+    $singular = 'Room';
     $labels = array(
         'name'                       => _x($singular.' Categories', 'taxonomy general name'),
         'singular_name'              => _x($singular.' Category', 'taxonomy singular name'),
@@ -209,7 +209,7 @@ function build_bbb_room_taxonomies()
         'separate_items_with_commas' => __('Separate '.$singular.' categories with commas'),
         'add_or_remove_items'        => __('Add or remove '.$singular.' categories'),
         'choose_from_most_used'      => __('Choose from the most used '.$singular.' categories'),
-        'menu_name'                  => __($singular.' Categories'),
+        'menu_name'                  => __('Categories'),
     );
     register_taxonomy('bbb-room-category', array('bbb-room'), array(
             'hierarchical'                    => true,
@@ -693,26 +693,28 @@ function bigbluebutton_custom_post_type_options_page_callback()
     <div class="wrap">
     <div id="icon-options-general" class="icon32"><br /></div><h2>BigBlueButton Settings</h2>
     <form  action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post" name="site_options_page" >
-        <table class="custom-admin-table">
+        <h2 class="title">Server</h2>
+        <p>The settings listed below determine the BigBlueButton server that will be used for the live sessions.</p>
+        <table class="form-table">
             <tr>
-                <th>BigBlueButton Server Endpoint</th>
+                <th scope="row">Endpoint</th>
                 <td>
                     <input type="text" size="56" name="endpoint" value="<?php echo $bigbluebutton_custom_post_type_settings['endpoint']; ?>" />
                     <p>Example: http://test-install.blindsidenetworks.com/bigbluebutton/</p>
                 </td>
             </tr>
             <tr>
-                <th>BigBlueButton Server Shared Secret</th>
+                <th>Shared Secret</th>
                 <td>
                     <input type="text" size="56" name="secret" value="<?php echo $bigbluebutton_custom_post_type_settings['secret']; ?>" />
                     <p>Example: 8cd8ef52e8e101574e400365b55e11a6</p>
                 </td>
             </tr>
-            <tr>
-                <th></th>
-                <td><input type="submit" class="button-primary" value="Save Settings" /></td>
-            </tr>
         </table>
+        <p>Note that the values included by default are for testing this plugin using a FREE BigBlueButton server provided by Blindside Networks. They have to be replaced with the parameters obtained from a server better suited for production.</p>
+        <p class="submit">
+            <input type="submit" name="submit" id="submit" class="button button-primary" value="Save Settings">
+        </p>
     </form>
     </div>
 <?php
@@ -790,7 +792,7 @@ function bigbluebutton_custom_post_type_shortcode_page_callback()
                 <?php wp_reset_postdata(); ?>
 
                 <?php else:  ?>
-                  <p><?php _e('No BBB Rooms have been created yet.'); ?></p>
+                  <p><?php _e('No Rooms have been created yet.'); ?></p>
                 <?php endif; ?>
             </td>
         </tr>
@@ -919,7 +921,7 @@ function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag)
               </form>';
 
         wp_reset_postdata(); else:
-          //$output_string .= '<p>' . __( 'No BBB Rooms have been created yet.' ) . '</p>';
+          //$output_string .= '<p>' . __( 'No Rooms have been created yet.' ) . '</p>';
         endif;
         return $output_string;
     }
