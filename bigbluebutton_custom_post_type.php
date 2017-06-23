@@ -9,17 +9,7 @@ Author URI: http://blindsidenetworks.com/
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 */
-/*
-Releases:
-    0.3.0  --  Written by Steve Puddick
-                - Original version
-    0.3.1  --  Updated and Extended by Jesus Federico
-                - Rebranded and standarized code
-                - Set up a default bbb server configuration
-                - Fixed the wait for moderator to join
-                - Added "open in a new window feature"
-*/
-//validate
+
 global $wp_version;
 
 $exit_msg = 'This plugin has been designed for Wordpress 2.5 and later, please upgrade your current one.';
@@ -748,18 +738,24 @@ add_action('admin_menu', 'register_site_options_page');
 // Inserts a bigbluebuttonrooms widget on the siderbar of the blog.
 function bigbluebutton_sidebar($args)
 {
+    $bbb_posts = bigbluebutton_get_bbb_posts('0', '');
+    $atts = array('join' => 'true');
+    bigbluebutton_shortcode_defaults($atts, 'rooms');
     echo $args['before_widget'];
     echo $args['before_title'].'BigBlueButton Rooms'.$args['after_title'];
-    echo bigbluebutton_custom_post_type_renderShortcode($atts, $content, 'bigbluebuttonrooms');
+    echo bigbluebutton_shortcode_output_form($bbb_posts, $atts);
     echo $args['after_widget'];
 }
 
 // Inserts a bigbluebutton widget on the siderbar of the blog.
 function bigbluebutton_rooms_sidebar($args)
 {
+    $bbb_posts = bigbluebutton_get_bbb_posts('0', '');
+    $atts = array('join' => 'false');
+    bigbluebutton_shortcode_defaults($atts, 'rooms');
     echo $args['before_widget'];
     echo $args['before_title'].'BigBlueButton'.$args['after_title'];
-    echo bigbluebutton_custom_post_type_renderShortcode($atts, $content, 'bigbluebutton');
+    echo bigbluebutton_shortcode_output_form($bbb_posts, $atts);
     echo $args['after_widget'];
 }
 
@@ -786,49 +782,11 @@ function the_slug($echo = true)
 }
 
 // BigBlueButton shortcodes.
-function bigbluebutton_shortcode_type_validated($type) {
-	  if ( $type != "rooms" && $type != "recordings" ) {
-	      return 'rooms';
-	  }
-	  return $type;
-}
-
-/**
- * Determine the correct type for the shortcode.
- *
- * @param  array  $atts The shortcode attributes.
- * @param  string $tag  The shortcode tag.
- * @return string
- */
-function bigbluebutton_shortcode_type($atts, $tag) {
-	  if ( $tag == 'bigbluebutton_recordings' ) {
-	      return 'recordings';
-	  }
-	  if ( $tag == 'bigbluebuttonrooms' ) {
-	      return 'rooms';
-	  }
-	  extract($atts);
-	  if ( in_array('type', $atts) ) {
-	      return bigbluebutton_shortcode_type_validated($atts['type']);
-	  }
-	  return 'rooms';
-}
-
-function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag) {
-    return bigbluebutton_shortcode($atts, $content, $tag);   
-}
-
-function bigbluebutton_shortcode_new($atts, $content, $tag) {
-    $type = bigbluebutton_shortcode_type($atts, $tag);
-    extract(shortcode_atts(array('type' => $type,
-                                 'link_type' => 'wordpress',
-                                 'bbb_categories' => '0',
-                                 'bbb_posts' => ''),
-                           $atts));
+function bigbluebutton_get_bbb_posts($bbb_categories, $bbb_posts) {
     $args = array('post_type' => 'bbb-room',
                   'orderby' => 'name',
                   'posts_per_page' => -1,
-                  'order' => 'DESC',
+                  'order' => 'ASC',
       );
 
     if ($bbb_categories) {
@@ -845,11 +803,136 @@ function bigbluebutton_shortcode_new($atts, $content, $tag) {
     }
 
     $bbb_posts = new WP_Query($args);
+    return $bbb_posts;
+}
 
-	  return bigbluebutton_shortcode_ouput_string($type, $bbb_posts);
+
+/**
+ * Returns the default shortcode type based on its tag.
+ *
+ * @param  string $tag  The shortcode tag.
+ * @return string
+ */
+function bigbluebutton_shortcode_type_default($tag) {
+    if ( $tag == 'bigbluebutton_recordings' ) {
+	      return 'recordings';
+	  }
+    return 'rooms';
+}
+
+/**
+ * Returns the default tile for a form based on the shortcode type.
+ *
+ * @param  string $type  The shortcode type.
+ * @return string
+ */
+function bigbluebutton_shortcode_title_default($type) {
+    if ( $type == 'recordings' ) {
+	      return 'Recordings';
+	  }
+    return 'Rooms';
+}
+
+/**
+ * Updates shortcode attributes based on the tag.
+ *
+ * @param  array  $$atts The shortcode attributes.
+ * @param  string $tag   The shortcode tag.
+ * @return
+ */
+function bigbluebutton_shortcode_defaults(&$atts, $tag) {
+    if ($atts == null) {
+        $atts = array();
+    }
+    if ( !array_key_exists('type', $atts) ) {
+        $atts['type'] = bigbluebutton_shortcode_type_default($tag);
+    }
+    if ( !array_key_exists('title', $atts) ) {
+        $atts['title'] = bigbluebutton_shortcode_title_default($atts['type']);
+    }
+    if ( !array_key_exists('join', $atts) ) {
+        $atts['join'] = 'false';
+    }
+    $atts['test'] = 'test-install';
 }
 
 function bigbluebutton_shortcode($atts, $content, $tag) {
+    bigbluebutton_shortcode_defaults($atts, $tag);
+    $pairs = array('bbb_categories' => '0',
+                   'bbb_posts' => '');
+    extract(shortcode_atts($pairs, $atts));
+    $bbb_posts = bigbluebutton_get_bbb_posts($bbb_categories, $bbb_posts);
+	  return bigbluebutton_shortcode_output($bbb_posts, $atts);
+}
+
+function bigbluebutton_shortcode_output($bbb_posts, $atts) {
+    if ($atts['type'] == 'recordings') {
+        return bigbluebutton_shortcode_output_recordings($bbb_posts, $atts);
+    }
+
+    return bigbluebutton_shortcode_output_form($bbb_posts, $atts);
+}
+
+function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
+    if (!$bbb_posts->have_posts()) {
+        return '';
+    }
+    $output_string = '<form id="form1" class="bbb-shortcode">'."\n".
+                     '  <label>'.$atts['title'].'</label>'."\n";
+    $posts = $bbb_posts->get_posts();
+    if (count($posts) == 1) {
+        $output_string .= bigbluebutton_shortcode_output_form_single($bbb_posts, $atts);
+    } else {
+        $output_string .= bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts);
+    }
+    $output_string .= '</form>'."\n";
+
+    return $output_string;
+}
+
+function bigbluebutton_shortcode_output_recordings($bbb_posts) {
+    $output_string = '';
+    return $output_string;
+}
+
+function bigbluebutton_shortcode_output_form_single($bbb_posts, $atts) {
+    $output_string = '';
+    $bbb_posts->the_post();
+    if ( $atts['join'] == 'true' ) {
+        $output_string .= '  <input class="bbb-shortcode-selector" type="submit" onClick="joinRoom(document.dropdownNew.list)" value="Join '.get_the_title().'"/>'."\n";
+    } else {
+        $output_string .= '  <input class="bbb-shortcode-selector" type="submit" onClick="viewRoom(document.dropdownNew.list)" value="'.get_the_title().'"/>'."\n";
+    }
+    return $output_string;
+}
+
+function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts) {
+    $output_string = '  <select class="bbb-shortcode" onchange="location = this.options[this.selectedIndex].value;">'."\n";
+    if ( $atts['join'] != 'true' ) {
+        $output_string .= '    <option disabled selected value>select room</option>'."\n";
+    }
+    while ($bbb_posts->have_posts()) {
+        $bbb_posts->the_post();
+        $output_string .= '    <option value="'.get_permalink().'">'.get_the_title().'</option>'."\n";
+    }
+    wp_reset_postdata();
+    $output_string .= '  </select>'."\n";
+    if ( $atts['join'] == 'true' ) {
+        $output_string .= '  <input class="bbb-shortcode-selector" type="submit" onClick="joinRoom(document.dropdownNew.list)" value="Join"/>'."\n";
+    }
+    return $output_string;
+}
+
+add_shortcode('bigbluebutton', 'bigbluebutton_shortcode');
+add_shortcode('bigbluebutton_recordings', 'bigbluebutton_shortcode');
+add_shortcode('bigbluebuttonrooms', 'bigbluebutton_shortcode');
+
+/////////////////////////////////////////
+function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag) {
+    return bigbluebutton_shortcode_old($atts, $content, $tag);
+}
+
+function bigbluebutton_shortcode_old($atts, $content, $tag) {
     global $current_user;
     extract(shortcode_atts(array('link_type' => 'wordpress',
                                  'bbb_categories' => '0',
@@ -884,7 +967,7 @@ function bigbluebutton_shortcode($atts, $content, $tag) {
             $output_string .= ''.
                 '<form id="form1" class="bbb-shortcode">'."\n".
                 '  <label>Room:</label>'."\n".
-                '  <select onchange="location = this.options[this.selectedIndex].value;" style="color: #777; border-radius: 2px;background: #fff; width: 100%;">'."\n".
+                '  <select class="bbb-shortcode" onchange="location=this.options[this.selectedIndex].value;">'."\n".
                 '    <option disabled selected value>select room</option>'."\n";
             while ($bbb_posts->have_posts()) {
                 $bbb_posts->the_post();
@@ -949,13 +1032,9 @@ function bigbluebutton_shortcode($atts, $content, $tag) {
             wp_reset_postdata();
         }
     }
-    
+
 	  return $output_string;
 }
-
-add_shortcode('bigbluebutton', 'bigbluebutton_shortcode');
-add_shortcode('bigbluebutton_recordings', 'bigbluebutton_shortcode');
-add_shortcode('bigbluebuttonrooms', 'bigbluebutton_shortcode');
 
 //Displays the javascript that handles redirecting a user, when the meeting has started
 //the meetingName is the meetingID

@@ -24,3 +24,9 @@ form.bbb-shortcode {
   width: 300px;
 }
 
+select.bbb-shortcode {
+  style="color: #777;
+  background: #fff;
+  border-radius: 2px;
+  width: 100%;"
+}
