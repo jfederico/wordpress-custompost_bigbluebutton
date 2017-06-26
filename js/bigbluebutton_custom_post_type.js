@@ -10,7 +10,7 @@ function bigbluebutton_join_meeting(baseurl,meetingID,slug) {
 			},
 			error : function(xmlHttpRequest, status, error) {
 					console.log("*** ajax was *NOT* successful ***");
-			
+			}
 		});
 
 }
