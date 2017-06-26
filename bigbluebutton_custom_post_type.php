@@ -914,13 +914,14 @@ function bigbluebutton_shortcode_output_recordings($bbb_posts) {
 }
 
 function bigbluebutton_shortcode_output_form_single($bbb_posts, $atts) {
-    $output_string = '';
     $bbb_posts->the_post();
+    $onclick = 'bigbluebutton_view_room()';
+    $value = 'View '.get_the_title();
     if ( $atts['join'] == 'true' ) {
-        $output_string .= '  <input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting()" value="Join  '.get_the_title().'"/>'."\n";
-    } else {
-        $output_string .= '  <input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_view_room()" value="View '.get_the_title().'"/>'."\n";
+        $onclick = 'bigbluebutton_join_meeting()';
+        $join = 'View '.get_the_title();
     }
+    $output_string = '  <input class="bbb-shortcode-selector" type="button" onClick="'.$onlcick.'" value="'.$value.'"/>'."\n";
     return $output_string;
 }
 
