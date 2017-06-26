@@ -146,6 +146,7 @@ function bigbluebutton_custom_post_type_init()
         'has_archive' => true,
         'hierarchical' => false,
         'menu_position' => null,
+        'menu_icon' => 'dashicons-video-alt2',
         'supports' => array('title', 'editor', 'page-attributes', 'author'),
     );
     register_post_type('bbb-room', $args);
