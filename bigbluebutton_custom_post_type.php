@@ -65,21 +65,38 @@ function my_admin_notices()
 add_action('admin_notices', 'my_admin_notices');
 
 /*
- * This displays some CSS we need for the BigBlueButton Custom Post Type plugin, in the backend
+ * This displays some CSS needed for the BigBlueButton Custom Post Type plugin, in the backend
  */
 function bigbluebutton_custom_post_type_css_enqueue()
 {
-    $bigbluebutton_custom_post_type_style = plugins_url('css/bigbluebutton_custom_post_type.css', __FILE__);
-    wp_register_style('bigbluebutton_custom_post_type_style', $bigbluebutton_custom_post_type_style);
-    wp_enqueue_style('bigbluebutton_custom_post_type_style');
+    $css = plugins_url('css/bigbluebutton_custom_post_type.css', __FILE__);
+    wp_register_style('bigbluebutton_custom_post_type_css', $css);
+    wp_enqueue_style('bigbluebutton_custom_post_type_css');
 }
 
 add_action('init', 'bigbluebutton_custom_post_type_css_enqueue');
 
+/*
+ * This displays some CSS needed for the BigBlueButton Custom Post Type plugin, in the frontend
+ */
+function bigbluebutton_custom_post_type_frontend_css_enqueue()
+{
+    $css = plugins_url('css/bigbluebutton_custom_post_type_frontend.css', __FILE__);
+    wp_enqueue_style('bigbluebutton_custom_post_type_frontend_css', $css);
+    wp_enqueue_style('bigbluebutton_custom_post_type_frontend_css');
+}
+
+add_action('init', 'bigbluebutton_custom_post_type_frontend_css_enqueue');
+
+/*
+ * This displays some JavaScript needed for the BigBlueButton Custom Post Type plugin, in the backend
+ */
 function bigbluebutton_custom_post_type_scripts()
 {
-    wp_enqueue_style('bigbluebutton_custom_post_type_frontend',
-	      plugins_url('css/bigbluebutton_custom_post_type_frontend.css', __FILE__));
+	  wp_enqueue_script('jquery');
+    $js = plugins_url('js/bigbluebutton_custom_post_type.js', __FILE__);
+    wp_register_script('bigbluebutton_custom_post_type_script', $js);
+    wp_enqueue_script('bigbluebutton_custom_post_type_script');
 }
 
 add_action('init', 'bigbluebutton_custom_post_type_scripts');
@@ -851,7 +868,7 @@ function bigbluebutton_shortcode_defaults(&$atts, $tag) {
         $atts['title'] = bigbluebutton_shortcode_title_default($atts['type']);
     }
     if ( !array_key_exists('join', $atts) ) {
-        $atts['join'] = 'false';
+        $atts['join'] = 'true';
     }
     $atts['test'] = 'test-install';
 }
@@ -874,6 +891,7 @@ function bigbluebutton_shortcode_output($bbb_posts, $atts) {
 }
 
 function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
+		error_log(json_encode($atts));
     if (!$bbb_posts->have_posts()) {
         return '';
     }
@@ -899,15 +917,15 @@ function bigbluebutton_shortcode_output_form_single($bbb_posts, $atts) {
     $output_string = '';
     $bbb_posts->the_post();
     if ( $atts['join'] == 'true' ) {
-        $output_string .= '  <input class="bbb-shortcode-selector" type="submit" onClick="joinRoom(document.dropdownNew.list)" value="Join '.get_the_title().'"/>'."\n";
+        $output_string .= '  <input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting()" value="Join  '.get_the_title().'"/>'."\n";
     } else {
-        $output_string .= '  <input class="bbb-shortcode-selector" type="submit" onClick="viewRoom(document.dropdownNew.list)" value="'.get_the_title().'"/>'."\n";
+        $output_string .= '  <input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_view_room()" value="View '.get_the_title().'"/>'."\n";
     }
     return $output_string;
 }
 
 function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts) {
-    $output_string = '  <select class="bbb-shortcode" onchange="location = this.options[this.selectedIndex].value;">'."\n";
+    $output_string = '  <select class="bbb-shortcode" onchange="bigbluebutton_view_room()">'."\n";
     if ( $atts['join'] != 'true' ) {
         $output_string .= '    <option disabled selected value>select room</option>'."\n";
     }
@@ -918,7 +936,7 @@ function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts) {
     wp_reset_postdata();
     $output_string .= '  </select>'."\n";
     if ( $atts['join'] == 'true' ) {
-        $output_string .= '  <input class="bbb-shortcode-selector" type="submit" onClick="joinRoom(document.dropdownNew.list)" value="Join"/>'."\n";
+        $output_string .= '  <input class="bbb-shortcode-selector" type="submit" onClick="bigbluebutton_join_meeting()" value="Join"/>'."\n";
     }
     return $output_string;
 }

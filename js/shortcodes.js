@@ -34,4 +34,3 @@ function goToNewPageNew(dropdownlist) {
         window.open(url);
     }
 }
-
