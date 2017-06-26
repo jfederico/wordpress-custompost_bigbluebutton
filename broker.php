@@ -20,12 +20,14 @@ Versions:
 //------------------Required Libraries and Global Variables-----------------------
 //================================================================================
 require 'includes/bbb_api.php';
+require($_SERVER['DOCUMENT_ROOT'].'/wordpress-test/wp-load.php');//MAKE SUREE TO CHNAGE THE PATH
 session_start();
 $bbb_endpoint_name = 'mt_bbb_endpoint';
 $bbb_secret_name = 'mt_bbb_secret';
 $action_name = 'action';
 $recordingID_name = 'recordingID';
 $meetingID_name = 'meetingID';
+$slug_name = 'slug';
 //================================================================================
 //------------------------------------Main----------------------------------------
 //================================================================================
@@ -74,9 +76,29 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
             } else {
                 $meetingID = $_GET[$meetingID_name];
                 $response = BigBlueButton::getMeetingXML($meetingID, $url_val, $salt_val);
-                error_log('RESPONSE: '.$response);
                 echo '<response>'.$response.'</response>';
             }
+            break;
+        case 'join':
+            header('Content-Type: text/xml; charset=utf-8');
+            echo '<?xml version="1.0"?>'."\r\n";
+
+            $post = get_page_by_path($_GET[$slug_name], OBJECT, 'bbb-room');
+             error_log("\n\n ********* POST **********". json_encode($post)."\n\n");
+            if ((!isset($_GET[$meetingID_name]))|| (!isset($_GET[$slug_name]))) {
+                header('HTTP/1.0 400 Bad Request. [meetingID] or [slug]parameter was not included in this query.');
+            } else {
+                $meetingID = $_GET[$meetingID_name];
+                $response = BigBlueButton::getMeetingXML($meetingID, $url_val, $salt_val);
+                echo '<response>'.$response.'</response>';
+            }
+            break;
+            $response = BigBlueButton::createMeetingArray($username, $meetingID,
+               $meetingName, $welcomeString, $mPW, $aPW, $SALT, $URL, $logoutURL,
+                  $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array());
+            echo '<response>'.$response.'</response>';
+            break;
+        case 'view':
             break;
         default:
             header('Content-Type: text/plain; charset=utf-8');

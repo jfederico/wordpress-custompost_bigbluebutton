@@ -434,7 +434,6 @@ function bigbluebutton_custom_post_type_room_status_metabox($post)
     }
     if (get_post_status($post->ID) === 'publish') {
         $response = BigBlueButton::createMeetingArray($name, $meetingID, $bbb_meeting_name, $bbb_room_welcome_msg, $bbb_moderator_password, $bbb_attendee_password, $secret_val, $endpoint_val, $logouturl, $recorded ? 'true' : 'false', $duration, $voicebridge, $metadata);
-
         if (!$response || $response['returncode'] == 'FAILED') {
             $out .= 'Sorry an error occured while creating the meeting room.';
         } else {
@@ -874,6 +873,14 @@ function bigbluebutton_shortcode_defaults(&$atts, $tag) {
     $atts['test'] = 'test-install';
 }
 
+/**
+*   Adding BigBlueButton shortcode according to the tag provided
+*
+* @param  array  $atts The shortcode attributes: type, title, join.
+* @param  array  $content   Content of the shortcode.
+* @param  string $tag   The shortcode tag.
+* @return
+*/
 function bigbluebutton_shortcode($atts, $content, $tag) {
     bigbluebutton_shortcode_defaults($atts, $tag);
     $pairs = array('bbb_categories' => '0',
@@ -883,18 +890,30 @@ function bigbluebutton_shortcode($atts, $content, $tag) {
 	  return bigbluebutton_shortcode_output($bbb_posts, $atts);
 }
 
+/**
+*   Sets the output for the shortcodes.
+*
+* @param  array  $atts The shortcode attributes: type, title, join.
+* @param  array  $bbb_posts  Information about the post.
+* @return
+*/
 function bigbluebutton_shortcode_output($bbb_posts, $atts) {
     if ($atts['type'] == 'recordings') {
         return bigbluebutton_shortcode_output_recordings($bbb_posts, $atts);
     }
-
     return bigbluebutton_shortcode_output_form($bbb_posts, $atts);
 }
 
+/**
+*   Shortcode output form for the rooms tag.
+*
+* @param  array  $bbb_posts  Information about the post.
+* @param  array  $atts The shortcode attributes: type, title, join.
+* @return
+*/
 function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
-		error_log(json_encode($atts));
     if (!$bbb_posts->have_posts()) {
-        return '';
+        return '<p> No rooms have been created. </p>';
     }
     $output_string = '<form id="form1" class="bbb-shortcode">'."\n".
                      '  <label>'.$atts['title'].'</label>'."\n";
@@ -914,6 +933,13 @@ function bigbluebutton_shortcode_output_recordings($bbb_posts) {
     return $output_string;
 }
 
+/**
+*   Shortcode output form for single room.
+*
+* @param  array  $bbb_posts  Information about the post.
+* @param  array  $atts The shortcode attributes: type, title, join.
+* @return
+*/
 function bigbluebutton_shortcode_output_form_single($bbb_posts, $atts) {
     $output_string = '';
     $bbb_posts->the_post();
@@ -925,20 +951,40 @@ function bigbluebutton_shortcode_output_form_single($bbb_posts, $atts) {
     return $output_string;
 }
 
+/**
+*   Shortcode output form for multiple rooms.
+*
+* @param  array  $bbb_posts  Information about the post.
+* @param  array  $atts The shortcode attributes: type, title, join.
+* @return
+*/
 function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts) {
-    $output_string = '  <select class="bbb-shortcode" onchange="bigbluebutton_view_room()">'."\n";
+    $meetingID='';
+    $slug = '';
+    $output_string = '  <select class="bbb-shortcode">'."\n";
     if ( $atts['join'] != 'true' ) {
         $output_string .= '    <option disabled selected value>select room</option>'."\n";
     }
     while ($bbb_posts->have_posts()) {
         $bbb_posts->the_post();
         $output_string .= '    <option value="'.get_permalink().'">'.get_the_title().'</option>'."\n";
+
+        ///**********
+        $slug = the_slug();
+        $post = get_page_by_path($slug, OBJECT, 'bbb-room');
+        $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
+        $meetingID = $bbb_room_token;
+        $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($meetingID);
+       ///*************
     }
     wp_reset_postdata();
     $output_string .= '  </select>'."\n";
     if ( $atts['join'] == 'true' ) {
-        $output_string .= '  <input class="bbb-shortcode-selector" type="submit" onClick="bigbluebutton_join_meeting()" value="Join"/>'."\n";
+        $output_string .= '  <input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\''.$meetingID.'\',\''.$slug.'\')" value="Join"/>'."\n";
+    }else{
+        $output_string .= '  <input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_view_room()" value="View"/>'."\n";
     }
+
     return $output_string;
 }
 
