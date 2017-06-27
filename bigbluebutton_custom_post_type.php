@@ -961,26 +961,24 @@ function bigbluebutton_shortcode_output_form_single($bbb_posts, $atts) {
 function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts) {
     $meetingID='';
     $slug = '';
-    $output_string = '  <select class="bbb-shortcode">'."\n";
+    $output_string = '  <select class="bbb-shortcode" id="bbbRooms">'."\n";
     if ( $atts['join'] != 'true' ) {
         $output_string .= '    <option disabled selected value>select room</option>'."\n";
     }
     while ($bbb_posts->have_posts()) {
         $bbb_posts->the_post();
-        $output_string .= '    <option value="'.get_permalink().'">'.get_the_title().'</option>'."\n";
-
-        ///**********
         $slug = the_slug();
         $post = get_page_by_path($slug, OBJECT, 'bbb-room');
         $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
         $meetingID = $bbb_room_token;
         $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($meetingID);
-       ///*************
+        $output_string .= '    <option value="'.$slug."_".$meetingID.'">'.get_the_title().'</option>'."\n";
     }
     wp_reset_postdata();
     $output_string .= '  </select>'."\n";
+    $output_string .= ' <input type="hidden" id="hiddenInput" value="" />';
     if ( $atts['join'] == 'true' ) {
-        $output_string .= '  <input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\''.$meetingID.'\',\''.$slug.'\')" value="Join"/>'."\n";
+        $output_string .= '  <input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\')" value="Join"/>'."\n";
     }else{
         $output_string .= '  <input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_view_room()" value="View"/>'."\n";
     }
