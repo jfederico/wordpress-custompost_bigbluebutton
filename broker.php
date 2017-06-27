@@ -80,23 +80,31 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
             }
             break;
         case 'join':
-            header('Content-Type: text/xml; charset=utf-8');
-            echo '<?xml version="1.0"?>'."\r\n";
 
             $post = get_page_by_path($_GET[$slug_name], OBJECT, 'bbb-room');
-             error_log("\n\n ********* POST **********". json_encode($post)."\n\n");
             if ((!isset($_GET[$meetingID_name]))|| (!isset($_GET[$slug_name]))) {
-                header('HTTP/1.0 400 Bad Request. [meetingID] or [slug]parameter was not included in this query.');
+                header('HTTP/1.0 400 Bad Request. [meetingID] or [slug] parameter was not included in this query.');
             } else {
-                $meetingID = $_GET[$meetingID_name];
-                $response = BigBlueButton::getMeetingXML($meetingID, $url_val, $salt_val);
-                echo '<response>'.$response.'</response>';
+              $username = $current_user->display_name;
+              $meetingID = $_GET[$meetingID_name];
+              $meetingName = get_the_title($post->ID);
+              $welcomeString = get_the_title($post->ID);
+              $welcomeString = get_post_meta($post->ID, '_bbb_room_welcome_msg', true);
+              $moderatorPassword = get_post_meta($post->ID, '_bbb_moderator_password', true);
+              $attendeePassword = get_post_meta($post->ID, '_bbb_attendee_password', true);
+              $logoutURL = (is_ssl() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout=true';
+              $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
+              $endpoint_val = $bigbluebutton_custom_post_type_settings['endpoint'];
+              $secret_val = $bigbluebutton_custom_post_type_settings['secret'];
+
+              $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword, $secret_val, $endpoint_val, $logoutURL, $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array());
+
+              if (!$response || $response['returncode'] == 'FAILED') {
+                  echo "<p class='error'>".__('Sorry an error occured while creating the meeting room.', 'bbb').'</p>';
+              }else {
+                  echo BigBlueButton::getJoinURL($meetingID, $username, $moderatorPassword, $secret_val, $endpoint_val);
+              }
             }
-            break;
-            $response = BigBlueButton::createMeetingArray($username, $meetingID,
-               $meetingName, $welcomeString, $mPW, $aPW, $SALT, $URL, $logoutURL,
-                  $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array());
-            echo '<response>'.$response.'</response>';
             break;
         case 'view':
             break;

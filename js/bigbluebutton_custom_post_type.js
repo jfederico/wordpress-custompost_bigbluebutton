@@ -1,15 +1,14 @@
 function bigbluebutton_join_meeting(baseurl,meetingID,slug) {
-		console.log("Join the meeting");
+		console.log("Join the meeting**");
 		jQuery.ajax({
 			url : baseurl+'/broker.php?action=join&meetingID='+ meetingID+'&slug='+slug,
 			async : true,
-			dataType : "xml",
-			success : function(xmlDoc) {//have to fix the parameter for it
-				//window.open(getJoinURL);
-				console.log("*** ajax was successful ***" + JSON.stringify(xmlDoc));
+			dataType : "text",
+			success : function(joinURL){
+					window.open(joinURL);
 			},
 			error : function(xmlHttpRequest, status, error) {
-					console.log("*** ajax was *NOT* successful ***");
+					console.error("Ajax was not successful");
 			}
 		});
 
