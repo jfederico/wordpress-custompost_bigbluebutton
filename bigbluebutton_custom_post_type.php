@@ -970,9 +970,8 @@ function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts) {
         $slug = the_slug();
         $post = get_page_by_path($slug, OBJECT, 'bbb-room');
         $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
-        $meetingID = $bbb_room_token;
-        $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($meetingID);
-        $output_string .= '    <option value="'.$slug."_".$meetingID.'">'.get_the_title().'</option>'."\n";
+        $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($bbb_room_token);
+        $output_string .= '    <option value="'.$slug."_".$meetingID."_".get_permalink().'">'.get_the_title().'</option>'."\n";
     }
     wp_reset_postdata();
     $output_string .= '  </select>'."\n";

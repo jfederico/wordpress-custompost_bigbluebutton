@@ -95,14 +95,14 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 $attendeePassword = get_post_meta($post->ID, '_bbb_attendee_password', true);
                 $logoutURL = (is_ssl() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout=true';
                 $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
-                $endpoint_val = $bigbluebutton_custom_post_type_settings['endpoint'];
-                $secret_val = $bigbluebutton_custom_post_type_settings['secret'];
+                $endpointVal = $bigbluebutton_custom_post_type_settings['endpoint'];
+                $secretVal = $bigbluebutton_custom_post_type_settings['secret'];
 
-                $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword, $secret_val, $endpoint_val, $logoutURL, $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array());
+                $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword, $secretVal, $endpointVal, $logoutURL, $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array());
                 if (!$response || $response['returncode'] == 'FAILED') {
                     echo "<p class='error'>".__('Sorry an error occured while creating the meeting room.', 'bbb').'</p>';
                 }else {
-                    echo BigBlueButton::getJoinURL($meetingID, $username, $moderatorPassword, $secret_val, $endpoint_val);
+                    echo BigBlueButton::getJoinURL($meetingID, $username, $moderatorPassword, $secretVal, $endpointVal);
                 }
             }
             break;

@@ -1,24 +1,30 @@
 
 var meetingID;
 var slug;
+var permalink;
 
+/**
+* On change, sets the hidden input of the selcted field in the rooms shortcode.
+*/
 jQuery(function($){
 	 $("#bbbRooms").change(function () {
     $("#hiddenInput").val($(this).val());
-		console.log("INFOO "+ $(this).val());
 		var meetingInfo = ($(this).val()).split("_");
 		slug = meetingInfo[0];
 		meetingID = meetingInfo[1];
+		permalink = meetingInfo[2]
 	})
 });
 
+/**
+* Joins the meeting session.
+*/
 function bigbluebutton_join_meeting(baseurl) {
 		jQuery.ajax({
 			url : baseurl+'/broker.php?action=join&meetingID='+ meetingID+'&slug='+slug,
 			async : true,
 			dataType : "text",
 			success : function(data){
-				console.log(data);
 				if(data.includes(meetingID)){
 					window.open(data);
 				}
@@ -30,8 +36,9 @@ function bigbluebutton_join_meeting(baseurl) {
 		});
 }
 
+/**
+* Views the meeting room.
+*/
 function bigbluebutton_view_room() {
-	  console.log("View the room");
-	  //url=
-	  //window.location=url;
+	  window.location.href=permalink;
 }
