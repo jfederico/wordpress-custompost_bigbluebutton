@@ -81,14 +81,15 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
             break;
         case 'join':
             $post = get_page_by_path($_GET[$slug_name], OBJECT, 'bbb-room');
-            if ((!isset($_GET[$meetingID_name]))){
-                header('HTTP/1.0 400 Bad Request. [meetingID] parameter was not included in this query.');
-            }
-            else if((!isset($_GET[$slug_name]))){
+            if((!isset($_GET[$slug_name]))){
                 header('HTTP/1.0 400 Bad Request. [slug] parameter was not included in this query.');
             }else{
                 $username = $current_user->display_name;
-                $meetingID = $_GET[$meetingID_name];
+                $bbbRoomToken = get_post_meta($post->ID, '_bbb_room_token', true);
+                $meetingID = $bbbRoomToken;
+                if(strlen($meetingID) == 12){
+                  $meetingID = sha1(home_url().$meetingID);
+                }
                 $meetingName = get_the_title($post->ID);
                 $welcomeString = get_post_meta($post->ID, '_bbb_room_welcome_msg', true);
                 $moderatorPassword = get_post_meta($post->ID, '_bbb_moderator_password', true);
@@ -97,8 +98,8 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
                 $endpointVal = $bigbluebutton_custom_post_type_settings['endpoint'];
                 $secretVal = $bigbluebutton_custom_post_type_settings['secret'];
-
                 $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword, $secretVal, $endpointVal, $logoutURL, $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array());
+
                 if (!$response || $response['returncode'] == 'FAILED') {
                     echo "<p class='error'>".__('Sorry an error occured while creating the meeting room.', 'bbb').'</p>';
                 }else {

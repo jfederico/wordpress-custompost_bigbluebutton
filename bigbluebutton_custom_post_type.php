@@ -924,7 +924,6 @@ function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
         $output_string .= bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts);
     }
     $output_string .= '</form>'."\n";
-
     return $output_string;
 }
 
@@ -943,11 +942,17 @@ function bigbluebutton_shortcode_output_recordings($bbb_posts) {
 function bigbluebutton_shortcode_output_form_single($bbb_posts, $atts) {
     $output_string = '';
     $bbb_posts->the_post();
+    $slug = the_slug();
+    $post = get_page_by_path($slug, OBJECT, 'bbb-room');
+    $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
+    $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($bbb_room_token);
     if ( $atts['join'] == 'true' ) {
-        $output_string .= '  <input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting()" value="Join  '.get_the_title().'"/>'."\n";
+        $output_string .= '<input class="bbb-shortcode-selector" type="button" id="singleButton" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\')" value="Join  '.get_the_title().'"/>'."\n";
+        $output_string .= '<input type="hidden" name="hiddenInputSingle" id="hiddenInputSingle" value="'.$slug.'" />';
     } else {
-        $output_string .= '  <input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_view_room()" value="View '.get_the_title().'"/>'."\n";
+        $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_view_room()" value="View '.get_the_title().'"/>'."\n";
     }
+
     return $output_string;
 }
 
@@ -959,27 +964,25 @@ function bigbluebutton_shortcode_output_form_single($bbb_posts, $atts) {
 * @return
 */
 function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts) {
-    $meetingID='';
-    $slug = '';
-    $output_string = '  <select class="bbb-shortcode" id="bbbRooms">'."\n";
-    if ( $atts['join'] != 'true' ) {
-        $output_string .= '    <option disabled selected value>select room</option>'."\n";
-    }
+  //  $output_string = '  <select class="bbb-shortcode" id="bbbRooms" onchange="changeHiddenInput(this)">'."\n";
+    $output_string = '<select class="bbb-shortcode" id="bbbRooms">'."\n";
+    $output_string .= '<option disabled selected value>select room</option>'."\n";
+
     while ($bbb_posts->have_posts()) {
         $bbb_posts->the_post();
         $slug = the_slug();
         $post = get_page_by_path($slug, OBJECT, 'bbb-room');
         $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
-        $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($bbb_room_token);
-        $output_string .= '    <option value="'.$slug."_".$meetingID."_".get_permalink().'">'.get_the_title().'</option>'."\n";
-    }
+        $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($bbb_room_token);// the _ dont know if its going to be part of the meeting info
+        $output_string .= '<option value="'.$slug.'">'.get_the_title().'</option>'."\n";
+    }//can build up the permalink with the slug as well
     wp_reset_postdata();
-    $output_string .= '  </select>'."\n";
-    $output_string .= ' <input type="hidden" id="hiddenInput" value="" />';
+    $output_string .= '</select>'."\n";
+    $output_string .= '<input type="hidden" name="hiddenInput" id="hiddenInput" value="" />';
     if ( $atts['join'] == 'true' ) {
-        $output_string .= '  <input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\')" value="Join"/>'."\n";
+        $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\')" value="Join"/>'."\n";
     }else{
-        $output_string .= '  <input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_view_room()" value="View"/>'."\n";
+        $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_view_room()" value="View"/>'."\n";
     }
 
     return $output_string;
@@ -1339,6 +1342,12 @@ function bigbluebutton_custom_post_type_generatePasswd($numAlpha = 6, $numNonAlp
 function bigbluebutton_custom_post_type_normalizeMeetingID($meetingID)
 {
     return (strlen($meetingID) == 12) ? sha1(home_url().$meetingID) : $meetingID;
+    // if(strlen($meetingID) == 12){
+    //   return sha1(home_url().$meetingID);
+    // }
+    // else {
+    //   return $meetingID;
+    // }
 }
 
 //Returns current plugin version.
