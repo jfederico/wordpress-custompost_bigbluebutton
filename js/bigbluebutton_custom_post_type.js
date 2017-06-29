@@ -19,7 +19,10 @@ jQuery(function($){
 });
 
 /**
-* Joins the meeting session.
+* Joins/Views the meeting/room.
+*
+* @param  string  baseurl  base url of the plugin
+* @param  bool  join join or view the room
 */
 function bigbluebutton_join_meeting(baseurl,join){
 		jQuery.ajax({

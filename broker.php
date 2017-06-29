@@ -103,7 +103,7 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 $endpointVal = $bigbluebutton_custom_post_type_settings['endpoint'];
                 $secretVal = $bigbluebutton_custom_post_type_settings['secret'];
 
-                $response = BigBlueButton::createMeetingArray($userdfsfdsname, $mdsfeetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword, $secretVal, $endpointVal, $logoutURL, $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array());
+                $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword, $secretVal, $endpointVal, $logoutURL, $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array());
 
                 if (!$response || $response['returncode'] == 'FAILED') {
                     echo "Sorry an error occured while creating the meeting room.";
@@ -118,9 +118,6 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 }
               }
             }
-            break;
-        case 'view':
-
             break;
         default:
             header('Content-Type: text/plain; charset=utf-8');
