@@ -28,6 +28,7 @@ $action_name = 'action';
 $recordingID_name = 'recordingID';
 $meetingID_name = 'meetingID';
 $slug_name = 'slug';
+$join = 'join';
 //================================================================================
 //------------------------------------Main----------------------------------------
 //================================================================================
@@ -80,25 +81,43 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
             }
             break;
         case 'join':
-            header('Content-Type: text/xml; charset=utf-8');
-            echo '<?xml version="1.0"?>'."\r\n";
+            if((!isset($_GET[$slug_name]))){
+                header('HTTP/1.0 400 Bad Request. [slug] parameter was not included in this query.');
+            }else if((!isset($_GET[$join]))){
+                header('HTTP/1.0 400 Bad Request. [join] parameter was not included in this query.');
+            }else{
+              $post = get_page_by_path($_GET[$slug_name], OBJECT, 'bbb-room');
+              if($_GET[$join] === "true"){
+                $username = $current_user->display_name;
+                $bbbRoomToken = get_post_meta($post->ID, '_bbb_room_token', true);
+                $meetingID = $bbbRoomToken;
+                if(strlen($meetingID) == 12){
+                  $meetingID = sha1(home_url().$meetingID);
+                }
+                $meetingName = get_the_title($post->ID);
+                $welcomeString = get_post_meta($post->ID, '_bbb_room_welcome_msg', true);
+                $moderatorPassword = get_post_meta($post->ID, '_bbb_moderator_password', true);
+                $attendeePassword = get_post_meta($post->ID, '_bbb_attendee_password', true);
+                $logoutURL = (is_ssl() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout=true';
+                $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
+                $endpointVal = $bigbluebutton_custom_post_type_settings['endpoint'];
+                $secretVal = $bigbluebutton_custom_post_type_settings['secret'];
 
-            $post = get_page_by_path($_GET[$slug_name], OBJECT, 'bbb-room');
-             error_log("\n\n ********* POST **********". json_encode($post)."\n\n");
-            if ((!isset($_GET[$meetingID_name]))|| (!isset($_GET[$slug_name]))) {
-                header('HTTP/1.0 400 Bad Request. [meetingID] or [slug]parameter was not included in this query.');
-            } else {
-                $meetingID = $_GET[$meetingID_name];
-                $response = BigBlueButton::getMeetingXML($meetingID, $url_val, $salt_val);
-                echo '<response>'.$response.'</response>';
+                $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword, $secretVal, $endpointVal, $logoutURL, $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array());
+
+                if (!$response || $response['returncode'] == 'FAILED') {
+                    echo "Sorry an error occured while creating the meeting room.";
+                }else {
+                    echo BigBlueButton::getJoinURL($meetingID, $username, $moderatorPassword, $secretVal, $endpointVal);
+                }
+              }else {
+                if($post !== null){
+                  echo get_permalink();
+                }else {
+                  echo "Sorry the page could not be viewed";
+                }
+              }
             }
-            break;
-            $response = BigBlueButton::createMeetingArray($username, $meetingID,
-               $meetingName, $welcomeString, $mPW, $aPW, $SALT, $URL, $logoutURL,
-                  $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array());
-            echo '<response>'.$response.'</response>';
-            break;
-        case 'view':
             break;
         default:
             header('Content-Type: text/plain; charset=utf-8');
