@@ -949,11 +949,11 @@ function bigbluebutton_shortcode_output_form_single($bbb_posts, $atts) {
     $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
     $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($bbb_room_token);
     if ( $atts['join'] == 'true' ) {
-      $output_string .= '<input type="hidden" name="hiddenInputSingle" id="hiddenInputSingle" value="'.$slug.'" />';
       $output_string .= '<input class="bbb-shortcode-selector" type="button" id="singleButton" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\')" value="Join  '.get_the_title().'"/>'."\n";
     } else {
       $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_view_room()" value="View '.get_the_title().'"/>'."\n";
     }
+    $output_string .= '<input type="hidden" name="hiddenInputSingle" id="hiddenInputSingle" value="'.$slug.'" />';
     return $output_string;
 }
 

@@ -5,10 +5,12 @@ var slug;
 */
 jQuery(function($){
 
+  //joins multiple rooms
 	$("#bbbRooms").change(function(){
 			setMeetingData(this);
 	});
 
+  //joins single rroom
 	setMeetingData('input#hiddenInputSingle');
 
 	function setMeetingData(hiddenInput){

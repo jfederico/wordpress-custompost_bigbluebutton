@@ -80,10 +80,10 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
             }
             break;
         case 'join':
-            $post = get_page_by_path($_GET[$slug_name], OBJECT, 'bbb-room');
             if((!isset($_GET[$slug_name]))){
                 header('HTTP/1.0 400 Bad Request. [slug] parameter was not included in this query.');
             }else{
+                $post = get_page_by_path($_GET[$slug_name], OBJECT, 'bbb-room');
                 $username = $current_user->display_name;
                 $bbbRoomToken = get_post_meta($post->ID, '_bbb_room_token', true);
                 $meetingID = $bbbRoomToken;
@@ -98,6 +98,7 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
                 $endpointVal = $bigbluebutton_custom_post_type_settings['endpoint'];
                 $secretVal = $bigbluebutton_custom_post_type_settings['secret'];
+                
                 $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword, $secretVal, $endpointVal, $logoutURL, $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array());
 
                 if (!$response || $response['returncode'] == 'FAILED') {
