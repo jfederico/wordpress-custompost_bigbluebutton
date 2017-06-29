@@ -915,7 +915,7 @@ function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
     if (!$bbb_posts->have_posts()) {
         return '<p> No rooms have been created. </p>';
     }
-    $output_string .= '<form id="form1" class="bbb-shortcode">'."\n".
+    $output_string = '<form id="form1" class="bbb-shortcode">'."\n".
                      '  <label>'.$atts['title'].'</label>'."\n";
     $posts = $bbb_posts->get_posts();
     if (count($posts) == 1) {
@@ -943,11 +943,9 @@ function bigbluebutton_shortcode_output_recordings($bbb_posts) {
 */
 function bigbluebutton_shortcode_output_form_single($bbb_posts, $atts) {
     $output_string = '';
-    $bbb_posts->the_post();
     $slug = the_slug();
     $post = get_page_by_path($slug, OBJECT, 'bbb-room');
     $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
-    $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($bbb_room_token);
     if ( $atts['join'] == 'true' ) {
       $output_string .= '<input class="bbb-shortcode-selector" type="button" id="singleButton" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\')" value="Join  '.get_the_title().'"/>'."\n";
     } else {
@@ -1342,12 +1340,6 @@ function bigbluebutton_custom_post_type_generatePasswd($numAlpha = 6, $numNonAlp
 function bigbluebutton_custom_post_type_normalizeMeetingID($meetingID)
 {
     return (strlen($meetingID) == 12) ? sha1(home_url().$meetingID) : $meetingID;
-    // if(strlen($meetingID) == 12){
-    //   return sha1(home_url().$meetingID);
-    // }
-    // else {
-    //   return $meetingID;
-    // }
 }
 
 //Returns current plugin version.

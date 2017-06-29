@@ -36,7 +36,6 @@ function bigbluebutton_join_meeting(baseurl){
 				  	$("#roomCreateErrorMsg").show();
 					});
 				}
-				console.log("Ajax was successful");
 			},
 			error : function(xmlHttpRequest, status, error) {
 				console.error("Ajax was not successful");
