@@ -86,7 +86,7 @@ a.end-meeting {
 			border-radius: 5px;
 			width: 300px;
 		}
-		#roomCreateErrorMsg{
+		#roomMeetingErrorMsg{
 			color: red;
 			text-align: center;
 			font-weight: bold;

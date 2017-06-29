@@ -170,29 +170,24 @@ function bbb_map_meta_cap($cap, $user_id)
 
     $args = array_slice(func_get_args(), 2);
     $caps = array();
-    //edit_rooms_own_bbb-room //delete_rooms_own_bbb-room //read_rooms_bbb-room
     if ('edit_rooms_own' == $cap[0] || 'delete_rooms_own' == $cap[0] || 'read_rooms' == $cap[0]) {
-        //  if ( "edit_rooms_own_bbb-room" == $cap[0] || "delete_rooms_own_bbb-room" == $cap[0] || "read_rooms_bbb-room" == $cap[0] ) {
         $post = get_post($args[0]);
         $post_type = get_post_type_object($post->post_type);
     }
 
     if ('edit_room_own' == $cap[0]) {
-        //if ( 'edit_rooms_own_bbb-room' == $cap[0] ) {
         if ($user_id == $post->post_author) {
             $caps[] = $post_type->cap->edit_posts;
         } else {
             $caps[] = $post_type->cap->edit_others_posts;
         }
     } elseif ('delete_recordings_own' == $cap[0]) {
-        //  elseif ( 'delete_rooms_own_bbb-room' == $cap[0] ) {
         if ($user_id == $post->post_author) {
             $caps[] = $post_type->cap->delete_posts;
         } else {
             $caps[] = $post_type->cap->delete_others_posts;
         }
     } elseif ('read_bbb-room' == $cap[0]) {
-        //elseif ( 'read_rooms_bbb-room' == $cap[0] ) {
         if ('private' != $post->post_status) {
             $caps[] = 'read';
         } elseif ($user_id == $post->post_author) {
@@ -379,7 +374,6 @@ function bigbluebutton_custom_post_type_room_status_metabox($post)
     $secret_val = $bigbluebutton_custom_post_type_settings['secret'];
     $bbb_attendee_password = get_post_meta($post->ID, '_bbb_attendee_password', true);
     $bbb_moderator_password = get_post_meta($post->ID, '_bbb_moderator_password', true);
-    $bbb_must_wait_for_admin_start = get_post_meta($post->ID, '_bbb_must_wait_for_admin_start', true);
     $bbb_is_recorded = get_post_meta($post->ID, '_bbb_is_recorded', true);
     $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
     $bbb_room_welcome_msg = get_post_meta($post->ID, '_bbb_room_welcome_msg', true);
@@ -508,7 +502,7 @@ function save_bbb_data($post_id)
         }
 
         if (($bbb_moderator_password !== $_POST['bbb_moderator_password']) || ($bbb_attendee_password !== $_POST['bbb_attendee_password'])) {
-            $response = BigBlueButton::endMeeting(bigbluebutton_custom_post_type_normalizeMeetingID($_POST['bbb_room_token']), $bbb_moderator_password, $endpoint_val, $secret_val);
+            BigBlueButton::endMeeting(bigbluebutton_custom_post_type_normalizeMeetingID($_POST['bbb_room_token']), $bbb_moderator_password, $endpoint_val, $secret_val);
         }
 
         update_post_meta($post_id, '_bbb_must_wait_for_admin_start', esc_attr($_POST['bbb_must_wait_for_admin_start']));
@@ -788,7 +782,7 @@ function bigbluebutton_widget_init()
 add_action('widgets_init', 'bigbluebutton_widget_init');
 
 // Gets the slug of the current post.
-function the_slug($echo = true)
+function the_slug()
 {
     $slug = basename(get_permalink());
     do_action('before_slug', $slug);
@@ -853,7 +847,7 @@ function bigbluebutton_shortcode_title_default($type) {
 /**
  * Updates shortcode attributes based on the tag.
  *
- * @param  array  $$atts The shortcode attributes.
+ * @param  array  &$atts The shortcode attributes.
  * @param  string $tag   The shortcode tag.
  * @return
  */
@@ -919,12 +913,12 @@ function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
                      '  <label>'.$atts['title'].'</label>'."\n";
     $posts = $bbb_posts->get_posts();
     if (count($posts) == 1) {
-        $output_string .= bigbluebutton_shortcode_output_form_single($bbb_posts, $atts);
+        $output_string .= bigbluebutton_shortcode_output_form_single($bbb_posts,$atts);
     } else {
         $output_string .= bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts);
     }
     $output_string .= '</form>'."\n";
-    $output_string .= '	<p id="roomCreateErrorMsg" hidden>Sorry an error occured while creating the meeting room.</p>';
+    $output_string .= '	<p id="roomMeetingErrorMsg" hidden>Sorry an error occured while creating the meeting room.</p>';
 
     return $output_string;
 }
@@ -941,16 +935,15 @@ function bigbluebutton_shortcode_output_recordings($bbb_posts) {
 * @param  array  $atts The shortcode attributes: type, title, join.
 * @return
 */
-function bigbluebutton_shortcode_output_form_single($bbb_posts, $atts) {
+function bigbluebutton_shortcode_output_form_single($bbb_posts,$atts) {
     $output_string = '';
+    $joinOrView = "Join";
+    $bbb_posts->the_post();
     $slug = the_slug();
-    $post = get_page_by_path($slug, OBJECT, 'bbb-room');
-    $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
-    if ( $atts['join'] == 'true' ) {
-      $output_string .= '<input class="bbb-shortcode-selector" type="button" id="singleButton" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\')" value="Join  '.get_the_title().'"/>'."\n";
-    } else {
-      $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_view_room()" value="View '.get_the_title().'"/>'."\n";
+    if($atts['join']=="false"){
+      $joinOrView = "View";
     }
+    $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\''.$atts['join'].'\')" value="'.$joinOrView.'  '.get_the_title().'"/>'."\n";
     $output_string .= '<input type="hidden" name="hiddenInputSingle" id="hiddenInputSingle" value="'.$slug.'" />';
     return $output_string;
 }
@@ -965,24 +958,19 @@ function bigbluebutton_shortcode_output_form_single($bbb_posts, $atts) {
 function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts) {
     $output_string = '<select class="bbb-shortcode" id="bbbRooms">'."\n";
     $output_string .= '<option disabled selected value>select room</option>'."\n";
-
+    $joinOrView = "Join";
     while ($bbb_posts->have_posts()) {
-        $bbb_posts->the_post();
-        $slug = the_slug();
-        $post = get_page_by_path($slug, OBJECT, 'bbb-room');
-        $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
-        $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($bbb_room_token);
-        $output_string .= '<option value="'.$slug.'">'.get_the_title().'</option>'."\n";
+      $bbb_posts->the_post();
+      $slug = the_slug();
+      $output_string .= '<option value="'.$slug.'">'.get_the_title().'</option>'."\n";
     }
     wp_reset_postdata();
     $output_string .= '</select>'."\n";
     $output_string .= '<input type="hidden" name="hiddenInput" id="hiddenInput" value="" />';
-    if ( $atts['join'] == 'true' ) {
-        $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\')" value="Join"/>'."\n";
-    }else{
-        $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_view_room()" value="View"/>'."\n";
+    if($atts['join']=="false"){
+      $joinOrView = "View";
     }
-
+    $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\''.$atts['join'].'\')" value="'.$joinOrView.'"/>'."\n";
     return $output_string;
 }
 
