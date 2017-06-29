@@ -781,16 +781,6 @@ function bigbluebutton_widget_init()
 
 add_action('widgets_init', 'bigbluebutton_widget_init');
 
-// Gets the slug of the current post.
-function the_slug()
-{
-    $slug = basename(get_permalink());
-    do_action('before_slug', $slug);
-    $slug = apply_filters('slug_filter', $slug);
-    do_action('after_slug', $slug);
-
-    return $slug;
-}
 
 // BigBlueButton shortcodes.
 function bigbluebutton_get_bbb_posts($bbb_categories, $bbb_posts) {
@@ -938,12 +928,12 @@ function bigbluebutton_shortcode_output_recordings($bbb_posts) {
 function bigbluebutton_shortcode_output_form_single($bbb_posts,$atts) {
     $output_string = '';
     $joinOrView = "Join";
-    $bbb_posts->the_post();
-    $slug = the_slug();
+    $slug = $bbb_posts->post->post_name;
+    $title = $bbb_posts->post->post_title;
     if($atts['join']=="false"){
       $joinOrView = "View";
     }
-    $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\''.$atts['join'].'\')" value="'.$joinOrView.'  '.get_the_title().'"/>'."\n";
+    $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\''.$atts['join'].'\')" value="'.$joinOrView.'  '.$title.'"/>'."\n";
     $output_string .= '<input type="hidden" name="hiddenInputSingle" id="hiddenInputSingle" value="'.$slug.'" />';
     return $output_string;
 }
@@ -961,8 +951,9 @@ function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts) {
     $joinOrView = "Join";
     while ($bbb_posts->have_posts()) {
       $bbb_posts->the_post();
-      $slug = the_slug();
-      $output_string .= '<option value="'.$slug.'">'.get_the_title().'</option>'."\n";
+      $slug = $bbb_posts->post->post_name;
+      $title = $bbb_posts->post->post_title;
+      $output_string .= '<option value="'.$slug.'">'.$title.'</option>'."\n";
     }
     wp_reset_postdata();
     $output_string .= '</select>'."\n";
@@ -1047,7 +1038,7 @@ function bigbluebutton_shortcode_old($atts, $content, $tag) {
                 '    <option disabled selected value>select room</option>'."\n";
             while ($bbb_posts->have_posts()) {
                 $bbb_posts->the_post();
-                $slug = the_slug();
+                $slug = $bbb_posts->post->post_name;
                 if ($post = get_page_by_path($slug, OBJECT, 'bbb-room')) {
                     $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
                     $meetingID = $bbb_room_token;
