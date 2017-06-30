@@ -131,9 +131,12 @@ function bigbluebutton_custom_post_type_init()
         'show_in_menu' => true,
         'query_var' => true,
         'rewrite' => array('slug' => 'bbb-room', 'with_front' => false),
-        'capability_type' => 'bbb-room',
+        'capability_type' => 'bbb-room',//custom caps
         'capabilities' => array(
           'edit_posts' => 'edit_rooms_own_bbb-room',
+          'joinat' => 'join_as_attendee_bbb-room',
+          'joinmd' => 'join_as_moderator_bbb-room',
+          'joinpw' => 'join_with_password_bbb-room',
           'edit_others_posts' => 'edit_rooms_all_bbb-room',
           'delete_posts' => 'delete_rooms_own_bbb-room',
           'delete_others_posts' => 'delete_rooms_all_bbb-room',
@@ -384,7 +387,6 @@ function bigbluebutton_custom_post_type_room_status_metabox($post)
     if ($_POST['SubmitList'] == 'End Meeting Now') {
         $response = BigBlueButton::endMeeting(bigbluebutton_custom_post_type_normalizeMeetingID($_POST['bbb_room_token']), $_POST['bbb_moderator_password'], $endpoint_val, $secret_val);
     }
-
     $recorded = $bbb_is_recorded;
     $duration = 0;
     $voicebridge = 0;
@@ -802,7 +804,6 @@ function bigbluebutton_get_bbb_posts($bbb_categories, $bbb_posts) {
     if ($bbb_posts) {
         $args['post__in'] = explode(',', $bbb_posts);
     }
-
     $bbb_posts = new WP_Query($args);
     return $bbb_posts;
 }
@@ -841,7 +842,7 @@ function bigbluebutton_shortcode_title_default($type) {
  * @param  string $tag   The shortcode tag.
  * @return
  */
-function bigbluebutton_shortcode_defaults(&$atts, $tag) {
+function bigbluebutton_shortcode_defaults(&$atts, $tag) {//handle spelling mistakes//default for token empty
     if ($atts == null) {
         $atts = array();
     }
@@ -849,7 +850,7 @@ function bigbluebutton_shortcode_defaults(&$atts, $tag) {
         $atts['type'] = bigbluebutton_shortcode_type_default($tag);
     }
     if ( !array_key_exists('title', $atts) ) {
-        $atts['title'] = bigbluebutton_shortcode_title_default($atts['type']);
+        $atts['title'] = bigbluebutton_shortcode_title_default($atts['type']);//no user, name and password
     }
     if ( !array_key_exists('join', $atts) ) {
         $atts['join'] = 'true';
@@ -902,7 +903,7 @@ function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
     $output_string = '<form id="form1" class="bbb-shortcode">'."\n".
                      '  <label>'.$atts['title'].'</label>'."\n";
     $posts = $bbb_posts->get_posts();
-    if (count($posts) == 1) {
+    if ((count($posts) == 1)||strlen($atts['token'])===12) {
         $output_string .= bigbluebutton_shortcode_output_form_single($bbb_posts,$atts);
     } else {
         $output_string .= bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts);
@@ -953,7 +954,11 @@ function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts) {
       $bbb_posts->the_post();
       $slug = $bbb_posts->post->post_name;
       $title = $bbb_posts->post->post_title;
-      $output_string .= '<option value="'.$slug.'">'.$title.'</option>'."\n";
+      $bbbRoomToken = get_post_meta($bbb_posts->post->ID, '_bbb_room_token', true);
+      if(($atts['token'] == null)||(strpos($atts['token'],$bbbRoomToken) !== false))
+      {
+        $output_string .= '<option value="'.$slug.'">'.$title.'</option>'."\n";
+      }
     }
     wp_reset_postdata();
     $output_string .= '</select>'."\n";
