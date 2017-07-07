@@ -154,7 +154,7 @@ function bigbluebutton_custom_post_type_init()
         'menu_icon' => 'dashicons-video-alt2',
         'supports' => array('title', 'editor', 'page-attributes', 'author'),
     );
-    $test = register_post_type('bbb-room', $args);
+    register_post_type('bbb-room', $args);
   /*
     notice how we have set 'capability_type' => 'bbb-room'. This allows us to use wordpress's built in permission/role system
     rather than creating our own. This makes everything much easier. We will need an additional plugin such as http://wordpress.org/plugins/members/
@@ -914,6 +914,7 @@ function bigbluebutton_shortcode_output($bbb_posts, $atts) {
 * @return
 */
 function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
+    global $current_user;
     if (!$bbb_posts->have_posts()) {
         return '<p> No rooms have been created. </p>';
     }
@@ -921,9 +922,9 @@ function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
                      '  <label>'.$atts['title'].'</label>'."\n";
     $posts = $bbb_posts->get_posts();
     if ((count($posts) == 1)||strlen($atts['token'])===12) {
-        $output_string .= bigbluebutton_shortcode_output_form_single($bbb_posts,$atts);
+        $output_string .= bigbluebutton_shortcode_output_form_single($bbb_posts,$atts,$current_user);
     } else {
-        $output_string .= bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts);
+        $output_string .= bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts,$current_user);
     }
     $output_string .= '</form>'."\n";
     $output_string .= '	<p id="roomMeetingErrorMsg" hidden>Sorry an error occured while creating the meeting room.</p>';
@@ -943,8 +944,7 @@ function bigbluebutton_shortcode_output_recordings($bbb_posts) {
 * @param  array  $atts The shortcode attributes: type, title, join.
 * @return
 */
-function bigbluebutton_shortcode_output_form_single($bbb_posts,$atts) {
-  global $current_user;
+function bigbluebutton_shortcode_output_form_single($bbb_posts,$atts,$current_user) {
     $output_string = '';
     $joinOrView = "Join";
     $slug = $bbb_posts->post->post_name;
@@ -969,8 +969,7 @@ function bigbluebutton_shortcode_output_form_single($bbb_posts,$atts) {
 * @param  array  $atts The shortcode attributes: type, title, join.
 * @return
 */
-function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts) {
-    global $current_user;
+function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts,$current_user) {
     $output_string = '<select class="bbb-shortcode" id="bbbRooms">'."\n";
     $output_string .= '<option disabled selected value>select room</option>'."\n";
     $joinOrView = "Join";
@@ -979,7 +978,7 @@ function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts) {
       $slug = $bbb_posts->post->post_name;
       $title = $bbb_posts->post->post_title;
       $bbbRoomToken = get_post_meta($bbb_posts->post->ID, '_bbb_room_token', true);
-      if(($atts['token'] == null)||(strpos($atts['token'],$bbbRoomToken) !== false))
+      if(!isset($atts['token'])||(strpos($atts['token'],$bbbRoomToken) !== false))
       {
         $output_string .= '<option value="'.$slug.'">'.$title.'</option>'."\n";
       }
@@ -1004,114 +1003,7 @@ add_shortcode('bigbluebutton', 'bigbluebutton_shortcode');
 add_shortcode('bigbluebutton_recordings', 'bigbluebutton_shortcode');
 add_shortcode('bigbluebuttonrooms', 'bigbluebutton_shortcode');
 
-/////////////////////////////////////////
-function bigbluebutton_custom_post_type_renderShortcode($atts, $content, $tag) {
-    return bigbluebutton_shortcode_old($atts, $content, $tag);
-}
 
-function bigbluebutton_shortcode_old($atts, $content, $tag) {
-    global $current_user;
-    extract(shortcode_atts(array('link_type' => 'wordpress',
-                                 'bbb_categories' => '0',
-                                 'bbb_posts' => ''),
-                           $atts));
-
-    $args = array('post_type' => 'bbb-room',
-                  'orderby' => 'name',
-                  'posts_per_page' => -1,
-                  'order' => 'DESC',
-      );
-
-    if ($bbb_categories) {
-        $taxquery = array(
-                'taxonomy' => 'bbb-room-category',
-                'field' => 'id',
-                'terms' => explode(',', $bbb_categories),
-              );
-        $args['tax_query'] = array($taxquery);
-    }
-
-    if ($bbb_posts) {
-        $args['post__in'] = explode(',', $bbb_posts);
-    }
-
-    $bbb_posts = new WP_Query($args);
-    $output_string = '';
-
-    if ($tag == 'bigbluebuttonrooms') {
-        if ($bbb_posts->have_posts()) {
-
-            $output_string .= ''.
-                '<form id="form1" class="bbb-shortcode">'."\n".
-                '  <label>Room:</label>'."\n".
-                '  <select class="bbb-shortcode" onchange="location=this.options[this.selectedIndex].value;">'."\n".
-                '    <option disabled selected value>select room</option>'."\n";
-            while ($bbb_posts->have_posts()) {
-                $bbb_posts->the_post();
-                $output_string .= '    <option value="'.get_permalink().'">'.get_the_title().'</option>'."\n";
-            }
-            $output_string .= ''.
-                '  </select>'."\n".
-                '</form>'."\n";
-
-            wp_reset_postdata();
-        }
-
-    } else {
-        $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
-        $endpoint_val = $bigbluebutton_custom_post_type_settings['endpoint'];
-        $secret_val = $bigbluebutton_custom_post_type_settings['secret'];
-        $logouturl = (is_ssl() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout=true';
-        $duration = 0;
-        $voicebridge = 0;
-
-        if ($bbb_posts->have_posts()) {
-            $output_string .= ''.
-                '<form name="dropdownNew" class="bbb-shortcode">'."\n".
-                '  <label>Meeting:</label>'."\n".
-                '  <select name="list" accesskey="E" style="color: #777; border-radius: 2px;background: #fff; width: 100%; ">'."\n".
-                '    <option disabled selected value>select room</option>'."\n";
-            while ($bbb_posts->have_posts()) {
-                $bbb_posts->the_post();
-                $slug = $bbb_posts->post->post_name;
-                if ($post = get_page_by_path($slug, OBJECT, 'bbb-room')) {
-                    $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
-                    $meetingID = $bbb_room_token;
-                    $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($meetingID);
-                    $bbb_attendee_password = get_post_meta($post->ID, '_bbb_attendee_password', true);
-                    $bbb_moderator_password = get_post_meta($post->ID, '_bbb_moderator_password', true);
-                    $name = $current_user->display_name;
-                    $bbb_meeting_name = get_the_title($post->ID);
-                    $bbb_room_welcome_msg = get_post_meta($post->ID, '_bbb_room_welcome_msg', true);
-                    $bbb_is_recorded = get_post_meta($post->ID, '_bbb_is_recorded', true);
-                    $recorded = $bbb_is_recorded;
-                    $response = BigBlueButton::createMeetingArray($name, $meetingID, $bbb_meeting_name, $bbb_room_welcome_msg, $bbb_moderator_password, $bbb_attendee_password, $secret_val, $endpoint_val, $logouturl, $recorded ? 'true' : 'false', $duration, $voicebridge, $metadata);
-
-                    if ($current_user->allcaps['join_as_moderator_bbb-room']) {
-                        $password = $bbb_moderator_password;
-                    } else {
-                        $password = $bbb_attendee_password;
-                    }
-
-                    if (!$response || $response['returncode'] == 'FAILED') {
-                        //If the server is unreachable, or an error occured
-                        $output_string .= "  <p class='error'>".__('Sorry an error occured while creating the meeting room.', 'bbb').'</p>';
-                    } else {
-                        $bigbluebutton_custom_post_type_joinURL = BigBlueButton::getJoinURL($meetingID, $name, $password, $secret_val, $endpoint_val);
-                    }
-                    $output_string .= "    <option value='".$bigbluebutton_custom_post_type_joinURL."' >".get_the_title().'    </option>';
-                }
-            }
-            $output_string .= ''.
-                '  </select>'."\n".
-                '  <input class="bbb-shortcode-selector"  type="submit" onClick="goToNewPageNew(document.dropdownNew.list)"  value="Join"/>'."\n".
-                '</form>';
-            wp_reset_postdata();
-        }
-    }
-
-	  return $output_string;
-}
 
 //Displays the javascript that handles redirecting a user, when the meeting has started
 //the meetingName is the meetingID

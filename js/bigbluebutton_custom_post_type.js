@@ -31,7 +31,7 @@ function bigbluebutton_join_meeting(baseurl,join){
 			password = $('input#roompw').val();
 		});
 
-		var dataString = 'slug='+slug+'&join='+join+ '&password='+password;
+		var dataString = 'slug=' + slug + '&join=' + join + '&password=' + password;
 
 		jQuery.ajax({
 			type: "POST",
