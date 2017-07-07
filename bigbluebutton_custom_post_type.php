@@ -35,6 +35,7 @@ function bigbluebutton_custom_post_type_install()
         }
     }
     update_option('bigbluebutton_custom_post_type_settings', $bigbluebutton_custom_post_type_settings);
+    bbb_default_roles();
 }
 
 //constant definition
@@ -131,12 +132,13 @@ function bigbluebutton_custom_post_type_init()
         'show_in_menu' => true,
         'query_var' => true,
         'rewrite' => array('slug' => 'bbb-room', 'with_front' => false),
-        'capability_type' => 'bbb-room',//custom caps
+        'capability_type' => 'bbb-room',
         'capabilities' => array(
           'edit_posts' => 'edit_rooms_own_bbb-room',
           'joinat' => 'join_as_attendee_bbb-room',
           'joinmd' => 'join_as_moderator_bbb-room',
           'joinpw' => 'join_with_password_bbb-room',
+          'managerecordings' => 'manage_recordings_bbb-room',
           'edit_others_posts' => 'edit_rooms_all_bbb-room',
           'delete_posts' => 'delete_rooms_own_bbb-room',
           'delete_others_posts' => 'delete_rooms_all_bbb-room',
@@ -152,7 +154,7 @@ function bigbluebutton_custom_post_type_init()
         'menu_icon' => 'dashicons-video-alt2',
         'supports' => array('title', 'editor', 'page-attributes', 'author'),
     );
-    register_post_type('bbb-room', $args);
+    $test = register_post_type('bbb-room', $args);
   /*
     notice how we have set 'capability_type' => 'bbb-room'. This allows us to use wordpress's built in permission/role system
     rather than creating our own. This makes everything much easier. We will need an additional plugin such as http://wordpress.org/plugins/members/
@@ -161,7 +163,7 @@ function bigbluebutton_custom_post_type_init()
    */
 }
 
-add_action('init', 'bigbluebutton_custom_post_type_init', 0);
+add_action('init', 'bigbluebutton_custom_post_type_init',1);
 
 /**
  * Used http://justintadlock.com/archives/2010/07/10/meta-capabilities-for-custom-post-types code as per below
@@ -259,21 +261,36 @@ add_action('init', 'build_bbb_room_taxonomies', 0);
 function bbb_default_roles()
 {
     $adminRole = get_role('administrator');
+    $adminRole->add_cap('join_as_attendee_bbb-room', false);
+    $adminRole->add_cap('join_as_moderator_bbb-room', true);
+    $adminRole->add_cap('join_with_password_bbb-room', false);
+    $adminRole->add_cap('manage_recordings_bbb-room', true);
 
     $authorRole = get_role('author');
-    $authorRole->add_cap($adminRole);
+    $authorRole->add_cap('join_as_attendee_bbb-room', false);
+    $authorRole->add_cap('join_as_moderator_bbb-room', true);
+    $authorRole->add_cap('join_with_password_bbb-room', false);
+    $authorRole->add_cap('manage_recordings_bbb-room', true);
 
     $contributorRole = get_role('contributor');
-    $contributorRole->add_cap($adminRole);
+    $contributorRole->add_cap('join_as_attendee_bbb-room', false);
+    $contributorRole->add_cap('join_as_moderator_bbb-room', true);
+    $contributorRole->add_cap('join_with_password_bbb-room', false);
+    $contributorRole->add_cap('manage_recordings_bbb-room', true);
 
     $editorRole = get_role('editor');
-    $editorRole->add_cap($adminRole);
+    $editorRole->add_cap('join_as_attendee_bbb-room', false);
+    $editorRole->add_cap('join_as_moderator_bbb-room', true);
+    $editorRole->add_cap('join_with_password_bbb-room', false);
+    $editorRole->add_cap('manage_recordings_bbb-room', true);
 
     $subscriberRole = get_role('subscriber');
-    $subscriberRole->add_cap('read_private_posts');
+    $subscriberRole->add_cap('join_as_attendee_bbb-room', true);
+    $subscriberRole->add_cap('join_as_moderator_bbb-room', false);
+    $subscriberRole->add_cap('join_with_password_bbb-room', false);
+    $subscriberRole->add_cap('manage_recordings_bbb-room', false);
 }
 
-add_action('admin_init', 'bbb_default_roles');
 
 function my_error_notice()
 {
@@ -401,9 +418,9 @@ function bigbluebutton_custom_post_type_room_status_metabox($post)
        'meta_originurl' => $logouturl,
     );
 
-    if ($current_user->allcaps['edit_bbb-cat']) {
+    if ($current_user->allcaps['join_as_moderator_bbb-room']) {
         $password = $bbb_moderator_password;
-    } elseif ($current_user->allcaps['read']) {
+    } else {
         $password = $bbb_attendee_password;
     }
 
@@ -593,9 +610,9 @@ function bigbluebutton_custom_post_type_filter($content)
              * http://codex.wordpress.org/Function_Reference/current_user_can
              */
 
-            if ($current_user->allcaps['edit_bbb-cat']) {
+            if ($current_user->allcaps['join_as_moderator_bbb-room']) {
                 $password = $bbb_moderator_password;
-            } elseif ($current_user->allcaps['read']) {
+            } else {
                 $password = $bbb_attendee_password;
             }
 
@@ -927,10 +944,16 @@ function bigbluebutton_shortcode_output_recordings($bbb_posts) {
 * @return
 */
 function bigbluebutton_shortcode_output_form_single($bbb_posts,$atts) {
+  global $current_user;
     $output_string = '';
     $joinOrView = "Join";
     $slug = $bbb_posts->post->post_name;
     $title = $bbb_posts->post->post_title;
+    if(($current_user->allcaps["join_with_password_bbb-room"])&&($atts['join']=="true")){
+      $output_string .= '
+      <label>Password:</label>
+      <input type="password" name="roompw" id="roompw">';
+    }
     if($atts['join']=="false"){
       $joinOrView = "View";
     }
@@ -947,6 +970,7 @@ function bigbluebutton_shortcode_output_form_single($bbb_posts,$atts) {
 * @return
 */
 function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts) {
+    global $current_user;
     $output_string = '<select class="bbb-shortcode" id="bbbRooms">'."\n";
     $output_string .= '<option disabled selected value>select room</option>'."\n";
     $joinOrView = "Join";
@@ -961,13 +985,19 @@ function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts) {
       }
     }
     wp_reset_postdata();
-    $output_string .= '</select>'."\n";
-    $output_string .= '<input type="hidden" name="hiddenInput" id="hiddenInput" value="" />';
-    if($atts['join']=="false"){
-      $joinOrView = "View";
+    $output_string .= '</select>&nbsp'."\n";
+    if(($current_user->allcaps["join_with_password_bbb-room"])&&($atts['join']=="true")){
+      $output_string .= '
+      <label>Password:</label>
+      <input type="password" name="roompw" id="roompw">';
     }
-    $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\''.$atts['join'].'\')" value="'.$joinOrView.'"/>'."\n";
-    return $output_string;
+      $output_string .= '<input type="hidden" name="hiddenInput" id="hiddenInput" value="" />';
+      if($atts['join']=="false"){
+        $joinOrView = "View";
+      }
+      $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\''.$atts['join'].'\')" value="'.$joinOrView.'"/>'."\n";
+      return $output_string;
+
 }
 
 add_shortcode('bigbluebutton', 'bigbluebutton_shortcode');
@@ -1057,9 +1087,9 @@ function bigbluebutton_shortcode_old($atts, $content, $tag) {
                     $recorded = $bbb_is_recorded;
                     $response = BigBlueButton::createMeetingArray($name, $meetingID, $bbb_meeting_name, $bbb_room_welcome_msg, $bbb_moderator_password, $bbb_attendee_password, $secret_val, $endpoint_val, $logouturl, $recorded ? 'true' : 'false', $duration, $voicebridge, $metadata);
 
-                    if ($current_user->allcaps['edit_bbb-cat']) {
+                    if ($current_user->allcaps['join_as_moderator_bbb-room']) {
                         $password = $bbb_moderator_password;
-                    } elseif ($current_user->allcaps['read']) {
+                    } else {
                         $password = $bbb_attendee_password;
                     }
 

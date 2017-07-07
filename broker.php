@@ -29,6 +29,7 @@ $recordingID_name = 'recordingID';
 $meetingID_name = 'meetingID';
 $slug_name = 'slug';
 $join = 'join';
+$password = 'password';
 //================================================================================
 //------------------------------------Main----------------------------------------
 //================================================================================
@@ -81,13 +82,16 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
             }
             break;
         case 'join':
-            if((!isset($_GET[$slug_name]))){
+            global $current_user;
+            //post is not recognizing '+'
+            if((!isset($_POST[$slug_name]))){
                 header('HTTP/1.0 400 Bad Request. [slug] parameter was not included in this query.');
-            }else if((!isset($_GET[$join]))){
+            }else if((!isset($_POST[$join]))){
                 header('HTTP/1.0 400 Bad Request. [join] parameter was not included in this query.');
             }else{
-              $post = get_page_by_path($_GET[$slug_name], OBJECT, 'bbb-room');
-              if($_GET[$join] === "true"){
+              $post = get_page_by_path($_POST[$slug_name], OBJECT, 'bbb-room');
+
+              if($_POST[$join] === "true"){
                 $username = $current_user->display_name;
                 $bbbRoomToken = get_post_meta($post->ID, '_bbb_room_token', true);
                 $meetingID = $bbbRoomToken;
@@ -102,13 +106,37 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
                 $endpointVal = $bigbluebutton_custom_post_type_settings['endpoint'];
                 $secretVal = $bigbluebutton_custom_post_type_settings['secret'];
+                $password = '';
+
+                if($current_user->allcaps["join_with_password_bbb-room"])//have to check if user is logged in or not
+                {
+                    if($current_user->allcaps["join_as_moderator_bbb-room"])
+                    {
+                      if(strcmp($moderatorPassword,$_POST['password']) === 0){
+                          $password = $moderatorPassword;
+                      } //should handle wrong pw?
+
+                    }else{
+                      if(strcmp($attendeePassword,$_POST['password']) === 0){
+                          $password = $attendeePassword;
+                      }
+                    }
+                }else{
+                    if($current_user->allcaps["join_as_moderator_bbb-room"])
+                    {
+                      $password = $moderatorPassword;
+
+                    }else{
+                      $password = $attendeePassword;
+                    }
+                }
 
                 $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword, $secretVal, $endpointVal, $logoutURL, $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array());
 
                 if (!$response || $response['returncode'] == 'FAILED') {
                     echo "Sorry an error occured while creating the meeting room.";
                 }else {
-                    echo BigBlueButton::getJoinURL($meetingID, $username, $moderatorPassword, $secretVal, $endpointVal);
+                    echo BigBlueButton::getJoinURL($meetingID, $username, $password, $secretVal, $endpointVal);
                 }
               }else {
                 if($post !== null){

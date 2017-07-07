@@ -25,9 +25,19 @@ jQuery(function($){
 * @param  join join or view the room
 */
 function bigbluebutton_join_meeting(baseurl,join){
+	  var password;
+
+	  jQuery(function($){
+			password = $('input#roompw').val();
+		});
+
+		var dataString = 'slug='+slug+'&join='+join+ '&password='+password;
+
 		jQuery.ajax({
-			url : baseurl+'/broker.php?action=join&slug='+slug+'&join='+join,
+			type: "POST",
+			url : baseurl+'/broker.php?action=join',
 			async : true,
+			data: dataString,
 			dataType : "text",
 			success : function(data){
 				if(data.includes("http")){
