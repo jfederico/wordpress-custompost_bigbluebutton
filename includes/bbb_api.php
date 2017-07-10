@@ -75,10 +75,9 @@ class BigBlueButton
     {
         $numargs = func_num_args();
 
-        if ($numargs == 0) {
-        }
+
         // pass the information to the class variables
-        elseif ($numargs >= 6) {
+        if ($numargs >= 6) {
             $this->userName = func_get_arg(0);
             $this->meetingID = func_get_arg(1);
             $this->welcomeString = func_get_arg(2);
@@ -409,6 +408,7 @@ class BigBlueButton
         } elseif ($xml && $xml->returncode == 'SUCCESS') { //If there were meetings already created
 
             foreach ($xml->meetings->meeting as $meeting) {
+                $meetings = array();
                 $meetings[] = array('meetingID' => $meeting->meetingID, 'moderatorPW' => $meeting->moderatorPW, 'attendeePW' => $meeting->attendeePW, 'hasBeenForciblyEnded' => $meeting->hasBeenForciblyEnded, 'running' => $meeting->running);
             }
 
@@ -488,7 +488,7 @@ class BigBlueButton
             ob_start();
             if (count($xml->attendees) && count($xml->attendees->attendee)) {
                 foreach ($xml->attendees->attendee as $attendee) {
-                    if ($UNAME == true) {
+                    if ($UNAME === true) {
                         echo 'User name: '.$attendee->fullName.'<br />';
                     } else {
                         echo $attendee->fullName.'<br />';
@@ -524,6 +524,7 @@ class BigBlueButton
             return array('returncode' => (string) $xml->returncode, 'message' => (string) $xml->message, 'messageKey' => (string) $xml->messageKey);
         } elseif ($xml && $xml->returncode == 'SUCCESS') { //If there were meetings already created
             foreach ($xml->attendees->attendee as $attendee) {
+                $users = array();
                 $users[] = array('userID' => $attendee->userID, 'fullName' => $attendee->fullName, 'role' => $attendee->role);
             }
 

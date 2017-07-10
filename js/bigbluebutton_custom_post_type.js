@@ -30,12 +30,10 @@ function bigbluebutton_join_meeting(baseurl,join){
 
 	  jQuery(function($){
 			password = $('input#roompw').val();
-			console.log("Password: "+password);
 		});
 
 		jQuery(function($){
 			name = $('input#displayname').val();
-			console.log("Name: "+name);
 		});
 
 		var dataString = 'slug=' + slug + '&join=' + join + '&password=' + password + '&name=' + name;
@@ -47,7 +45,6 @@ function bigbluebutton_join_meeting(baseurl,join){
 			data: dataString,
 			dataType : "text",
 			success : function(data){
-				console.log("Data: "+data);
 				if(data.includes("http")){
 					window.open(data);
 				}
@@ -58,8 +55,6 @@ function bigbluebutton_join_meeting(baseurl,join){
 				}
 			},
 			error : function(xmlHttpRequest, status, error) {
-				console.log("update");
-				//console.log("Data: "+data);
 				console.error("Ajax was not successful");
 			}
 		});
