@@ -32,7 +32,7 @@ Versions:
 function bbb_custom_post_type_wrap_simplexml_load_file($url)
 {
     if (extension_loaded('curl')) {
-        $ch = curl_init() || die(curl_error());
+        $ch = curl_init() or die(curl_error());
         $timeout = 10;
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -407,7 +407,6 @@ class BigBlueButton
         } elseif ($xml && $xml->returncode == 'SUCCESS') { //If there were meetings already created
 
             foreach ($xml->meetings->meeting as $meeting) {
-                $meetings = array();
                 $meetings[] = array('meetingID' => $meeting->meetingID, 'moderatorPW' => $meeting->moderatorPW, 'attendeePW' => $meeting->attendeePW, 'hasBeenForciblyEnded' => $meeting->hasBeenForciblyEnded, 'running' => $meeting->running);
             }
 
@@ -487,7 +486,7 @@ class BigBlueButton
             ob_start();
             if (count($xml->attendees) && count($xml->attendees->attendee)) {
                 foreach ($xml->attendees->attendee as $attendee) {
-                    if ($UNAME === true) {
+                    if ($UNAME == true) {
                         echo 'User name: '.$attendee->fullName.'<br />';
                     } else {
                         echo $attendee->fullName.'<br />';
@@ -523,7 +522,6 @@ class BigBlueButton
             return array('returncode' => (string) $xml->returncode, 'message' => (string) $xml->message, 'messageKey' => (string) $xml->messageKey);
         } elseif ($xml && $xml->returncode == 'SUCCESS') { //If there were meetings already created
             foreach ($xml->attendees->attendee as $attendee) {
-                $users = array();
                 $users[] = array('userID' => $attendee->userID, 'fullName' => $attendee->fullName, 'role' => $attendee->role);
             }
 
