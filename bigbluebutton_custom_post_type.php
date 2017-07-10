@@ -922,9 +922,9 @@ function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
                      '  <label>'.$atts['title'].'</label>'."\n";
     $posts = $bbb_posts->get_posts();
     if ((count($posts) == 1)||strlen($atts['token'])===12) {
-        $output_string .= bigbluebutton_shortcode_output_form_single($bbb_posts,$atts,$current_user);
+        $output_string .= bigbluebutton_shortcode_output_form_single($bbb_posts,$atts, $current_user);
     } else {
-        $output_string .= bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts,$current_user);
+        $output_string .= bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts, $current_user);
     }
     $output_string .= '</form>'."\n";
     $output_string .= '	<p id="roomMeetingErrorMsg" hidden>Sorry an error occured while creating the meeting room.</p>';
@@ -944,7 +944,8 @@ function bigbluebutton_shortcode_output_recordings($bbb_posts) {
 * @param  array  $atts The shortcode attributes: type, title, join.
 * @return
 */
-function bigbluebutton_shortcode_output_form_single($bbb_posts,$atts,$current_user) {
+function bigbluebutton_shortcode_output_form_single($bbb_posts,$atts, $current_user) {
+
     $output_string = '';
     $joinOrView = "Join";
     $slug = $bbb_posts->post->post_name;
@@ -969,7 +970,8 @@ function bigbluebutton_shortcode_output_form_single($bbb_posts,$atts,$current_us
 * @param  array  $atts The shortcode attributes: type, title, join.
 * @return
 */
-function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts,$current_user) {
+function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts, $current_user) {
+
     $output_string = '<select class="bbb-shortcode" id="bbbRooms">'."\n";
     $output_string .= '<option disabled selected value>select room</option>'."\n";
     $joinOrView = "Join";
@@ -978,7 +980,7 @@ function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts,$current
       $slug = $bbb_posts->post->post_name;
       $title = $bbb_posts->post->post_title;
       $bbbRoomToken = get_post_meta($bbb_posts->post->ID, '_bbb_room_token', true);
-      if(!isset($atts['token'])||(strpos($atts['token'],$bbbRoomToken) !== false))
+      if($atts['token']==null||(strpos($atts['token'],$bbbRoomToken) !== false))
       {
         $output_string .= '<option value="'.$slug.'">'.$title.'</option>'."\n";
       }
@@ -1002,7 +1004,6 @@ function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts,$current
 add_shortcode('bigbluebutton', 'bigbluebutton_shortcode');
 add_shortcode('bigbluebutton_recordings', 'bigbluebutton_shortcode');
 add_shortcode('bigbluebuttonrooms', 'bigbluebutton_shortcode');
-
 
 
 //Displays the javascript that handles redirecting a user, when the meeting has started

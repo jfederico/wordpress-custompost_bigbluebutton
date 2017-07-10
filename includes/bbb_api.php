@@ -75,8 +75,10 @@ class BigBlueButton
     {
         $numargs = func_num_args();
 
+        if ($numargs == 0) {
+        }
         // pass the information to the class variables
-        if ($numargs >= 6) {
+        elseif ($numargs >= 6) {
             $this->userName = func_get_arg(0);
             $this->meetingID = func_get_arg(1);
             $this->welcomeString = func_get_arg(2);
