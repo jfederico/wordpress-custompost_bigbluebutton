@@ -659,7 +659,7 @@ function bigbluebutton_custom_post_type_filter($content)
                 elseif ($bbb_attendee_password == $password) {
                     //Stores the url and salt of the bigblubutton server in the session
                     $_SESSION['mt_bbb_endpoint'] = $endpoint_val;
-                    $_SESSION['mt_bbb_salt'] = $secret_val;
+                    $_SESSION['mt_bbb_secret'] = $secret_val;
                     //Displays the javascript to automatically redirect the user when the meeting begins
                     $out .= '<div id="bbb-join-container"></div>';
                     $out .= bigbluebutton_custom_post_type_display_reveal_script($bigbluebutton_custom_post_type_joinURL, $meetingID, $bbb_meeting_name, $name);
@@ -945,7 +945,6 @@ function bigbluebutton_shortcode_output_recordings($bbb_posts) {
 * @return
 */
 function bigbluebutton_shortcode_output_form_single($bbb_posts,$atts, $current_user) {
-
     $output_string = '';
     $joinOrView = "Join";
     $slug = $bbb_posts->post->post_name;
@@ -971,7 +970,6 @@ function bigbluebutton_shortcode_output_form_single($bbb_posts,$atts, $current_u
 * @return
 */
 function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts, $current_user) {
-
     $output_string = '<select class="bbb-shortcode" id="bbbRooms">'."\n";
     $output_string .= '<option disabled selected value>select room</option>'."\n";
     $joinOrView = "Join";
@@ -980,17 +978,27 @@ function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts, $curren
       $slug = $bbb_posts->post->post_name;
       $title = $bbb_posts->post->post_title;
       $bbbRoomToken = get_post_meta($bbb_posts->post->ID, '_bbb_room_token', true);
-      if($atts['token']==null||(strpos($atts['token'],$bbbRoomToken) !== false))
+      if($atts['token'] == null||(strpos($atts['token'],$bbbRoomToken) !== false))
       {
         $output_string .= '<option value="'.$slug.'">'.$title.'</option>'."\n";
       }
     }
     wp_reset_postdata();
-    $output_string .= '</select>&nbsp'."\n";
-    if(($current_user->allcaps["join_with_password_bbb-room"])&&($atts['join']=="true")){
+    $output_string .= '</select>'."\n";
+    if(is_user_logged_in()==true)//make it true after it works
+    {
+      if(($current_user->allcaps["join_with_password_bbb-room"])&&($atts['join']=="true")){
+        $output_string .= '
+        &nbsp<label>Password:</label>
+        <input type="password" name="roompw" id="roompw">';
+      }
+    }else{
       $output_string .= '
-      <label>Password:</label>
-      <input type="password" name="roompw" id="roompw">';
+        &nbsp<label>Name:</label>
+        <input type="text" name="displayname" id="displayname" >';
+      $output_string .= '
+        <label>Password:</label>
+        <input type="password" name="roompw" id="roompw">';
     }
       $output_string .= '<input type="hidden" name="hiddenInput" id="hiddenInput" value="" />';
       if($atts['join']=="false"){
@@ -1235,7 +1243,7 @@ function bigbluebutton_custom_post_type_generateToken($tokenLength = 6)
 function bigbluebutton_custom_post_type_generatePasswd($numAlpha = 6, $numNonAlpha = 2, $salt = '')
 {
     $listAlpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    $listNonAlpha = ',;:!?.$/*-+&@_+;./*&?$-!,';
+    $listNonAlpha = ',;:!?.$/*-&@_+;./*&?$-!,';
     do {
         $pepper = str_shuffle(substr(str_shuffle($listAlpha), 0, $numAlpha).substr(str_shuffle($listNonAlpha), 0, $numNonAlpha));
     } while ($pepper == $salt);

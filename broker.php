@@ -23,7 +23,7 @@ require 'includes/bbb_api.php';
 require($_SERVER['DOCUMENT_ROOT'].'/wordpress-test/wp-load.php');//MAKE SUREE TO CHNAGE THE PATH
 session_start();
 $bbb_endpoint_name = 'mt_bbb_endpoint';
-$bbb_secret_name = 'mt_bbb_secret';
+$bbb_secret_name = 'mt_bbb_salt';
 $action_name = 'action';
 $recordingID_name = 'recordingID';
 $meetingID_name = 'meetingID';
@@ -129,6 +129,10 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                     }else{
                       $password = $attendeePassword;
                     }
+                }
+
+                if(is_user_logged_in()==false){
+                  $username = $_POST['name'];
                 }
 
                 $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword, $secretVal, $endpointVal, $logoutURL, $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array());
