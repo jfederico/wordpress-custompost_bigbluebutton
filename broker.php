@@ -23,7 +23,7 @@ require 'includes/bbb_api.php';
 require($_SERVER['DOCUMENT_ROOT'].'/wordpress-test/wp-load.php');//MAKE SUREE TO CHNAGE THE PATH
 session_start();
 $bbb_endpoint_name = 'mt_bbb_endpoint';
-$bbb_secret_name = 'mt_bbb_salt';
+$bbb_secret_name = 'mt_bbb_secret';
 $action_name = 'action';
 $recordingID_name = 'recordingID';
 $meetingID_name = 'meetingID';
@@ -108,31 +108,44 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 $secretVal = $bigbluebutton_custom_post_type_settings['secret'];
                 $password = '';
 
-                if($current_user->allcaps["join_with_password_bbb-room"])//have to check if user is logged in or not
-                {
-                    if($current_user->allcaps["join_as_moderator_bbb-room"])
-                    {
-                      if(strcmp($moderatorPassword,$_POST['password']) === 0){
-                          $password = $moderatorPassword;
-                      } //should handle wrong pw?
-
-                    }else{
-                      if(strcmp($attendeePassword,$_POST['password']) === 0){
-                          $password = $attendeePassword;
+                if(is_user_logged_in() == true) {
+                  if($current_user->allcaps["join_with_password_bbb-room"] == true ) {
+                      if($current_user->allcaps["join_as_moderator_bbb-room"]) {
+                        if(strcmp($moderatorPassword,$_POST['password']) === 0) {
+                            $password = $moderatorPassword;
+                        }
+                      }else {
+                        if(strcmp($attendeePassword,$_POST['password']) === 0) {
+                            $password = $attendeePassword;
+                        }
                       }
-                    }
-                }else{
-                    if($current_user->allcaps["join_as_moderator_bbb-room"])
-                    {
-                      $password = $moderatorPassword;
-
-                    }else{
-                      $password = $attendeePassword;
-                    }
-                }
-
-                if(is_user_logged_in()==false){
+                  }else {
+                      if($current_user->allcaps["join_as_moderator_bbb-room"] === 0) {
+                        $password = $moderatorPassword;
+                      }else {
+                        $password = $attendeePassword;
+                      }
+                  }
+                }else {
                   $username = $_POST['name'];
+                  $anonymousRole = get_role('anonymous');
+                  if($anonymousRole->capabilities["join_with_password_bbb-room"] == true ) {
+                      if($anonymousRole->capabilities["join_as_moderator_bbb-room"]) {
+                        if(strcmp($moderatorPassword,$_POST['password']) === 0) {
+                            $password = $moderatorPassword;
+                        }
+                      }else {
+                        if(strcmp($attendeePassword,$_POST['password']) === 0) {
+                            $password = $attendeePassword;
+                        }
+                      }
+                  }else {
+                      if($anonymousRole->capabilities["join_as_moderator_bbb-room"] === 0) {
+                        $password = $moderatorPassword;
+                      }else {
+                        $password = $attendeePassword;
+                      }
+                  }
                 }
 
                 $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword, $secretVal, $endpointVal, $logoutURL, $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array());

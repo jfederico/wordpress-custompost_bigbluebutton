@@ -86,11 +86,7 @@ a.end-meeting:hover {
 	border-radius: 5px;
 	width: 300px;
 }
-#roomMeetingErrorMsg{
-	color: red;
-	text-align: center;
-	font-weight: bold;
-}
+
 
 #roompw{
 color: #777;
