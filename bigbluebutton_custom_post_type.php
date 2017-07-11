@@ -1001,7 +1001,7 @@ add_shortcode('bigbluebutton_recordings', 'bigbluebutton_shortcode');
 add_shortcode('bigbluebuttonrooms', 'bigbluebutton_shortcode');
 
 function bigbluebutton_form($current_user,$atts){
-
+  $output_string = '';
   if((is_user_logged_in() == true)){
     if(($current_user->allcaps["join_with_password_bbb-room"] == true) && ($atts['join'] === "true")){
       $output_string .= '

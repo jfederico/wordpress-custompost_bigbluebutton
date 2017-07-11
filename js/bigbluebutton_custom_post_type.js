@@ -30,7 +30,6 @@ function bigbluebutton_join_meeting(baseurl,join){
 
 	  jQuery(function($){
 			password = $('input#roompw').val();
-			console.log("pASSWORD: "+ password);
 		});
 
 		jQuery(function($){

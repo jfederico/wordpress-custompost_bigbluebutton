@@ -107,45 +107,32 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 $endpointVal = $bigbluebutton_custom_post_type_settings['endpoint'];
                 $secretVal = $bigbluebutton_custom_post_type_settings['secret'];
                 $password = '';
+                $array = array();
 
                 if(is_user_logged_in() == true) {
-                  if($current_user->allcaps["join_with_password_bbb-room"] == true ) {
-                      if($current_user->allcaps["join_as_moderator_bbb-room"]) {
-                        if(strcmp($moderatorPassword,$_POST['password']) === 0) {
-                            $password = $moderatorPassword;
-                        }
-                      }else {
-                        if(strcmp($attendeePassword,$_POST['password']) === 0) {
-                            $password = $attendeePassword;
-                        }
-                      }
-                  }else {
-                      if($current_user->allcaps["join_as_moderator_bbb-room"] === 0) {
-                        $password = $moderatorPassword;
-                      }else {
-                        $password = $attendeePassword;
-                      }
-                  }
+                  $array = $current_user->allcaps;
                 }else {
                   $username = $_POST['name'];
                   $anonymousRole = get_role('anonymous');
-                  if($anonymousRole->capabilities["join_with_password_bbb-room"] == true ) {
-                      if($anonymousRole->capabilities["join_as_moderator_bbb-room"]) {
-                        if(strcmp($moderatorPassword,$_POST['password']) === 0) {
-                            $password = $moderatorPassword;
-                        }
-                      }else {
-                        if(strcmp($attendeePassword,$_POST['password']) === 0) {
-                            $password = $attendeePassword;
-                        }
+                  $array = $anonymousRole->capabilities;
+                }
+
+                if($array["join_with_password_bbb-room"] == true ) {
+                    if($array["join_as_moderator_bbb-room"]) {
+                      if(strcmp($moderatorPassword,$_POST['password']) === 0) {
+                          $password = $moderatorPassword;
                       }
-                  }else {
-                      if($anonymousRole->capabilities["join_as_moderator_bbb-room"] === 0) {
-                        $password = $moderatorPassword;
-                      }else {
-                        $password = $attendeePassword;
+                    }else {
+                      if(strcmp($attendeePassword,$_POST['password']) === 0) {
+                          $password = $attendeePassword;
                       }
-                  }
+                    }
+                }else {
+                    if($array["join_as_moderator_bbb-room"] === 0) {
+                      $password = $moderatorPassword;
+                    }else {
+                      $password = $attendeePassword;
+                    }
                 }
 
                 $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword, $secretVal, $endpointVal, $logoutURL, $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array());
