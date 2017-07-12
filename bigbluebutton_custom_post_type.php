@@ -599,7 +599,6 @@ function bigbluebutton_custom_post_type_filter($content)
           }
 
         } else {
-
             if ($current_user->display_name != '') {
                 $name = $current_user->display_name;
             } elseif ($current_user->user_firstname != '' || $current_user->user_lastname != '') {
@@ -607,8 +606,9 @@ function bigbluebutton_custom_post_type_filter($content)
                 $name .= $current_user->user_lastname != '' ? $current_user->user_lastname.' ' : '';
             } elseif ($current_user->user_login != '') {
                 $name = $current_user->user_login;
-            } else {
-            //    $name = $role;
+            }
+            else {
+                $name = $current_user->roles["1"];
             }
 
             if ($current_user->allcaps['join_as_moderator_bbb-room']) {
