@@ -1,8 +1,6 @@
 var slug;
 
-/**
-* Sets the hidden input of the selected field in the rooms shortcode.
-*/
+
 jQuery(function($){
 
 	$("#bbbRooms").change(function(){
@@ -24,16 +22,22 @@ jQuery(function($){
 * @param  baseurl  base url of the plugin
 * @param  join join or view the room
 */
-function bigbluebutton_join_meeting(baseurl,join){
+function bigbluebutton_join_meeting(baseurl,join,bool){
 	  var password;
 		var name;
 
-	  jQuery(function($){
-			password = $('input#roompw').val();
-		});
+		if(bool === "true"){
+			  password = prompt("Please enter the password of the meeting : ", "Enter password here");
+		}else{
+		  jQuery(function($){
+				password = $('input#roompw').val();
+			});
+	  }
 
 		jQuery(function($){
-			name = $('input#displayname').val();
+			if(name!== "undefined"){
+				name = $('input#displayname').val();
+		  }
 		});
 
 		var dataString = 'slug=' + slug + '&join=' + join + '&password=' + password + '&name=' + name;

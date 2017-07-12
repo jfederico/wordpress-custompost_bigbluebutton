@@ -83,7 +83,7 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
             break;
         case 'join':
             global $current_user;
-            //post is not recognizing '+'
+            //post is not recognizing '+' and '&'
             if((!isset($_POST[$slug_name]))){
                 header('HTTP/1.0 400 Bad Request. [slug] parameter was not included in this query.');
             }else if((!isset($_POST[$join]))){
@@ -103,22 +103,21 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 $moderatorPassword = get_post_meta($post->ID, '_bbb_moderator_password', true);
                 $attendeePassword = get_post_meta($post->ID, '_bbb_attendee_password', true);
                 $logoutURL = (is_ssl() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout=true';
-                $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
-                $endpointVal = $bigbluebutton_custom_post_type_settings['endpoint'];
-                $secretVal = $bigbluebutton_custom_post_type_settings['secret'];
+                $bigbluebuttonSettings = get_option('bigbluebutton_custom_post_type_settings');
+                $endpointVal = $bigbluebuttonSettings['endpoint'];
+                $secretVal = $bigbluebuttonSettings['secret'];
                 $password = '';
-                $array = array();
+                $userCapArray = array();
 
                 if(is_user_logged_in() == true) {
-                  $array = $current_user->allcaps;
+                  $userCapArray = $current_user->allcaps;
                 }else {
                   $username = $_POST['name'];
                   $anonymousRole = get_role('anonymous');
-                  $array = $anonymousRole->capabilities;
+                  $userCapArray = $anonymousRole->capabilities;
                 }
-
-                if($array["join_with_password_bbb-room"] == true ) {
-                    if($array["join_as_moderator_bbb-room"]) {
+                if($userCapArray["join_with_password_bbb-room"] == true ) {
+                    if($userCapArray["join_as_moderator_bbb-room"] == true) {
                       if(strcmp($moderatorPassword,$_POST['password']) === 0) {
                           $password = $moderatorPassword;
                       }
@@ -128,14 +127,17 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                       }
                     }
                 }else {
-                    if($array["join_as_moderator_bbb-room"] === 0) {
+                    if($userCapArray["join_as_moderator_bbb-room"] === true) {
                       $password = $moderatorPassword;
                     }else {
                       $password = $attendeePassword;
                     }
                 }
-
-                $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword, $secretVal, $endpointVal, $logoutURL, $record = 'false', $duration = 0, $voiceBridge = 0, $metadata = array());
+//have to check if meeting is running here
+                $response = BigBlueButton::createMeetingArray($username, $meetingID,
+                 $meetingName, $welcomeString, $moderatorPassword, $attendeePassword,
+                 $secretVal, $endpointVal, $logoutURL, $record = 'false', $duration = 0,
+                 $voiceBridge = 0, $metadata = array());
 
                 if (!$response || $response['returncode'] == 'FAILED') {
                     echo "Sorry an error occured while creating the meeting room.";

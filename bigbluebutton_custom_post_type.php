@@ -555,7 +555,16 @@ add_action('before_delete_post', 'before_bbb_delete');
  */
 function bigbluebutton_custom_post_type_filter($content)
 {
-
+    $args = array('post_type' => 'bbb-room',
+                  'orderby' => 'name',
+                  'posts_per_page' => -1,
+                  'order' => 'ASC',
+    );
+    $bbb_posts = new WP_Query($args);
+    $atts =  array(
+       "token" => "",
+       "join" => "true"
+    );
     /*
      * Target only bbb-room post type, and on the 'single' page (not archive)
      *
@@ -564,14 +573,12 @@ function bigbluebutton_custom_post_type_filter($content)
      * If we do meet requirements, a button to go to the room will be attached at the bottom of the
      * regular page content
      */
-    if ('bbb-room' == get_post_type($post) && is_single()) {
+    if (('bbb-room' == get_post_type($post)) && (is_single())) {
         global $wp_version, $current_site, $current_user, $wp_roles, $post;
         $current_user = wp_get_current_user();
 
-        //Initializes the variable that will collect the output
         $out = '';
         $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
-        //Read in existing option value from database
         $endpoint_val = $bigbluebutton_custom_post_type_settings['endpoint'];
         $secret_val = $bigbluebutton_custom_post_type_settings['secret'];
         $bbb_attendee_password = get_post_meta($post->ID, '_bbb_attendee_password', true);
@@ -584,23 +591,19 @@ function bigbluebutton_custom_post_type_filter($content)
         $meetingID = $bbb_room_token;
         $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($meetingID);
 
-        if (!$current_user->ID) {
-            /*
-             * Right now no functionality is present to handle user's who are not logged in. That functionality
-             * will go here
-             *
-             * $name = $_POST['display_name'];
-             * $password = $_POST['pwd'];
-            */
-            $out = '<div class="login-box" style="background-color:#eee;padding:20px;margin-bottom:20px;" >';
-            if (get_option('users_can_register')) {
-                $out .= '<p>Please login or register to access this room and view room recordings:</p>';
-                $out .= wp_register('<p>', '</p>', false);
-            } else {
-                $out .= '<p>Only registered users can access rooms and view room recordings:</p>';
-            }
-            $out .= '</div>';
+        if (is_user_logged_in() == false) {
+
+          if (get_option('users_can_register')) {
+            $out .= '<p>Please login or register to access this room and view room recordings:</p>';
+            $out .=  wp_register('<p>', '</p>', false);
+          } else {
+            $slug = $bbb_posts->post->post_name;
+            $out .= '<input type="hidden" name="hiddenInputSingle" id="hiddenInputSingle" value="'.$slug.'" />';
+            $out .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\'true\',\'true\')" value="Join Meeting"/>'."\n";
+          }
+
         } else {
+
             if ($current_user->display_name != '') {
                 $name = $current_user->display_name;
             } elseif ($current_user->user_firstname != '' || $current_user->user_lastname != '') {
@@ -611,11 +614,6 @@ function bigbluebutton_custom_post_type_filter($content)
             } else {
                 $name = $role;
             }
-            /*
-             * To make things easier and allow deeper integration with other plugins, we are using wordpress's
-             * built in permission and capability functions rather than something custom. For more info check out:
-             * http://codex.wordpress.org/Function_Reference/current_user_can
-             */
 
             if ($current_user->allcaps['join_as_moderator_bbb-room']) {
                 $password = $bbb_moderator_password;
@@ -961,9 +959,9 @@ function bigbluebutton_shortcode_output_form_single($bbb_posts,$atts, $current_u
     $output_string = '';
     $slug = $bbb_posts->post->post_name;
     $title = $bbb_posts->post->post_title;
-    $output_string .= bigbluebutton_form($current_user,$atts);
-    $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\''.$atts['join'].'\')" value="'.$joinOrView.'  '.$title.'"/>'."\n";
+    $output_string .= bigbluebutton_form_setup($current_user,$atts);
     $output_string .= '<input type="hidden" name="hiddenInputSingle" id="hiddenInputSingle" value="'.$slug.'" />';
+    $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\''.$atts['join'].'\',\'false\')" value="'.$joinOrView.'  '.$title.'"/>'."\n";
     return $output_string;
 }
 
@@ -982,16 +980,15 @@ function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts, $curren
       $slug = $bbb_posts->post->post_name;
       $title = $bbb_posts->post->post_title;
       $bbbRoomToken = get_post_meta($bbb_posts->post->ID, '_bbb_room_token', true);
-      if($atts['token'] == null||(strpos($atts['token'],$bbbRoomToken) !== false))
-      {
+      if($atts['token'] == null||(strpos($atts['token'],$bbbRoomToken) !== false)) {
         $output_string .= '<option value="'.$slug.'">'.$title.'</option>'."\n";
       }
     }
     wp_reset_postdata();
     $output_string .= '</select>'."\n";
-    $output_string .= bigbluebutton_form($current_user,$atts);//change the function name
+    $output_string .= bigbluebutton_form_setup($current_user,$atts);
     $output_string .= '<input type="hidden" name="hiddenInput" id="hiddenInput" value="" />';
-    $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\''.$atts['join'].'\')" value="'.$joinOrView.'"/>'."\n";
+    $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\''.$atts['join'].'\',\'false\')" value="'.$joinOrView.'"/>'."\n";
     return $output_string;
 
 }
@@ -1000,25 +997,26 @@ add_shortcode('bigbluebutton', 'bigbluebutton_shortcode');
 add_shortcode('bigbluebutton_recordings', 'bigbluebutton_shortcode');
 add_shortcode('bigbluebuttonrooms', 'bigbluebutton_shortcode');
 
-function bigbluebutton_form($current_user,$atts){
+function bigbluebutton_form_setup($current_user,$atts){
   $output_string = '';
+  $userArray = array();
+
   if((is_user_logged_in() == true)){
-    if(($current_user->allcaps["join_with_password_bbb-room"] == true) && ($atts['join'] === "true")){
-      $output_string .= '
-      &nbsp<label>Password:</label>
-      <input type="password" name="roompw" id="roompw">';
-    }
+    $userArray = $current_user->allcaps;
   }else{
     $anonymousRole = get_role('anonymous');
+    $userArray = $anonymousRole->capabilities;
     $output_string .= '
       &nbsp<label>Name:</label>
       <input type="text" name="displayname" id="displayname" >';
-    if($anonymousRole->capabilities["join_with_password_bbb-room"] == true ){
-      $output_string .= '
-        <label>Password:</label>
-        <input type="password" name="roompw" id="roompw">';
-    }
   }
+
+  if(($userArray["join_with_password_bbb-room"] == true) && ($atts['join'] === "true") ) {
+    $output_string .= '
+      &nbsp<label>Password:</label>
+      <input type="password" name="roompw" id="roompw">';
+  }
+
   return $output_string;
 
 }
@@ -1257,7 +1255,7 @@ function bigbluebutton_session_setup($endpointVal,$secretVal)
 function bigbluebutton_custom_post_type_generatePasswd($numAlpha = 6, $numNonAlpha = 2, $salt = '')
 {
     $listAlpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    $listNonAlpha = ',;:!?.$/*-&@_+;./*&?$-!,';
+    $listNonAlpha = ',;:!?.$/*-@_;./*?$-!,';
     do {
         $pepper = str_shuffle(substr(str_shuffle($listAlpha), 0, $numAlpha).substr(str_shuffle($listNonAlpha), 0, $numNonAlpha));
     } while ($pepper == $salt);
