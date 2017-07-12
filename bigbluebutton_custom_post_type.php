@@ -561,10 +561,6 @@ function bigbluebutton_custom_post_type_filter($content)
                   'order' => 'ASC',
     );
     $bbb_posts = new WP_Query($args);
-    $atts =  array(
-       "token" => "",
-       "join" => "true"
-    );
     /*
      * Target only bbb-room post type, and on the 'single' page (not archive)
      *
@@ -612,7 +608,7 @@ function bigbluebutton_custom_post_type_filter($content)
             } elseif ($current_user->user_login != '') {
                 $name = $current_user->user_login;
             } else {
-                $name = $role;
+            //    $name = $role;
             }
 
             if ($current_user->allcaps['join_as_moderator_bbb-room']) {

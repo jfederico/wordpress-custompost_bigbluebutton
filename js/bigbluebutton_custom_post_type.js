@@ -23,7 +23,7 @@ jQuery(function($){
 * @param  join join or view the room
 */
 function bigbluebutton_join_meeting(baseurl,join,bool){
-	  var password;
+	  var password='';
 		var name;
 
 		if(bool === "true"){
