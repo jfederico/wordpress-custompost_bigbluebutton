@@ -393,74 +393,25 @@ function bigbluebutton_custom_post_type_room_recordings_metabox($post)
 
 function bigbluebutton_custom_post_type_room_status_metabox($post)
 {
-    global $wp_version, $current_site, $current_user, $wp_roles, $post;
-
     $out = '';
     $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
     $endpoint_val = $bigbluebutton_custom_post_type_settings['endpoint'];
     $secret_val = $bigbluebutton_custom_post_type_settings['secret'];
-    $bbb_attendee_password = get_post_meta($post->ID, '_bbb_attendee_password', true);
-    $bbb_moderator_password = get_post_meta($post->ID, '_bbb_moderator_password', true);
-    $bbb_is_recorded = get_post_meta($post->ID, '_bbb_is_recorded', true);
     $bbb_room_token = get_post_meta($post->ID, '_bbb_room_token', true);
-    $bbb_room_welcome_msg = get_post_meta($post->ID, '_bbb_room_welcome_msg', true);
-    $bbb_meeting_name = get_the_title($post->ID);
+    $current_user = wp_get_current_user();
     $meetingID = $bbb_room_token;
     $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($meetingID);
 
     if ($_POST['SubmitList'] == 'End Meeting Now') {
         $response = BigBlueButton::endMeeting(bigbluebutton_custom_post_type_normalizeMeetingID($_POST['bbb_room_token']), $_POST['bbb_moderator_password'], $endpoint_val, $secret_val);
     }
-    $recorded = $bbb_is_recorded;
-    $duration = 0;
-    $voicebridge = 0;
-    $logouturl = (is_ssl() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout=true';
-    //Metadata for tagging recordings
-    $metadata = array(
-       'meta_origin' => 'WordPress',
-       'meta_originversion' => $wp_version,
-       'meta_origintag' => 'wp_plugin-bigbluebutton_custom_post_type '.BIGBLUEBUTTON_CUSTOM_POST_TYPE_PLUGIN_VERSION,
-       'meta_originservername' => home_url(),
-       'meta_originservercommonname' => get_bloginfo('name'),
-       'meta_originurl' => $logouturl,
-    );
-
-    if ($current_user->allcaps['join_as_moderator_bbb-room']) {
-        $password = $bbb_moderator_password;
-    } else {
-        $password = $bbb_attendee_password;
-    }
-
-    if (!$current_user->ID) {
-        $out .= '<div class="login-box" style="background-color:#eee;padding:20px;margin-bottom:20px;" >';
-        if (get_option('users_can_register')) {
-            $out .= '<p>Please login or register to access this room and view room recordings:</p>';
-            $out .= wp_register('<p>', '</p>', false);
-        } else {
-            $out .= '<p>Only registered users can access rooms and view room recordings:</p>';
-        }
-        $out .= '</div>';
-    } else {
-        if ($current_user->display_name != '') {
-            $name = $current_user->display_name;
-        } elseif ($current_user->user_firstname != '' || $current_user->user_lastname != '') {
-            $name = $current_user->user_firstname != '' ? $current_user->user_firstname.' ' : '';
-            $name .= $current_user->user_lastname != '' ? $current_user->user_lastname.' ' : '';
-        } elseif ($current_user->user_login != '') {
-            $name = $current_user->user_login;
-        } else {
-            $name = $role;
-        }
-    }
+    //if people can register let them option when not signed in
     if (get_post_status($post->ID) === 'publish') {
-        $response = BigBlueButton::createMeetingArray($name, $meetingID, $bbb_meeting_name, $bbb_room_welcome_msg, $bbb_moderator_password, $bbb_attendee_password, $secret_val, $endpoint_val, $logouturl, $recorded ? 'true' : 'false', $duration, $voicebridge, $metadata);
-        if (!$response || $response['returncode'] == 'FAILED') {
-            $out .= 'Sorry an error occured while creating the meeting room.';
-        } else {
-            $bigbluebutton_custom_post_type_joinURL = BigBlueButton::getJoinURL($meetingID, $name, $password, $secret_val, $endpoint_val);
-            $button_text = 'Join';
-            $out .= '<input type="button" style=" left: 0;padding: 5x 100px;" class="button-primary" value="'.$button_text.'"  onClick="window.open(\''.$bigbluebutton_custom_post_type_joinURL.'\'); setTimeout(function() {document.location.reload(true);}, 5000);" />';
-        }
+      $userCapArray = assignCapArray($current_user);
+      $slug = $post->post_name;
+      $out .= '<input type="hidden" name="hiddenInputSingle" id="hiddenInputSingle" value="'.$slug.'" />';
+      $out .= '<input type="button" style=" left: 0;padding: 5x 100px;" class="button-primary" value="Join"  onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\'true\',\''.json_encode(is_user_logged_in()).'\',
+      \''.json_encode($userCapArray["join_with_password_bbb-room"]).'\',\'true\'); setTimeout(function() {document.location.reload(true);}, 5000);" />';
     }
     if (BigBlueButton::isMeetingRunning($meetingID, $endpoint_val, $secret_val)) {
         $out .= '<input type="submit" name="SubmitList" style="position: absolute; left: 70px;padding: 5x;" class="button-primary" value="End Meeting Now" />&nbsp';
@@ -563,7 +514,7 @@ function bigbluebutton_custom_post_type_filter($content)
     );
     $bbb_posts = new WP_Query($args);
     $slug = $bbb_posts->post->post_name;
-
+//if people can register let them option when not signed in
     if (('bbb-room' == get_post_type()) && (is_single())) {
       $current_user = wp_get_current_user();
 
