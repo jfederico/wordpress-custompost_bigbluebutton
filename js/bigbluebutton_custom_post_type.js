@@ -26,7 +26,7 @@ jQuery(function($){
 */
 function bigbluebutton_join_meeting(baseurl,join,userSignedIn,passwordRequired,page){
 	  var password='';
-		var name;
+		var name='';
 
 		if(page == "true")
 		{

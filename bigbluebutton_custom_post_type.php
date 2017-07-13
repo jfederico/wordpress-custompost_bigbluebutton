@@ -555,6 +555,7 @@ add_action('before_delete_post', 'before_bbb_delete');
  */
 function bigbluebutton_custom_post_type_filter($content)
 {
+    $out = '';
     $args = array('post_type' => 'bbb-room',
                   'orderby' => 'name',
                   'posts_per_page' => -1,
@@ -563,11 +564,9 @@ function bigbluebutton_custom_post_type_filter($content)
     $bbb_posts = new WP_Query($args);
     $slug = $bbb_posts->post->post_name;
 
-    if (('bbb-room' == get_post_type($post)) && (is_single())) {
-      global $current_user;
+    if (('bbb-room' == get_post_type()) && (is_single())) {
       $current_user = wp_get_current_user();
 
-      $out = '';
       $userCapArray = assignCapArray($current_user);
 
       $out .= '<input type="hidden" name="hiddenInputSingle" id="hiddenInputSingle" value="'.$slug.'" />';
