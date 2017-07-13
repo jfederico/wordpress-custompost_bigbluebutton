@@ -108,6 +108,12 @@ border: 1px solid #c7d0d2;
 border-radius: 2px;
 }
 
+#roomMeetingErrorMsg{
+	color: red;
+	text-align: center;
+	font-weight: bold;
+}
+
 #bbb-join-form {
   background: #f6f6f6;
   padding:20px 30px 30px 30px;

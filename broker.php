@@ -116,6 +116,7 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                   $anonymousRole = get_role('anonymous');
                   $userCapArray = $anonymousRole->capabilities;
                 }
+                
                 if($userCapArray["join_with_password_bbb-room"] == true ) {
                     if($userCapArray["join_as_moderator_bbb-room"] == true) {
                       if(strcmp($moderatorPassword,$_POST['password']) === 0) {

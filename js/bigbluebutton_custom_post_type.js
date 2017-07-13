@@ -1,6 +1,7 @@
 var slug;
 
 
+
 jQuery(function($){
 
 	$("#bbbRooms").change(function(){
@@ -16,29 +17,40 @@ jQuery(function($){
 
 });
 
+
 /**
 * Joins/Views the meeting/room.
 *
 * @param  baseurl  base url of the plugin
 * @param  join join or view the room
 */
-function bigbluebutton_join_meeting(baseurl,join,bool){
+function bigbluebutton_join_meeting(baseurl,join,userSignedIn,passwordRequired,page){
 	  var password='';
 		var name;
 
-		if(bool === "true"){
-			  password = prompt("Please enter the password of the meeting : ", "Enter password here");
-		}else{
-		  jQuery(function($){
-				password = $('input#roompw').val();
-			});
-	  }
+		if(page == "true")
+		{
+			if(userSignedIn == "false"){
+				name = prompt("Please enter your name: ", "Enter name here");
+			}
 
-		jQuery(function($){
-			if(name!== "undefined"){
-				name = $('input#displayname').val();
-		  }
-		});
+			if(passwordRequired == "true"){
+				password = prompt("Please enter the password of the meeting: ", "Enter password here");
+			}
+
+		}else{
+			if(userSignedIn == "false"){
+				jQuery(function($) {
+						name = $('input#displayname').val();
+				});
+			}
+
+			if(passwordRequired == "true"){
+				jQuery(function($) {
+					password = $('input#roompw').val();
+				});
+			}
+		}
 
 		var dataString = 'slug=' + slug + '&join=' + join + '&password=' + password + '&name=' + name;
 
@@ -52,14 +64,9 @@ function bigbluebutton_join_meeting(baseurl,join,bool){
 				if(data.includes("http")){
 					window.open(data);
 				}
-				else{
-					jQuery(function($){
-						$("#roomMeetingErrorMsg").text(data).show();
-					});
-				}
 			},
 			error : function(xmlHttpRequest, status, error) {
 				console.error("Ajax was not successful");
 			}
 		});
-}
+ }
