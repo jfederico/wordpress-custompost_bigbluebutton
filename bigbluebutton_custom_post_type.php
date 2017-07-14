@@ -874,50 +874,7 @@ function bigbluebutton_form_setup($current_user,$atts){
   return $output_string;
 
 }
-//Displays the javascript that handles redirecting a user, when the meeting has started
-//the meetingName is the meetingID
-/*
- * At the moment this does not work since the broker always returns false when checking if the meeting has started
- */
-function bigbluebutton_custom_post_type_display_reveal_script($bigbluebutton_custom_post_type_joinURL, $meetingID, $meetingName, $name)
-{
-    $pluginbaseurl = bigbluebutton_plugin_base_url();
-    $out = '
-    <script type="text/javascript">
-        function bigbluebutton_custom_post_type_ping() {
-            jQuery.ajax({
-                url : "'.$pluginbaseurl.'/php/broker.php?action=ping&meetingID='.urlencode($meetingID).'",
-                async : true,
-                dataType : "xml",
-                success : function(xmlDoc){
-                    $xml = jQuery( xmlDoc ), $running = $xml.find( "running" );
-                    if($running.text() == "true"){
-                        if (!jQuery("div#bbb-join-container a").length)
-                            jQuery("div#bbb-join-container").append("<p><a class=\'bbb\'  href=\''.$bigbluebutton_custom_post_type_joinURL.'\' target=\'_blank\'>'.'Join as Attendee'.'</a></p>");
-                        }
-                },
-                error : function(xmlHttpRequest, status, error) {
-                }
-            });
-        }
-        setInterval("bigbluebutton_custom_post_type_ping()", 5000);
-    </script>';
-    $out .= '
-    <table>
-      <tbody>
-        <tr>
-          <td>
-            Welcome '.$name.'!<br /><br />
-            '.$meetingName.' session has not been started yet.<br /><br />
-            <div align="center"><img src="'.$pluginbaseurl.'/img/polling.gif" /></div><br />
-            (Your browser will automatically refresh and join the meeting when it starts.)
-          </td>
-        </tr>
-      </tbody>
-    </table>';
 
-    return $out;
-}
 
 function bigbluebutton_plugin_base_url()
 {
