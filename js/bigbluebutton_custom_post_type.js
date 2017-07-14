@@ -65,7 +65,6 @@ function bigbluebutton_join_meeting(baseurl,join,userSignedIn,passwordRequired,p
 				}
 				else if (data.includes("9")) {
 					bigbluebutton_custom_post_type_ping(baseurl, data);
-					setInterval("bigbluebutton_custom_post_type_ping(baseurl, data)", 60000);
 				}
 			},
 			error : function(xmlHttpRequest, status, error) {
@@ -89,6 +88,7 @@ function bigbluebutton_join_meeting(baseurl,join,userSignedIn,passwordRequired,p
 							 }
  			 },
  			 error : function(xmlHttpRequest, status, error) {
+				 console.error("Ajax was not successful PING");
  			 }
  	 });
  }

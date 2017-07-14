@@ -152,7 +152,6 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                     }
                     elseif ($attendeePassword == $password) {
                         $meetingResponse = BigBlueButton::getMeetingXML($meetingID, $endpointVal, $secretVal);
-                      //  echo $meetingResponse.' mettingID:'.$meetingID;
                       echo $meetingID.'';
                     }
                 }

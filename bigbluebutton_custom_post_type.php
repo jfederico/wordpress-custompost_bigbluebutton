@@ -896,7 +896,6 @@ function bigbluebutton_plugin_base_url()
  */
 function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
 {
-    $current_user = wp_get_current_user();
     $pluginbaseurl = bigbluebutton_plugin_base_url();
     $bbb_room_token = get_post_meta($postID, '_bbb_room_token', true);
     $meetingID = $bbb_room_token;
