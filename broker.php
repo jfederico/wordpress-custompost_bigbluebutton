@@ -104,6 +104,7 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 $welcomeString = get_post_meta($post->ID, '_bbb_room_welcome_msg', true);
                 $moderatorPassword = get_post_meta($post->ID, '_bbb_moderator_password', true);
                 $attendeePassword = get_post_meta($post->ID, '_bbb_attendee_password', true);
+                $bbbIsRecorded = get_post_meta($post->ID, '_bbb_is_recorded', true);
                 $logoutURL = (is_ssl() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout=true';
                 $bigbluebuttonSettings = get_option('bigbluebutton_custom_post_type_settings');
                 $endpointVal = $bigbluebuttonSettings['endpoint'];//getting these double cause setting $seession. clean it up
@@ -137,8 +138,9 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                       $password = $attendeePassword;
                     }
                 }
+
                  $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword,
-                 $secretVal, $endpointVal, $logoutURL, $record = 'false', $duration = 0,$voiceBridge = 0, $metadata = array());
+                 $secretVal, $endpointVal, $logoutURL, $bbbIsRecorded ? 'true' : 'false', $duration = 0,$voiceBridge = 0, $metadata = array());
                 if (!$response || $response['returncode'] == 'FAILED') {
                     echo "Sorry an error occured while creating the meeting room.";
                 }else {

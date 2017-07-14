@@ -515,7 +515,7 @@ function bigbluebutton_custom_post_type_filter($content)
       $out .= '<input type="hidden" name="hiddenInputSingle" id="hiddenInputSingle" value="'.$slug.'" />';
       $out .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\'true\',\''.json_encode(is_user_logged_in()).'\',\''.json_encode($userCapArray["join_with_password_bbb-room"]).'\',\'true\')" value="Join* Room"/>'."\n";
     }
-    //have to add waiting for moderator to start meeting stuff
+
   return $content.$out;
 }
 
