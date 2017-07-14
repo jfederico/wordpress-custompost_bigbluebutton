@@ -610,6 +610,7 @@ class BigBlueButton
     public function isMeetingRunning($meetingID, $URL, $SALT)
     {
         $xml = bbb_custom_post_type_wrap_simplexml_load_file(self::getIsMeetingRunningURL($meetingID, $URL, $SALT));
+      //  error_log("\n\n *********IsMeetingRunning xml**********". json_encode($xml)."\n\n");
         if ($xml && $xml->returncode == 'SUCCESS') {
             return  ((string) $xml->running == 'true') ? true : false;
         } else {

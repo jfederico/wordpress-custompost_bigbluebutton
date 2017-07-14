@@ -67,19 +67,21 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 header('HTTP/1.0 400 Bad Request. [recordingID] parameter was not included in this query.');
             } else {
                 $recordingID = $_GET[$recordingID_name];
-                echo BigBlueButton::doDeleteRecordings($recordingID, $url_val, $salt_val);
+                echo BigBlueButton::doDeleteRecordings($recordingID, $bbb_endpoint_name, $salt_val);
             }
             break;
         case 'ping':
-            header('Content-Type: text/xml; charset=utf-8');
-            echo '<?xml version="1.0"?>'."\r\n";
-            if (!isset($_GET[$meetingID_name])) {
-                header('HTTP/1.0 400 Bad Request. [meetingID] parameter was not included in this query.');
-            } else {
+           header('Content-Type: text/xml; charset=utf-8');
+            echo '<?xml version="1.0"
+            '."\r\n";
+           if (!isset($_GET[$meetingID_name])) {
+               header('HTTP/1.0 400 Bad Request. [meetingID] parameter was not included in this query.');
+           } else {
                 $meetingID = $_GET[$meetingID_name];
-                $response = BigBlueButton::getMeetingXML($meetingID, $url_val, $salt_val);
-                echo '<response>'.$response.'</response>';
-            }
+                $response = BigBlueButton::getMeetingXML($meetingID, $url_val, $_SESSION[$bbb_secret_name]);
+
+                echo $response.'';
+           }
             break;
         case 'join':
             global $current_user;
@@ -104,9 +106,10 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 $attendeePassword = get_post_meta($post->ID, '_bbb_attendee_password', true);
                 $logoutURL = (is_ssl() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout=true';
                 $bigbluebuttonSettings = get_option('bigbluebutton_custom_post_type_settings');
-                $endpointVal = $bigbluebuttonSettings['endpoint'];
+                $endpointVal = $bigbluebuttonSettings['endpoint'];//getting these double cause setting $seession. clean it up
                 $secretVal = $bigbluebuttonSettings['secret'];
-                $password = '';
+                $bbbWaitForAdminStart = get_post_meta($post->ID, '_bbb_must_wait_for_admin_start', true);
+                $password = 'test';
                 $userCapArray = array();
 
                 if(is_user_logged_in() == true) {
@@ -116,7 +119,7 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                   $anonymousRole = get_role('anonymous');
                   $userCapArray = $anonymousRole->capabilities;
                 }
-                
+
                 if($userCapArray["join_with_password_bbb-room"] == true ) {
                     if($userCapArray["join_as_moderator_bbb-room"] == true) {
                       if(strcmp($moderatorPassword,$_POST['password']) === 0) {
@@ -134,16 +137,24 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                       $password = $attendeePassword;
                     }
                 }
-//have to check if meeting is running here
-                $response = BigBlueButton::createMeetingArray($username, $meetingID,
-                 $meetingName, $welcomeString, $moderatorPassword, $attendeePassword,
-                 $secretVal, $endpointVal, $logoutURL, $record = 'false', $duration = 0,
-                 $voiceBridge = 0, $metadata = array());
-
+                 $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword,
+                 $secretVal, $endpointVal, $logoutURL, $record = 'false', $duration = 0,$voiceBridge = 0, $metadata = array());
                 if (!$response || $response['returncode'] == 'FAILED') {
                     echo "Sorry an error occured while creating the meeting room.";
                 }else {
-                    echo BigBlueButton::getJoinURL($meetingID, $username, $password, $secretVal, $endpointVal);
+                    $bigbluebuttonJoinURL = BigBlueButton::getJoinURL($meetingID, $username, $password, $secretVal, $endpointVal);
+                    $isMeetingRunning = BigBlueButton::isMeetingRunning($meetingID, $endpointVal, $secretVal);
+
+                    if (($isMeetingRunning && ($moderatorPassword == $password || $attendeePassword == $password))
+                         || $response['moderatorPW'] == $password
+                         || ($response['attendeePW'] == $password && !$bbbWaitForAdminStart)) {
+                          echo $bigbluebuttonJoinURL;
+                    }
+                    elseif ($attendeePassword == $password) {
+                        $meetingResponse = BigBlueButton::getMeetingXML($meetingID, $endpointVal, $secretVal);
+                      //  echo $meetingResponse.' mettingID:'.$meetingID;
+                      echo $meetingID.'';
+                    }
                 }
               }else {
                 if($post !== null){

@@ -507,21 +507,13 @@ add_action('before_delete_post', 'before_bbb_delete');
 function bigbluebutton_custom_post_type_filter($content)
 {
     $out = '';
-    $args = array('post_type' => 'bbb-room',
-                  'orderby' => 'name',
-                  'posts_per_page' => -1,
-                  'order' => 'ASC',
-    );
-    $bbb_posts = new WP_Query($args);
-    $slug = $bbb_posts->post->post_name;
-//if people can register let them option when not signed in
     if (('bbb-room' == get_post_type()) && (is_single())) {
       $current_user = wp_get_current_user();
-
       $userCapArray = assignCapArray($current_user);
-
+      $slug = basename(get_permalink());
+      $out .= '<div id="bbb-join-container"></div>';
       $out .= '<input type="hidden" name="hiddenInputSingle" id="hiddenInputSingle" value="'.$slug.'" />';
-      $out .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\'true\',\''.json_encode(is_user_logged_in()).'\',\''.json_encode($userCapArray["join_with_password_bbb-room"]).'\',\'true\')" value="Join Room"/>'."\n";
+      $out .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\'true\',\''.json_encode(is_user_logged_in()).'\',\''.json_encode($userCapArray["join_with_password_bbb-room"]).'\',\'true\')" value="Join* Room"/>'."\n";
     }
     //have to add waiting for moderator to start meeting stuff
   return $content.$out;
@@ -776,7 +768,10 @@ function bigbluebutton_shortcode_output($bbb_posts, $atts) {
 * @return
 */
 function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
-    global $current_user;
+    $current_user = wp_get_current_user();
+    $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
+    $endpointVal = $bigbluebutton_custom_post_type_settings['endpoint'];
+    $secretVal = $bigbluebutton_custom_post_type_settings['secret'];
     $joinOrView = "Join";
     if (!$bbb_posts->have_posts()) {
         return '<p> No rooms have been created. </p>';
@@ -787,9 +782,6 @@ function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
     $output_string = '<form id="form1" class="bbb-shortcode">'."\n".
                      '  <label>'.$atts['title'].'</label>'."\n";
     $posts = $bbb_posts->get_posts();
-    $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
-    $endpointVal = $bigbluebutton_custom_post_type_settings['endpoint'];
-    $secretVal = $bigbluebutton_custom_post_type_settings['secret'];
     bigbluebutton_session_setup($endpointVal,$secretVal);
     if ((count($posts) == 1)||strlen($atts['token']) == 12) {
         $output_string .= bigbluebutton_shortcode_output_form_single($bbb_posts, $atts, $current_user, $joinOrView);
@@ -947,7 +939,7 @@ function bigbluebutton_plugin_base_url()
  */
 function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
 {
-    global $current_user;
+    $current_user = wp_get_current_user();
     $pluginbaseurl = bigbluebutton_plugin_base_url();
     $bbb_room_token = get_post_meta($postID, '_bbb_room_token', true);
     $meetingID = $bbb_room_token;
@@ -955,7 +947,6 @@ function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
     //Initializes the variable that will collect the output
     $out = '';
     $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
-    //Read in existing option value from database
     $endpoint_val = $bigbluebutton_custom_post_type_settings['endpoint'];
     $secret_val = $bigbluebutton_custom_post_type_settings['secret'];
     bigbluebutton_session_setup($endpoint_val,$secret_val);
