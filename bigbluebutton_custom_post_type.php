@@ -508,7 +508,6 @@ function bigbluebutton_custom_post_type_filter($content)
 {
     $out = '';
     $slug = basename(get_permalink());
-    $post = get_page_by_path($slug, OBJECT, 'bbb-room');
     $bigbluebuttonSettings = get_option('bigbluebutton_custom_post_type_settings');
     $endpointVal = $bigbluebuttonSettings['endpoint'];
     $secretVal = $bigbluebuttonSettings['secret'];
