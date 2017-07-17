@@ -512,8 +512,7 @@ function bigbluebutton_custom_post_type_filter($content)
     $bigbluebuttonSettings = get_option('bigbluebutton_custom_post_type_settings');
     $endpointVal = $bigbluebuttonSettings['endpoint'];
     $secretVal = $bigbluebuttonSettings['secret'];
-    $bbbRoomToken = get_post_meta($post->ID, '_bbb_room_token', true);
-    $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($bbbRoomToken);
+    bigbluebutton_session_setup($endpointVal,$secretVal);
 
     if (('bbb-room' == get_post_type()) && (is_single())) {
       $current_user = wp_get_current_user();

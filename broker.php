@@ -94,6 +94,9 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
 
               if($_POST[$join] === "true"){
                 $username = $current_user->display_name;
+                if($username == '' || $username == null){
+                  $username = $_POST['name'];
+                }
                 $bbbRoomToken = get_post_meta($post->ID, '_bbb_room_token', true);
                 $meetingID = $bbbRoomToken;
                 if(strlen($meetingID) == 12){
@@ -147,7 +150,6 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
 
 function setPassword($post){
   $current_user = wp_get_current_user();
-  $userCapArray = array();
   $password = '';
   $moderatorPassword = get_post_meta($post->ID, '_bbb_moderator_password', true);
   $attendeePassword = get_post_meta($post->ID, '_bbb_attendee_password', true);
@@ -156,7 +158,6 @@ function setPassword($post){
     $userCapArray = $current_user->allcaps;
 
   }else {
-    $username = $_POST['name'];
     $anonymousRole = get_role('anonymous');
     $userCapArray = $anonymousRole->capabilities;
   }

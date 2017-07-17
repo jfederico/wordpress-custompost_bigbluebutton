@@ -1,8 +1,9 @@
 var slug;
 var url2;
 var meetid;
-var name;
-var password;
+var name = '';
+var password= '';
+var test ='';
 
 jQuery(function($){
 
@@ -69,7 +70,7 @@ function bigbluebutton_join_meeting(baseurl,join,userSignedIn,passwordRequired,p
 					meetid = data;
 					var string = url2+'/img/polling.gif';
 					jQuery("div#bbb-join-container").append("<img src="+string+"\ />");
-			    test=setInterval("bigbluebutton_custom_post_type_ping()", 5000);
+			    test=setInterval(bigbluebutton_custom_post_type_ping(), 5000);
 				}
 			},
 			error : function() {
