@@ -30,6 +30,7 @@ $meetingID_name = 'meetingID';
 $slug_name = 'slug';
 $join = 'join';
 $password = 'password';
+$joinurl='';
 //================================================================================
 //------------------------------------Main----------------------------------------
 //================================================================================
@@ -71,20 +72,18 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
             }
             break;
         case 'ping':
-           header('Content-Type: text/xml; charset=utf-8');
-            echo '<?xml version="1.0"
-            '."\r\n";
-           if (!isset($_GET[$meetingID_name])) {
-               header('HTTP/1.0 400 Bad Request. [meetingID] parameter was not included in this query.');
-           } else {
+           $post = get_page_by_path($_POST[$slug_name], OBJECT, 'bbb-room');
                 $meetingID = $_GET[$meetingID_name];
+                  $password = setPassword($post);
                 $response = BigBlueButton::getMeetingXML($meetingID, $url_val, $_SESSION[$bbb_secret_name]);
-
-                echo $response.'';
-           }
+                if((strpos($response,"true") !== false)){
+                  $bigbluebuttonJoinURL = BigBlueButton::getJoinURL($meetingID, $_POST['name'], $password , $_SESSION[$bbb_secret_name], $url_val);
+                  echo $bigbluebuttonJoinURL.'';
+                }else{
+                  echo 'false';
+                }
             break;
-        case 'join':
-            global $current_user;
+        case 'join'://cant join when editor (in old plugin, it direcclty says ""sory you are nto allowe ti oin this page)
             //post is not recognizing '+' and '&'
             if((!isset($_POST[$slug_name]))){
                 header('HTTP/1.0 400 Bad Request. [slug] parameter was not included in this query.');
@@ -110,37 +109,11 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                 $endpointVal = $bigbluebuttonSettings['endpoint'];//getting these double cause setting $seession. clean it up
                 $secretVal = $bigbluebuttonSettings['secret'];
                 $bbbWaitForAdminStart = get_post_meta($post->ID, '_bbb_must_wait_for_admin_start', true);
-                $password = 'test';
-                $userCapArray = array();
+                $password = setPassword($post);
 
-                if(is_user_logged_in() == true) {
-                  $userCapArray = $current_user->allcaps;
-                }else {
-                  $username = $_POST['name'];
-                  $anonymousRole = get_role('anonymous');
-                  $userCapArray = $anonymousRole->capabilities;
-                }
+                $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword,
+                $secretVal, $endpointVal, $logoutURL, $bbbIsRecorded ? 'true' : 'false', $duration = 0,$voiceBridge = 0, $metadata = array());
 
-                if($userCapArray["join_with_password_bbb-room"] == true ) {
-                    if($userCapArray["join_as_moderator_bbb-room"] == true) {
-                      if(strcmp($moderatorPassword,$_POST['password']) === 0) {
-                          $password = $moderatorPassword;
-                      }
-                    }else {
-                      if(strcmp($attendeePassword,$_POST['password']) === 0) {
-                          $password = $attendeePassword;
-                      }
-                    }
-                }else {
-                    if($userCapArray["join_as_moderator_bbb-room"] === true) {
-                      $password = $moderatorPassword;
-                    }else {
-                      $password = $attendeePassword;
-                    }
-                }
-
-                 $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword, $attendeePassword,
-                 $secretVal, $endpointVal, $logoutURL, $bbbIsRecorded ? 'true' : 'false', $duration = 0,$voiceBridge = 0, $metadata = array());
                 if (!$response || $response['returncode'] == 'FAILED') {
                     echo "Sorry an error occured while creating the meeting room.";
                 }else {
@@ -153,8 +126,8 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
                           echo $bigbluebuttonJoinURL;
                     }
                     elseif ($attendeePassword == $password) {
-                        $meetingResponse = BigBlueButton::getMeetingXML($meetingID, $endpointVal, $secretVal);
-                      echo $meetingID.'';
+
+                        echo $meetingID;
                     }
                 }
               }else {
@@ -170,4 +143,40 @@ if (!isset($_SESSION[$bbb_secret_name]) || !isset($_SESSION[$bbb_endpoint_name])
             header('Content-Type: text/plain; charset=utf-8');
             echo BigBlueButton::getServerVersion($url_val);
     }
+}
+
+function setPassword($post){
+  $current_user = wp_get_current_user();
+  $userCapArray = array();
+  $password = '';
+  $moderatorPassword = get_post_meta($post->ID, '_bbb_moderator_password', true);
+  $attendeePassword = get_post_meta($post->ID, '_bbb_attendee_password', true);
+
+  if(is_user_logged_in() == true) {
+    $userCapArray = $current_user->allcaps;
+
+  }else {
+    $username = $_POST['name'];
+    $anonymousRole = get_role('anonymous');
+    $userCapArray = $anonymousRole->capabilities;
+  }
+
+  if($userCapArray["join_with_password_bbb-room"] == true ) {
+      if($userCapArray["join_as_moderator_bbb-room"] == true) {
+        if(strcmp($moderatorPassword,$_POST['password']) === 0) {
+            $password = $moderatorPassword;
+        }
+      }else {
+        if(strcmp($attendeePassword,$_POST['password']) === 0) {
+            $password = $attendeePassword;
+        }
+      }
+  }else {
+      if($userCapArray["join_as_moderator_bbb-room"] === true) {
+        $password = $moderatorPassword;
+      }else {
+        $password = $attendeePassword;
+      }
+  }
+  return $password;
 }

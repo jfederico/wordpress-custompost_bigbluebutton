@@ -1,5 +1,8 @@
 var slug;
-
+var url2;
+var meetid;
+var name;
+var password;
 
 jQuery(function($){
 
@@ -24,8 +27,6 @@ jQuery(function($){
 * @param  join join or view the room
 */
 function bigbluebutton_join_meeting(baseurl,join,userSignedIn,passwordRequired,page){
-	  var password='';
-		var name='';
 
 		if(page == "true")
 		{
@@ -63,32 +64,39 @@ function bigbluebutton_join_meeting(baseurl,join,userSignedIn,passwordRequired,p
 				if(data.includes("http")){
 					window.open(data);
 				}
-				else if (data.includes("9")) {
-					bigbluebutton_custom_post_type_ping(baseurl, data);
+				else if (data.includes("a")) {
+					url2 = baseurl;
+					meetid = data;
+					var string = url2+'/img/polling.gif';
+					jQuery("div#bbb-join-container").append("<img src="+string+"\ />");
+			    test=setInterval("bigbluebutton_custom_post_type_ping()", 5000);
 				}
 			},
-			error : function(xmlHttpRequest, status, error) {
+			error : function() {
 				console.error("Ajax was not successful");
 			}
 		});
  }
 
- function bigbluebutton_custom_post_type_ping(baseurl, id) {
+ function bigbluebutton_custom_post_type_ping() {
+
+ 	var dataString = 'slug=' + slug +'&name=' + name + '&password=' + password;
+
  	 jQuery.ajax({
- 			 url : baseurl+'/broker.php?action=ping&meetingID='+id,
+		 type: "POST",
+ 			 url : url2+'/broker.php?action=ping&meetingID='+meetid,
  			 async : true,
+			 data: dataString,
  			 dataType : "text",
  			 success : function(xmlDoc){
- 					 if(xmlDoc == "true"){
- 									jQuery("div#bbb-join-container").append("Join as Attendee");
- 							 }
-							 else{
-								 var string = baseurl+'/img/polling.gif';
-								  jQuery("div#bbb-join-container").append("<img src="+string+"\ />");
-							 }
+				 if(xmlDoc.includes("http")){
+					  clearInterval(test);
+						jQuery("div#bbb-join-container").remove();
+					   window.open(xmlDoc);
+					}
  			 },
- 			 error : function(xmlHttpRequest, status, error) {
-				 console.error("Ajax was not successful PING");
+ 			 error : function() {
+ 			 console.error("Ajax was not successful PING");
  			 }
  	 });
  }
