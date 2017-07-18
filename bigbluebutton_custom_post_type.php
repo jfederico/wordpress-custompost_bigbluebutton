@@ -911,10 +911,10 @@ function bigbluebutton_plugin_base_url()
 function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
 {
     $current_user = wp_get_current_user();
-    $pluginbaseurl = bigbluebutton_plugin_base_url();
     $bbb_room_token = get_post_meta($postID, '_bbb_room_token', true);
     $meetingID = $bbb_room_token;
     $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($meetingID);
+    $pluginbaseurl = bigbluebutton_plugin_base_url();
     //Initializes the variable that will collect the output
     $out = '';
     $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
@@ -989,9 +989,9 @@ function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
                 /// Prepare actionbar if role is allowed to manage the recordings
                 if (($current_user->allcaps["manage_recordings_bbb-room"] === "true") && is_admin()){
                     $action = ($recording['published'] == 'true') ? 'Hide' : 'Show';
-                  //  $actionbar = '<a id="actionbar-publish-a-'.$recording['recordID'].'" title="'.$action.'" href="#"><img id="actionbar-publish-img-'.$recording['recordID'].'" src="'.$pluginbaseurl."/img/".strtolower($action).".gif" class="iconsmall" onClick="actionCall('publish', '".$recording['recordID']."'); return false;" /></a>";
-                  //  $actionbar .= '<a id="actionbar-delete-a-'.$recording['recordID'].'" title="Delete" href="#"><img id="actionbar-delete-img-'.$recording['recordID'].'" src="'.$pluginbaseurl."/img/delete.gif\" class=\"iconsmall\" onClick="actionCall('delete', '".$recording['recordID']."'); return false;" /></a>";
-                    $out .= '
+                    $actionbar = '<a id="actionbar-publish-a-'.$recording['recordID'].'" title="'.$action.'" href="#"><img id="actionbar-publish-img-'.$recording['recordID'].'" src="'.$pluginbaseurl."/img/".strtolower($action).".gif\" class=\"iconsmall\" onClick=\"actionCall('publish', '".$recording['recordID']."'); return false;\" /></a>";
+                    $actionbar .= '<a id="actionbar-delete-a-'.$recording['recordID'].'" title="Delete" href="#"><img id="actionbar-delete-img-'.$recording['recordID'].'" src="'.$pluginbaseurl."/img/delete.gif\" class=\"iconsmall\" onClick=\"actionCall('delete', '".$recording['recordID']."'); return false;\" /></a>";
+                      $out .= '
                     <td>'.$actionbar.'</td>';
                 }
                 $out .= '

@@ -125,36 +125,36 @@ function bigbluebutton_join_meeting(join, userSignedIn, passwordRequired, page){
 //================================================================================
 //
 
-function actionCall(action, recordingid) {
-		action = (typeof action == 'undefined') ? 'publish' : action;
-		if (action == 'publish' || (action == 'delete' && confirm("Are you sure to delete this recording?"))) {
-				if (action == 'publish') {
-						var el_a = document.getElementById(\'actionbar-publish-a-'+ recordingid);
-						if (el_a) {
-								var el_img = document.getElementById('actionbar-publish-img-'+ recordingid);
-								if (el_a.title == 'Hide' ) {
-										action = 'unpublish';
-										el_a.title = 'Show';
-										el_img.src = pluginBaseUrl + '/img/show.gif';
-								} else {
-										action = 'publish';
-										el_a.title = 'Hide';
-										el_img.src = pluginBaseUrl + '/img/hide.gif';
-								}
-						}
-				} else {
-						// Removes the line from the table
-						jQuery(document.getElementById('actionbar-tr-'+ recordingid)).remove();
-				}
-				actionurl = pluginBaseUrl + "/php/broker.php?action=" + action + "&recordingID=" + recordingid;
-				jQuery.ajax({
-								url : actionurl,
-								async : false,
-								success : function(response){
-								},
-								error : function(xmlHttpRequest, status, error) {
-										console.debug(xmlHttpRequest);
-								}
-						});
-		}
-}
+// function actionCall(action, recordingid) {
+// 		action = (typeof action == 'undefined') ? 'publish' : action;
+// 		if (action == 'publish' || (action == 'delete' && confirm("Are you sure to delete this recording?"))) {
+// 				if (action == 'publish') {
+// 						var el_a = document.getElementById(\'actionbar-publish-a-'+ recordingid);
+// 						if (el_a) {
+// 								var el_img = document.getElementById('actionbar-publish-img-'+ recordingid);
+// 								if (el_a.title == 'Hide' ) {
+// 										action = 'unpublish';
+// 										el_a.title = 'Show';
+// 										el_img.src = pluginBaseUrl + '/img/show.gif';
+// 								} else {
+// 										action = 'publish';
+// 										el_a.title = 'Hide';
+// 										el_img.src = pluginBaseUrl + '/img/hide.gif';
+// 								}
+// 						}
+// 				} else {
+// 						// Removes the line from the table
+// 						jQuery(document.getElementById('actionbar-tr-'+ recordingid)).remove();
+// 				}
+// 				actionurl = pluginBaseUrl + "/php/broker.php?action=" + action + "&recordingID=" + recordingid;
+// 				jQuery.ajax({
+// 								url : actionurl,
+// 								async : false,
+// 								success : function(response){
+// 								},
+// 								error : function(xmlHttpRequest, status, error) {
+// 										console.debug(xmlHttpRequest);
+// 								}
+// 						});
+// 		}
+// }
