@@ -763,6 +763,10 @@ function bigbluebutton_shortcode($atts, $content, $tag) {
 * @return
 */
 function bigbluebutton_shortcode_output($bbb_posts, $atts) {
+    $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
+    $endpointVal = $bigbluebutton_custom_post_type_settings['endpoint'];
+    $secretVal = $bigbluebutton_custom_post_type_settings['secret'];
+    bigbluebutton_session_setup($endpointVal,$secretVal);
     if ($atts['type'] == 'recordings') {
         return bigbluebutton_shortcode_output_recordings($bbb_posts, $atts);
     }
@@ -778,9 +782,6 @@ function bigbluebutton_shortcode_output($bbb_posts, $atts) {
 */
 function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
     $current_user = wp_get_current_user();
-    $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
-    $endpointVal = $bigbluebutton_custom_post_type_settings['endpoint'];
-    $secretVal = $bigbluebutton_custom_post_type_settings['secret'];
     $joinOrView = "Join";
     if (!$bbb_posts->have_posts()) {
         return '<p> No rooms have been created. </p>';
@@ -792,7 +793,6 @@ function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
     $output_string .= '<form id="form1" class="bbb-shortcode">'."\n".
                      '  <label>'.$atts['title'].'</label>'."\n";
     $posts = $bbb_posts->get_posts();
-    bigbluebutton_session_setup($endpointVal,$secretVal);
 
     if ((count($posts) == 1)||strlen($atts['token']) == 12) {
         $output_string .= bigbluebutton_shortcode_output_form_single($bbb_posts, $atts, $current_user, $joinOrView);
@@ -804,8 +804,11 @@ function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
     return $output_string;
 }
 
-function bigbluebutton_shortcode_output_recordings($bbb_posts) {
-    $output_string = '';
+function bigbluebutton_shortcode_output_recordings($bbb_posts, $atts) {
+    $output_string = 'This is recording shortcode';
+    $output_string .= '<form id="form2"  class="bbb-recordings">'."\n".
+                     '  <label>'.$atts['title'].'</label>'."\n";
+    $output_string .= '</form>'."\n";
     return $output_string;
 }
 
@@ -907,6 +910,7 @@ function bigbluebutton_plugin_base_url()
  */
 function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
 {
+    $current_user = wp_get_current_user();
     $pluginbaseurl = bigbluebutton_plugin_base_url();
     $bbb_room_token = get_post_meta($postID, '_bbb_room_token', true);
     $meetingID = $bbb_room_token;
@@ -919,62 +923,19 @@ function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
     bigbluebutton_session_setup($endpoint_val,$secret_val);
     $listOfRecordings = array();
     if ($meetingID != '') {
-
         $recordingsArray = BigBlueButton::getRecordingsArray($meetingID, $endpoint_val, $secret_val);
-
         if ($recordingsArray['returncode'] == 'SUCCESS' && !$recordingsArray['messageKey']) {
             $listOfRecordings = $recordingsArray['recordings'];
         }
     }
-    if (class_exists('FirePHP')) {
-        $firephp = FirePHP::getInstance(true);
-        $firephp->log(BigBlueButton::getRecordingsArray($meetingID, $endpoint_val, $secret_val));
-    }
+
     //Checks to see if there are no meetings in the wordpress db and if so alerts the user
     if (count($listOfRecordings) == 0) {
         $out .= '<p><strong>There are no recordings available.</strong></p>';
-
         return $out;
     }
-    if (current_user_can('edit_bbb-room', $postID) && is_admin()) {
-        $out .= '
-        <script type="text/javascript">
-            var pluginbaseurl = \''.$pluginbaseurl.'\'
-            function actionCall(action, recordingid) {
-                action = (typeof action == \'undefined\') ? \'publish\' : action;
-                if (action == \'publish\' || (action == \'delete\' && confirm("Are you sure to delete this recording?"))) {
-                    if (action == \'publish\') {
-                        var el_a = document.getElementById(\'actionbar-publish-a-\'+ recordingid);
-                        if (el_a) {
-                            var el_img = document.getElementById(\'actionbar-publish-img-\'+ recordingid);
-                            if (el_a.title == \'Hide\' ) {
-                                action = \'unpublish\';
-                                el_a.title = \'Show\';
-                                el_img.src = pluginbaseurl + \'/img/show.gif\';
-                            } else {
-                                action = \'publish\';
-                                el_a.title = \'Hide\';
-                                el_img.src = pluginbaseurl + \'/img/hide.gif\';
-                            }
-                        }
-                    } else {
-                        // Removes the line from the table
-                        jQuery(document.getElementById(\'actionbar-tr-\'+ recordingid)).remove();
-                    }
-                    actionurl = pluginbaseurl + "/php/broker.php?action=" + action + "&recordingID=" + recordingid;
-                    jQuery.ajax({
-                            url : actionurl,
-                            async : false,
-                            success : function(response){
-                            },
-                            error : function(xmlHttpRequest, status, error) {
-                                console.debug(xmlHttpRequest);
-                            }
-                        });
-                }
-            }
-        </script>';
-    }
+
+
     //Print begining of the table
     $out .= '
     <div id="bbb-recordings-div" class="bbb-recordings">
@@ -990,6 +951,7 @@ function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
     }
     $out .= '
       </tr>';
+
     foreach ($listOfRecordings as $recording) {
         /// Prepare playback recording links
             $type = '';
@@ -1025,10 +987,10 @@ function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
                   <td>'.$formatedStartDate.'</td>
                   <td>'.$duration.' min</td>';
                 /// Prepare actionbar if role is allowed to manage the recordings
-                if (current_user_can('edit_bbb-room', $postID) && is_admin()) {
+                if (($current_user->allcaps["manage_recordings_bbb-room"] === "true") && is_admin()){
                     $action = ($recording['published'] == 'true') ? 'Hide' : 'Show';
-                    $actionbar = '<a id="actionbar-publish-a-'.$recording['recordID'].'" title="'.$action.'" href="#"><img id="actionbar-publish-img-'.$recording['recordID'].'" src="'.$pluginbaseurl."/img/".strtolower($action).".gif\" class=\"iconsmall\" onClick=\"actionCall('publish', '".$recording['recordID']."'); return false;\" /></a>";
-                    $actionbar .= '<a id="actionbar-delete-a-'.$recording['recordID'].'" title="Delete" href="#"><img id="actionbar-delete-img-'.$recording['recordID'].'" src="'.$pluginbaseurl."/img/delete.gif\" class=\"iconsmall\" onClick=\"actionCall('delete', '".$recording['recordID']."'); return false;\" /></a>";
+                  //  $actionbar = '<a id="actionbar-publish-a-'.$recording['recordID'].'" title="'.$action.'" href="#"><img id="actionbar-publish-img-'.$recording['recordID'].'" src="'.$pluginbaseurl."/img/".strtolower($action).".gif" class="iconsmall" onClick="actionCall('publish', '".$recording['recordID']."'); return false;" /></a>";
+                  //  $actionbar .= '<a id="actionbar-delete-a-'.$recording['recordID'].'" title="Delete" href="#"><img id="actionbar-delete-img-'.$recording['recordID'].'" src="'.$pluginbaseurl."/img/delete.gif\" class=\"iconsmall\" onClick="actionCall('delete', '".$recording['recordID']."'); return false;" /></a>";
                     $out .= '
                     <td>'.$actionbar.'</td>';
                 }
