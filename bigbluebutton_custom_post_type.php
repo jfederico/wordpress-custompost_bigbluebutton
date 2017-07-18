@@ -98,7 +98,11 @@ function bigbluebutton_custom_post_type_scripts()
     $js = plugins_url('js/bigbluebutton_custom_post_type.js', __FILE__);
     wp_register_script('bigbluebutton_custom_post_type_script', $js);
     wp_enqueue_script('bigbluebutton_custom_post_type_script');
+    wp_localize_script('bigbluebutton_custom_post_type_script', 'bbbScript', array(
+    'pluginsUrl' => bigbluebutton_plugin_base_url()
+    ));
 }
+
 
 add_action('init', 'bigbluebutton_custom_post_type_scripts');
 
@@ -410,7 +414,7 @@ function bigbluebutton_custom_post_type_room_status_metabox($post)
       $userCapArray = assignCapArray($current_user);
       $slug = $post->post_name;
       $out .= '<input type="hidden" name="hiddenInputSingle" id="hiddenInputSingle" value="'.$slug.'" />';
-      $out .= '<input type="button" style=" left: 0;padding: 5x 100px;" class="button-primary" value="Join"  onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\'true\',\''.json_encode(is_user_logged_in()).'\',
+      $out .= '<input type="button" style=" left: 0;padding: 5x 100px;" class="button-primary" value="Join"  onClick="bigbluebutton_join_meeting(\'true\',\''.json_encode(is_user_logged_in()).'\',
       \''.json_encode($userCapArray["join_with_password_bbb-room"]).'\',\'true\'); setTimeout(function() {document.location.reload(true);}, 5000);" />';
     }
     if (BigBlueButton::isMeetingRunning($meetingID, $endpoint_val, $secret_val)) {
@@ -507,23 +511,24 @@ add_action('before_delete_post', 'before_bbb_delete');
 function bigbluebutton_custom_post_type_filter($content)
 {
     $out = '';
-    $slug = basename(get_permalink());
-    $bigbluebuttonSettings = get_option('bigbluebutton_custom_post_type_settings');
-    $endpointVal = $bigbluebuttonSettings['endpoint'];
-    $secretVal = $bigbluebuttonSettings['secret'];
-    bigbluebutton_session_setup($endpointVal,$secretVal);
-
     if (('bbb-room' == get_post_type()) && (is_single())) {
+      $slug = basename(get_permalink());
+      $post = get_page_by_path($slug, OBJECT, 'bbb-room');
+      $meetingName = get_the_title($post->ID);
+      $bigbluebuttonSettings = get_option('bigbluebutton_custom_post_type_settings');
+      $endpointVal = $bigbluebuttonSettings['endpoint'];
+      $secretVal = $bigbluebuttonSettings['secret'];
+      bigbluebutton_session_setup($endpointVal,$secretVal);
       $current_user = wp_get_current_user();
       $userCapArray = assignCapArray($current_user);
       $out .= '<div id="bbb-join-container"></div>';
       $out .= '<input type="hidden" name="hiddenInputSingle" id="hiddenInputSingle" value="'.$slug.'" />';
-      $out .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\'true\',\''.json_encode(is_user_logged_in()).'\',\''.json_encode($userCapArray["join_with_password_bbb-room"]).'\',\'true\')" value="Join* Room"/>'."\n";
+      $out .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\'true\',\''.json_encode(is_user_logged_in()).'\',\''.json_encode($userCapArray["join_with_password_bbb-room"]).'\',\'true\')" value="Join  '.$meetingName.'"/>'."\n";
     }
   return $content.$out;
 }
 
-
+//Assignes the correct capabilities array
 function assignCapArray($current_user)
 {
   if(is_user_logged_in() == true) {
@@ -818,7 +823,7 @@ function bigbluebutton_shortcode_output_form_single($bbb_posts,$atts, $current_u
     $output_string .= bigbluebutton_form_setup($current_user,$atts);
     $output_string .= '<input type="hidden" name="hiddenInputSingle" id="hiddenInputSingle" value="'.$slug.'" />';
     $userCapArray = assignCapArray($current_user);
-    $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\''.$atts['join'].'\',\''.json_encode(is_user_logged_in()).'\',\''.json_encode($userCapArray["join_with_password_bbb-room"]).'\',\'false\')" value="'.$joinOrView.'  '.$title.'"/>'."\n";
+    $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.$atts['join'].'\',\''.json_encode(is_user_logged_in()).'\',\''.json_encode($userCapArray["join_with_password_bbb-room"]).'\',\'false\')" value="'.$joinOrView.'  '.$title.'"/>'."\n";
     return $output_string;
 }
 
@@ -846,7 +851,7 @@ function bigbluebutton_shortcode_output_form_multiple($bbb_posts, $atts, $curren
     $output_string .= bigbluebutton_form_setup($current_user,$atts);
     $output_string .= '<input type="hidden" name="hiddenInput" id="hiddenInput" value="" />';
     $userCapArray = assignCapArray($current_user);
-    $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.bigbluebutton_plugin_base_url().'\',\''.$atts['join'].'\',\''.json_encode(is_user_logged_in()).'\',\''.json_encode($userCapArray["join_with_password_bbb-room"]).'\',\'false\')" value="'.$joinOrView.'"/>'."\n";
+    $output_string .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\''.$atts['join'].'\',\''.json_encode(is_user_logged_in()).'\',\''.json_encode($userCapArray["join_with_password_bbb-room"]).'\',\'false\')" value="'.$joinOrView.'"/>'."\n";
     return $output_string;
 
 }
