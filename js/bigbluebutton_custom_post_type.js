@@ -153,13 +153,13 @@ function actionCall(action, recordingid) {
 		 						 $('tr#actionbar-tr-'+ recordingid).remove();
 							 });
 				}
-				actionurl = pluginBaseUrl + "/broker.php?action=" + action + "&recordingID=" + recordingid;
+				var actionurl = pluginBaseUrl + "/broker.php?action=" + action + "&recordingID=" + recordingid;
 				jQuery.ajax({
 								url : actionurl,
 								async : false,
-								success : function(response){
+								success : function(){
 								},
-								error : function(xmlHttpRequest, status, error) {
+								error : function(xmlHttpRequest) {
 										console.debug(xmlHttpRequest);
 								}
 						});
