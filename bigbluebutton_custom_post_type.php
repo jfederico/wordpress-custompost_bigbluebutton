@@ -622,6 +622,7 @@ add_action('admin_menu', 'register_site_options_page');
 // Inserts a bigbluebuttonrooms widget on the siderbar of the blog.
 function bigbluebutton_sidebar($args)
 {
+    $current_user = wp_get_current_user();
     $bbb_posts = bigbluebutton_get_bbb_posts('0', '');
     $atts = array('join' => 'true');
     bigbluebutton_shortcode_defaults($atts, 'rooms');
@@ -634,6 +635,7 @@ function bigbluebutton_sidebar($args)
 // Inserts a bigbluebutton widget on the siderbar of the blog.
 function bigbluebutton_rooms_sidebar($args)
 {
+    $current_user = wp_get_current_user();
     $bbb_posts = bigbluebutton_get_bbb_posts('0', '');
     $atts = array('join' => 'false');
     bigbluebutton_shortcode_defaults($atts, 'rooms');
@@ -797,7 +799,6 @@ function bigbluebutton_shortcode_output_form($bbb_posts, $atts, $current_user) {
 
 function bigbluebutton_shortcode_output_recordings($bbb_posts, $atts, $current_user, $endpointVal,$secretVal) {
    $output_string = '';
-   $listOfRecordings = array();
    $output_string .= '  <label>'.$atts['title'].'</label>'."\n";
    $output_string .= '
    <div id="bbb-recordings-div" class="bbb-recordings">
@@ -814,8 +815,6 @@ function bigbluebutton_shortcode_output_recordings($bbb_posts, $atts, $current_u
 
    while ($bbb_posts->have_posts()) { //HAVE TO ADD THE CASE WHERE THERE ARE NO RECORDINGS
     $bbb_posts->the_post();
-    $slug = $bbb_posts->post->post_name;
-    $title = $bbb_posts->post->post_title;
     $bbbRoomToken = get_post_meta($bbb_posts->post->ID, '_bbb_room_token', true);
     $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($bbbRoomToken);
     if($atts['token'] == null||(strpos($atts['token'],$bbbRoomToken) !== false)) {
