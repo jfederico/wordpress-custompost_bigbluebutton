@@ -172,7 +172,7 @@ add_action('init', 'bigbluebutton_custom_post_type_init',1);
 /**
  * Fix it
  */
-function bbb_map_meta_cap($cap, $user_id)
+function bbb_map_meta_cap()
 {
     $caps = array();
     return $caps;
@@ -421,26 +421,18 @@ function save_bbb_data($post_id)
     }
     $post = get_post($post_id);
     if ($post->post_type == 'bbb-room') {
-        $token = get_post_meta($post->ID, '_bbb_room_token', true);
+        $token = get_post_meta($post_id, '_bbb_room_token', true);
         // Assign a random seed to generate unique ID on a BBB server
         if (!$token) {
             $meetingID = bigbluebutton_custom_post_type_generateToken();
             update_post_meta($post_id, '_bbb_room_token', $meetingID);
         }
+        
         $attendeePW = bigbluebutton_custom_post_type_generatePasswd(6, 2);
         $moderatorPW = bigbluebutton_custom_post_type_generatePasswd(6, 2, $attendeePW);
 
-        if (empty($_POST['bbb_attendee_password']) && (get_post_status($post->ID) === 'publish')) {
-            update_post_meta($post_id, '_bbb_attendee_password', $attendeePW); //random generated
-        } else {
-            update_post_meta($post_id, '_bbb_attendee_password', esc_attr($_POST['bbb_attendee_password']));
-        }
-
-        if (empty($_POST['bbb_moderator_password']) && (get_post_status($post->ID) === 'publish')) {
-            update_post_meta($post_id, '_bbb_moderator_password', $moderatorPW); //random generated
-        } else {
-            update_post_meta($post_id, '_bbb_moderator_password', esc_attr($_POST['bbb_moderator_password']));
-        }
+        set_password($post_id, 'bbb_attendee_password', $attendeePW);
+        set_password($post_id, 'bbb_moderator_password', $moderatorPW);
 
         if (($bbb_moderator_password !== $_POST['bbb_moderator_password']) || ($bbb_attendee_password !== $_POST['bbb_attendee_password'])) {
             BigBlueButton::endMeeting(bigbluebutton_custom_post_type_normalizeMeetingID($_POST['bbb_room_token']), $bbb_moderator_password, $endpoint_val, $secret_val);
@@ -455,6 +447,16 @@ function save_bbb_data($post_id)
 }
 
 add_action('save_post', 'save_bbb_data');
+
+function set_password($postID, $password, $randomPassword)
+{
+  if (empty($_POST[$password]) && (get_post_status($postID) === 'publish')) {
+      update_post_meta($postID, '_'.$password, $randomPassword); //random generated
+  } else {
+      update_post_meta($postID, '_'.$password, esc_attr($_POST[$password]));
+  }
+
+}
 
 function before_bbb_delete()
 {
