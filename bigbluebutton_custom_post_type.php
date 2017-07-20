@@ -399,8 +399,9 @@ function bigbluebutton_custom_post_type_meta_boxes()
 add_action('add_meta_boxes', 'bigbluebutton_custom_post_type_meta_boxes');
 
 // Add to admin_init function
-function save_bbb_data($post_id)
+function save_bbb_data()
 {
+    $post_id = get_the_ID();
     $bbb_attendee_password = get_post_meta($post_id, '_bbb_attendee_password', true);
     $bbb_moderator_password = get_post_meta($post_id, '_bbb_moderator_password', true);
     $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
@@ -427,7 +428,7 @@ function save_bbb_data($post_id)
             $meetingID = bigbluebutton_custom_post_type_generateToken();
             update_post_meta($post_id, '_bbb_room_token', $meetingID);
         }
-        
+
         $attendeePW = bigbluebutton_custom_post_type_generatePasswd(6, 2);
         $moderatorPW = bigbluebutton_custom_post_type_generatePasswd(6, 2, $attendeePW);
 
