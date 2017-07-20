@@ -170,42 +170,11 @@ function bigbluebutton_custom_post_type_init()
 add_action('init', 'bigbluebutton_custom_post_type_init',1);
 
 /**
- * Used http://justintadlock.com/archives/2010/07/10/meta-capabilities-for-custom-post-types code as per below
- * This function is basically mapping all the initilized capabilies and putting it in the array (detailed functionality can be seen in the above link).
+ * Fix it
  */
 function bbb_map_meta_cap($cap, $user_id)
 {
-    global $post;
-
-    $args = array_slice(func_get_args(), 2);
     $caps = array();
-    if ('edit_rooms_own' == $cap[0] || 'delete_rooms_own' == $cap[0] || 'read_rooms' == $cap[0]) {
-        $post = get_post($args[0]);
-        $post_type = get_post_type_object($post->post_type);
-    }
-
-    if ('edit_room_own' == $cap[0]) {
-        if ($user_id == $post->post_author) {
-            $caps[] = $post_type->cap->edit_posts;
-        } else {
-            $caps[] = $post_type->cap->edit_others_posts;
-        }
-    } elseif ('delete_recordings_own' == $cap[0]) {
-        if ($user_id == $post->post_author) {
-            $caps[] = $post_type->cap->delete_posts;
-        } else {
-            $caps[] = $post_type->cap->delete_others_posts;
-        }
-    } elseif ('read_bbb-room' == $cap[0]) {
-        if ('private' != $post->post_status) {
-            $caps[] = 'read';
-        } elseif ($user_id == $post->post_author) {
-            $caps[] = 'read';
-        } else {
-            $caps[] = $post_type->cap->read_private_posts;
-        }
-    }
-
     return $caps;
 }
 
