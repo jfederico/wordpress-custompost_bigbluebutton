@@ -1,3 +1,4 @@
+/**/
 table.bbb-shortcode th,
 table.bbb-shortcode td {
 	vertical-align:top;
@@ -27,18 +28,22 @@ table.bbb-shortcode small {
 table.bbb-shortcode p#shortcode {
 	background-color:#F9F954;
 }
-
+/**/
 textarea[name="bbb_room_welcome_msg"] {
     width:230px;
     height:100px;
 }
+/**/
 
-.bbb-recordings table.stats th,
-.bbb-recordings table.stats td,
 table.custom-admin-table th,
 table.custom-admin-table td{
     text-align:left;
     padding-right:10px;
+}
+
+
+table.custom-admin-table p{
+    margin-top:0;
 }
 
 table.custom-admin-table th,
@@ -47,37 +52,42 @@ table.custom-admin-table td{
    vertical-align: top;
 }
 
-.bbb-recordings table.stats p,
-table.custom-admin-table p{
-    margin-top:0;
+.bbb-recordings table.stats th,
+.bbb-recordings table.stats td,
+.bbb-recordings table.stats p
+{
+    text-align:center;
+    padding-right:10px;
 }
 
+table.stats td.hed
+{background-color: #666;
+color: #fff;
+padding: 4px;
+text-align: center;
+border-bottom: 2px #fff solid;
+font-size: 12px;
+font-weight: bold;}
 
-a.end-meeting {
-    background-color: #EA1729;
-    border-radius: 4px 4px 4px 4px;
-    color: #000000;
-    padding: 10px;
-    text-decoration: none;
-}
+table.stats td.hedextra
+{background-color: #666;
+color: #fff;
+padding: 4px;
+text-align: center;
+border-bottom: 2px #fff solid;
+font-size: 12px;
+font-weight: bold;
+width:250px;}
 
-a.end-meeting:hover {
-    background-color:#ED3645;
+/**/
 
-}
 
-.center {
-    text-align: center;
-    color: red;
-}
 
-.oldshortcode{
-	border-radius: 2px;
-	width: 100%;
-	margin-top: 20px;
-}
+/**/
 
-#form1 {
+
+
+#room {
 	background-color: #f6f6f6;
 	border-radius: 5px;
 	border: 1px solid #ccc;
@@ -87,14 +97,14 @@ a.end-meeting:hover {
 	width: 300px;
 }
 
-#form2 {
+#recording {
 	background-color: #f6f6f6;
-	border-radius: 10px;
+	bborder-radius: 10px;
 	border: 1px solid #ccc;
-	padding:20px 30px 30px 30px;
+	padding:30px 30px 10px 30px;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
 	border-radius: 10px;
-	width: 500px;
+
 }
 
 #roompw{

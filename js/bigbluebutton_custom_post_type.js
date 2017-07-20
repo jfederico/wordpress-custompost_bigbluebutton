@@ -75,7 +75,7 @@ function bigbluebutton_join_meeting(join, userSignedIn, passwordRequired, page){
 					 The session has not been started yet.<br /><br />\
 					 <center><img src="+ pollingImgPath +"\ /></center>\
 					 (Your browser will automatically refresh and join the meeting when it starts.)</center>");
-					jQuery("form#form1").hide();
+					jQuery("form#room").hide();
 					jQuery("input.bbb-shortcode-selector").hide();
 			    bbbPingInterval = setInterval("bigbluebutton_custom_post_type_ping()", 5000);
 				}
@@ -89,7 +89,7 @@ function bigbluebutton_join_meeting(join, userSignedIn, passwordRequired, page){
 /**
 * This function is pinged every 5 seconds to see if the meeting is running
 **/
- function bigbluebutton_custom_post_type_ping() {
+function bigbluebutton_custom_post_type_ping() {
  	 jQuery.ajax({
 	   type: "POST",
 		 url : pluginBaseUrl + '/broker.php?action=ping',
@@ -125,43 +125,43 @@ function bigbluebutton_join_meeting(join, userSignedIn, passwordRequired, page){
 //================================================================================
 //
 
-function actionCall(action, recordingid) {
-		action = (typeof action == 'undefined') ? 'publish' : action;
-		if (action == 'publish' || (action == 'delete' && confirm("Are you sure to delete this recording?"))) {
-				if (action == 'publish') {
-						 var el_a;
-						 jQuery(function($) {
-		 						el_a = $('a#actionbar-publish-a-'+ recordingid);
-		 				});
-						if (el_a) {
-								var el_img ;
-								jQuery(function($) {
-	 		 						el_img = $('img#actionbar-publish-img-'+ recordingid);
-	 		 				});
-								if (el_a.attr('title') == 'Hide' ) {
-										action = 'unpublish';
-										el_a.attr('title', 'Show') ;
-										el_img.attr('src', pluginBaseUrl + '/img/show.gif') ;
-								} else {
-										action = 'publish';
-										el_a.attr('title', 'Hide') ;
-									  el_img.attr('src', pluginBaseUrl + '/img/hide.gif') ;
-								}
-						}
+function actionCall(action, recordingID) {
+	action = (typeof action == 'undefined') ? 'publish' : action;
+	if (action == 'publish' || (action == 'delete' && confirm("Are you sure to delete this recording?"))) {
+		if (action == 'publish') {
+			 var actionbarPublish;
+			 jQuery(function($) {
+					actionbarPublish = $('a#actionbar-publish-a-'+ recordingID);
+				});
+			if (actionbarPublish) {
+				var actionbarImg ;
+				jQuery(function($) {
+ 						actionbarImg = $('img#actionbar-publish-img-'+ recordingID);
+ 				});
+				if (actionbarPublish.attr('title') == 'Hide' ) {
+						action = 'unpublish';
+						actionbarPublish.attr('title', 'Show') ;
+						actionbarImg.attr('src', pluginBaseUrl + '/img/show.gif') ;
 				} else {
-						 jQuery(function($) {
-		 						 $('tr#actionbar-tr-'+ recordingid).remove();
-							 });
+						action = 'publish';
+						actionbarPublish.attr('title', 'Hide') ;
+					  actionbarImg.attr('src', pluginBaseUrl + '/img/hide.gif') ;
 				}
-				var actionurl = pluginBaseUrl + "/broker.php?action=" + action + "&recordingID=" + recordingid;
-				jQuery.ajax({
-								url : actionurl,
-								async : false,
-								success : function(){
-								},
-								error : function(xmlHttpRequest) {
-										console.debug(xmlHttpRequest);
-								}
-						});
+			}
+		} else {
+			 jQuery(function($) {
+					 $('tr#actionbar-tr-'+ recordingID).remove();
+			 });
 		}
+		var actionURL = pluginBaseUrl + "/broker.php?action=" + action + "&recordingID=" + recordingID;
+		jQuery.ajax({
+			url : actionURL,
+			async : false,
+			success : function(){
+			},
+			error : function(xmlHttpRequest) {
+					console.debug(xmlHttpRequest);
+			}
+		 });
+	}
 }

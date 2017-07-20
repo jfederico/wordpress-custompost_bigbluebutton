@@ -386,15 +386,6 @@ function bigbluebutton_custom_post_type_room_details_metabox($post)
 	<?php
 }
 
-function bigbluebutton_custom_post_type_room_recordings_metabox($post)
-{
-    /*
-     * Rooms recordings that are specific to this bbb post (and subsquently the meetingID associated with the bbb post)
-     * will be listed here
-     */
-    echo bigbluebutton_custom_post_type_list_room_recordings($post->ID);
-}
-
 function bigbluebutton_custom_post_type_room_status_metabox($post)
 {
     $out = '';
@@ -432,7 +423,7 @@ add_action('save_post', 'bigbluebutton_custom_post_type_room_status_metabox', 99
 function bigbluebutton_custom_post_type_meta_boxes()
 {
     add_meta_box('room-details', __('Room Details'), 'bigbluebutton_custom_post_type_room_details_metabox', 'bbb-room', 'normal', 'low');
-    add_meta_box('room-recordings', __('Room Recordings'), 'bigbluebutton_custom_post_type_room_recordings_metabox', 'bbb-room', 'normal', 'low');
+    add_meta_box('room-recordings', __('Room Recordings'), 'bigbluebutton_custom_post_type_list_room_recordings', 'bbb-room', 'normal', 'low');
     add_meta_box('room-status', __('Room Status'), 'bigbluebutton_custom_post_type_room_status_metabox', 'bbb-room', 'normal', 'low');
 }
 
@@ -636,7 +627,7 @@ function bigbluebutton_sidebar($args)
     bigbluebutton_shortcode_defaults($atts, 'rooms');
     echo $args['before_widget'];
     echo $args['before_title'].'BigBlueButton Rooms'.$args['after_title'];
-    echo bigbluebutton_shortcode_output_form($bbb_posts, $atts);
+    echo bigbluebutton_shortcode_output_form($bbb_posts, $atts, $current_user);
     echo $args['after_widget'];
 }
 
@@ -648,7 +639,7 @@ function bigbluebutton_rooms_sidebar($args)
     bigbluebutton_shortcode_defaults($atts, 'rooms');
     echo $args['before_widget'];
     echo $args['before_title'].'BigBlueButton'.$args['after_title'];
-    echo bigbluebutton_shortcode_output_form($bbb_posts, $atts);
+    echo bigbluebutton_shortcode_output_form($bbb_posts, $atts, $current_user);
     echo $args['after_widget'];
 }
 
@@ -763,14 +754,15 @@ function bigbluebutton_shortcode($atts, $content, $tag) {
 * @return
 */
 function bigbluebutton_shortcode_output($bbb_posts, $atts) {
+    $current_user = wp_get_current_user();
     $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
     $endpointVal = $bigbluebutton_custom_post_type_settings['endpoint'];
     $secretVal = $bigbluebutton_custom_post_type_settings['secret'];
     bigbluebutton_session_setup($endpointVal,$secretVal);
     if ($atts['type'] == 'recordings') {
-        return bigbluebutton_shortcode_output_recordings($bbb_posts, $atts);
+        return bigbluebutton_shortcode_output_recordings($bbb_posts, $atts, $current_user, $endpointVal,$secretVal);
     }
-    return bigbluebutton_shortcode_output_form($bbb_posts, $atts);
+    return bigbluebutton_shortcode_output_form($bbb_posts, $atts, $current_user);
 }
 
 /**
@@ -780,8 +772,7 @@ function bigbluebutton_shortcode_output($bbb_posts, $atts) {
 * @param  array  $atts The shortcode attributes: type, title, join.
 * @return
 */
-function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
-    $current_user = wp_get_current_user();
+function bigbluebutton_shortcode_output_form($bbb_posts, $atts, $current_user) {
     $joinOrView = "Join";
     if (!$bbb_posts->have_posts()) {
         return '<p> No rooms have been created. </p>';
@@ -790,7 +781,7 @@ function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
       $joinOrView = "View";
     }
     $output_string = '<div id="bbb-join-container"></div>';
-    $output_string .= '<form id="form1" class="bbb-shortcode">'."\n".
+    $output_string .= '<form id="room" class="bbb-shortcode">'."\n".
                      '  <label>'.$atts['title'].'</label>'."\n";
     $posts = $bbb_posts->get_posts();
 
@@ -804,14 +795,108 @@ function bigbluebutton_shortcode_output_form($bbb_posts, $atts) {
     return $output_string;
 }
 
-function bigbluebutton_shortcode_output_recordings($bbb_posts, $atts) {
-    $output_string = 'This is recording shortcode';
-    $output_string .= '<form id="form2"  class="bbb-recordings">'."\n".
-                     '  <label>'.$atts['title'].'</label>'."\n";
-    $output_string .= '</form>'."\n";
-    return $output_string;
+function bigbluebutton_shortcode_output_recordings($bbb_posts, $atts, $current_user, $endpointVal,$secretVal) {
+   $output_string = '';
+   $listOfRecordings = array();
+   $output_string .= '  <label>'.$atts['title'].'</label>'."\n";
+   $output_string .= '
+   <div id="bbb-recordings-div" class="bbb-recordings">
+   <table  class="stats" cellspacing="5">
+     <tr>
+       <th class="hed" colspan="1">Recording</td>
+       <th class="hed" colspan="1">Meeting Room Name</td>
+       <th class="hed" colspan="1">Date</td>
+       <th class="hed" colspan="1">Duration</td>';
+   if ($current_user->allcaps["manage_recordings_bbb-room"] == true) {
+        $output_string  .= '
+       <th class="hedextra" colspan="1">Toolbar</td>';
+   }
+
+   while ($bbb_posts->have_posts()) { //HAVE TO ADD THE CASE WHERE THERE ARE NO RECORDINGS
+    $bbb_posts->the_post();
+    $slug = $bbb_posts->post->post_name;
+    $title = $bbb_posts->post->post_title;
+    $bbbRoomToken = get_post_meta($bbb_posts->post->ID, '_bbb_room_token', true);
+    $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($bbbRoomToken);
+    if($atts['token'] == null||(strpos($atts['token'],$bbbRoomToken) !== false)) {
+      if ($meetingID != '') {
+       $recordingsArray = BigBlueButton::getRecordingsArray($meetingID, $endpointVal, $secretVal);
+
+       if ($recordingsArray['returncode'] == 'SUCCESS' && !$recordingsArray['messageKey']) {
+         $listOfRecordings = $recordingsArray['recordings'];
+         $output_string .= bigbluebutton_print_meeting_data($listOfRecordings,$current_user);
+       }
+       else {
+         $output_string = '<p><strong>There are no recordings available.</strong></p>';
+         return $output_string;
+       }
+     }
+    }
+   }
+ wp_reset_postdata();
+ $output_string .= '
+   </tr>
+ </table></div>';
+
+ return $output_string;
 }
 
+function bigbluebutton_print_meeting_data($listOfRecordings, $current_user){
+   $output_string ='';
+
+   foreach ($listOfRecordings as $recording) {
+     $type = bigbluebutton_playback_recording_link($recording);
+     $duration = bigbluebutton_meeting_duration($recording);
+     $formatedStartDate = bigbluebutton_formatted_startdate($recording);
+     if ($recording['published'] == 'true' || $current_user->allcaps["manage_recordings_bbb-room"] == true) {
+         $output_string .='
+         <tr id="actionbar-tr-'.$recording['recordID'].'">
+           <td>'.$type.'</td>
+           <td>'.$recording['meetingName'].'</td>
+           <td>'.$formatedStartDate.'</td>
+           <td>'.$duration.' min</td>';
+
+         if ($current_user->allcaps["manage_recordings_bbb-room"] == true) {
+             $action = ($recording['published'] == 'true') ? 'Hide' : 'Show';
+             $actionbar = '<a id="actionbar-publish-a-'.$recording['recordID'].'" title="'.$action.'" href="#"><img id="actionbar-publish-img-'.$recording['recordID'].'" src="'.bigbluebutton_plugin_base_url()."/img/".strtolower($action).".gif\" class=\"iconsmall\" onClick=\"actionCall('publish', '".$recording['recordID']."'); return false;\" /></a>";
+             $actionbar .= '<a id="actionbar-delete-a-'.$recording['recordID'].'" title="Delete" href="#"><img id="actionbar-delete-img-'.$recording['recordID'].'" src="'.bigbluebutton_plugin_base_url()."/img/delete.gif\" class=\"iconsmall\" onClick=\"actionCall('delete', '".$recording['recordID']."'); return false;\" /></a>";
+             $output_string  .= '<td>'.$actionbar.'</td>';
+        }
+         $output_string .= '</tr>';
+     }
+   }
+   return $output_string;
+}
+
+function bigbluebutton_playback_recording_link($recording){
+  $type = '';
+  foreach ($recording['playbacks'] as $playback) {
+      if ($recording['published'] == 'true') {
+          $type .= '<a href="'.$playback['url'].'" target="_new">'.$playback['type'].'</a>&#32;';
+      } else {
+          $type .= $playback['type'].'&#32;';
+      }
+  }
+  return $type;
+}
+
+function bigbluebutton_meeting_duration($recording){
+  $endTime = isset($recording['endTime']) ? floatval($recording['endTime']) : 0;
+  $endTime = $endTime - ($endTime % 1000);
+  $startTime = isset($recording['startTime']) ? floatval($recording['startTime']) : 0;
+  $startTime = $startTime - ($startTime % 1000);
+  return intval(($endTime - $startTime) / 60000);
+}
+
+function bigbluebutton_formatted_startdate($recording){
+  if (!is_numeric($recording['startTime'])) {
+      $date = new DateTime($recording['startTime']);
+      $recording['startTime'] = date_timestamp_get($date);
+  } else {
+      $recording['startTime'] = ($recording['startTime'] - $recording['startTime'] % 1000) / 1000;
+  }
+  return date_i18n('M d Y H:i:s', $recording['startTime'], false);
+}
 /**
 *   Shortcode output form for single room.
 *
@@ -908,104 +993,24 @@ function bigbluebutton_plugin_base_url()
  *
  * Right now this does not seem to be functional.
  */
- function bigbluebutton_custom_post_type_list_room_recordings($postID = 0)
+ function bigbluebutton_custom_post_type_list_room_recordings($post)
  {
-     $current_user  = wp_get_current_user();
-     $pluginbaseurl = bigbluebutton_plugin_base_url();
-     $bbb_room_token = get_post_meta($postID, '_bbb_room_token', true);
-     $meetingID = $bbb_room_token;
-     $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($meetingID);
-     //Initializes the variable that will collect the output
-     $out = '';
-     $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
-     //Read in existing option value from database
-     $endpoint_val = $bigbluebutton_custom_post_type_settings['endpoint'];
-     $secret_val = $bigbluebutton_custom_post_type_settings['secret'];
-     $_SESSION['mt_bbb_endpoint'] = $endpoint_val;
-     $_SESSION['mt_bbb_secret'] = $secret_val;
-     $listOfRecordings = array();
-     if ($meetingID != '') {
-         $recordingsArray = BigBlueButton::getRecordingsArray($meetingID, $endpoint_val, $secret_val);
-         if ($recordingsArray['returncode'] == 'SUCCESS' && !$recordingsArray['messageKey']) {
-             $listOfRecordings = $recordingsArray['recordings'];
-         }
-     }
-     if (class_exists('FirePHP')) {
-         $firephp = FirePHP::getInstance(true);
-         $firephp->log(BigBlueButton::getRecordingsArray($meetingID, $endpoint_val, $secret_val));
-     }
-     //Checks to see if there are no meetings in the wordpress db and if so alerts the user
-     if (count($listOfRecordings) == 0) {
-         $out .= '<p><strong>There are no recordings available.</strong></p>';
-         return $out;
-     }
+   $args = array('post_type' => 'bbb-room',
+                 'orderby' => 'name',
+                 'posts_per_page' => -1,
+                 'order' => 'ASC',
+     );
 
-     //Print begining of the table
-     $out .= '
-     <div id="bbb-recordings-div" class="bbb-recordings">
-     <table class="stats" cellspacing="5">
-       <tr>
-         <th class="hed" colspan="1">Recording</td>
-         <th class="hed" colspan="1">Meeting Room Name</td>
-         <th class="hed" colspan="1">Date</td>
-         <th class="hed" colspan="1">Duration</td>';
-     if (current_user_can('edit_bbb-room', $postID) && is_admin()) {
-         $out .= '
-         <th class="hedextra" colspan="1">Toolbar</td>';
-     }
-     $out .= '
-       </tr>';
+   $bbb_posts = new WP_Query($args);
+   $bbbRoomToken = get_post_meta($post->ID, '_bbb_room_token', true);
+   $atts = array('token' => $bbbRoomToken);
+   $current_user  = wp_get_current_user();
+   $bigbluebutton_custom_post_type_settings = get_option('bigbluebutton_custom_post_type_settings');
+   $endpointVal = $bigbluebutton_custom_post_type_settings['endpoint'];
+   $secretVal = $bigbluebutton_custom_post_type_settings['secret'];
 
-     foreach ($listOfRecordings as $recording) {
-         /// Prepare playback recording links
-             $type = '';
-         foreach ($recording['playbacks'] as $playback) {
-             if ($recording['published'] == 'true') {
-                 $type .= '<a href="'.$playback['url'].'" target="_new">'.$playback['type'].'</a>&#32;';
-             } else {
-                 $type .= $playback['type'].'&#32;';
-             }
-         }
-             /// Prepare duration
-         $endTime = isset($recording['endTime']) ? floatval($recording['endTime']) : 0;
-         $endTime = $endTime - ($endTime % 1000);
-         $startTime = isset($recording['startTime']) ? floatval($recording['startTime']) : 0;
-         $startTime = $startTime - ($startTime % 1000);
-         $duration = intval(($endTime - $startTime) / 60000);
-             /// Prepare date
-             //Make sure the startTime is timestamp
-             if (!is_numeric($recording['startTime'])) {
-                 $date = new DateTime($recording['startTime']);
-                 $recording['startTime'] = date_timestamp_get($date);
-             } else {
-                 $recording['startTime'] = ($recording['startTime'] - $recording['startTime'] % 1000) / 1000;
-             }
-             //Format the date
-             $formatedStartDate = date_i18n('M d Y H:i:s', $recording['startTime'], false);
-             //Print detail
-             if ($recording['published'] == 'true' || is_admin()) {
-                 $out .= '
-                 <tr id="actionbar-tr-'.$recording['recordID'].'">
-                   <td>'.$type.'</td>
-                   <td>'.$recording['meetingName'].'</td>
-                   <td>'.$formatedStartDate.'</td>
-                   <td>'.$duration.' min</td>';
-                 /// Prepare actionbar if role is allowed to manage the recordings
-                 if ($current_user->allcaps["manage_recordings_bbb-room"] == true) {
-                     $action = ($recording['published'] == 'true') ? 'Hide' : 'Show';
-                     $actionbar = '<a id="actionbar-publish-a-'.$recording['recordID'].'" title="'.$action.'" href="#"><img id="actionbar-publish-img-'.$recording['recordID'].'" src="'.$pluginbaseurl."/img/".strtolower($action).".gif\" class=\"iconsmall\" onClick=\"actionCall('publish', '".$recording['recordID']."'); return false;\" /></a>";
-                     $actionbar .= '<a id="actionbar-delete-a-'.$recording['recordID'].'" title="Delete" href="#"><img id="actionbar-delete-img-'.$recording['recordID'].'" src="'.$pluginbaseurl."/img/delete.gif\" class=\"iconsmall\" onClick=\"actionCall('delete', '".$recording['recordID']."'); return false;\" /></a>";
-                     $out .= '
-                     <td>'.$actionbar.'</td>';
-                 }
-                 $out .= '
-                 </tr>';
-             }
-     }
-     //Print end of the table
-     $out .= '  </table>
-     </div>';
-     return $out;
+   echo bigbluebutton_shortcode_output_recordings($bbb_posts, $atts, $current_user, $endpointVal,$secretVal);
+
  }
 
 
