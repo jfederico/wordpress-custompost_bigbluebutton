@@ -362,7 +362,7 @@ function bigbluebutton_room_status_metabox($post)
     $meetingid = bigbluebutton_normalize_meeting_id($roomtoken);
 
     if ($_POST['SubmitList'] == 'End Meeting Now') {
-        $response = BigBlueButton::endMeeting(bigbluebutton_normalize_meeting_id($_POST['bbb_room_token']), $_POST['bbb_moderator_password'], $endpointvalueue, $secretvalueue);
+       BigBlueButton::endMeeting(bigbluebutton_normalize_meeting_id($_POST['bbb_room_token']), $_POST['bbb_moderator_password'], $endpointvalueue, $secretvalueue);
     }
     //if people can register let them option when not signed in
     if (get_post_status($post->ID) === 'publish') {
@@ -496,14 +496,8 @@ add_filter('the_content', 'bigbluebutton_filter');
 if (is_admin() && (isset($_POST['endpoint']) || isset($_POST['secret']))) {
     $bbbsettings = get_option('bigbluebutton_custom_post_type_settings');
     $doupdate = 0;
-    if (isset($_POST['endpoint']) && ($bbbsettings['endpoint'] != $_POST['endpoint'])) {
-        $bbbsettings['endpoint'] = $_POST['endpoint'];
-        $doupdate = 1;
-    }
-    if (isset($_POST['secret']) && ($bbbsettings['secret'] != $_POST['secret'])) {
-        $bbbsettings['secret'] = $_POST['secret'];
-        $doupdate = 1;
-    }
+    bigbluebutton_update_settings($bbbsettings, $doupdate, 'secret');
+    bigbluebutton_update_settings($bbbsettings, $doupdate, 'endpoint');
     if ($doupdate) {
         $updateresponse = update_option('bigbluebutton_custom_post_type_settings', $bbbsettings);
         if ($updateresponse) {
@@ -514,6 +508,13 @@ if (is_admin() && (isset($_POST['endpoint']) || isset($_POST['secret']))) {
     } else {
         add_action('admin_notices', 'bigbluebutton_update_notice_no_change');
     }
+}
+
+function bigbluebutton_update_settings($bbbsettings, $doupdate, $updatevalue){
+  if (isset($_POST[$updatevalue]) && ($bbbsettings[$updatevalue] != $_POST[$updatevalue])) {
+      $bbbsettings[$updatevalue] = $_POST[$updatevalue];
+      $doupdate = 1;
+  }
 }
 
 function bigbluebutton_update_notice_success()
