@@ -734,7 +734,7 @@ function bigbluebutton_shortcode_output($bbb_posts, $atts) {
     $secretVal = $bigbluebutton_custom_post_type_settings['secret'];
     bigbluebutton_session_setup($endpointVal,$secretVal);
     if ($atts['type'] == 'recordings') {
-        return bigbluebutton_shortcode_output_recordings($bbb_posts, $atts, $current_user, $endpointVal,$secretVal);
+        return '<form id="recording">'.bigbluebutton_shortcode_output_recordings($bbb_posts, $atts, $current_user, $endpointVal,$secretVal).'</form>';
     }
     return bigbluebutton_shortcode_output_form($bbb_posts, $atts, $current_user);
 }
@@ -770,9 +770,12 @@ function bigbluebutton_shortcode_output_form($bbb_posts, $atts, $current_user) {
 }
 
 function bigbluebutton_shortcode_output_recordings($bbb_posts, $atts, $current_user, $endpointVal,$secretVal) {
-   $output_string = '';
-   $output_string .= '  <label>'.$atts['title'].'</label>'."\n";
-   $output_string .= '
+   $outputString = '';
+   $listOfRecordings = array();
+   $listOfAllRecordings = array();
+   $noRecordings = false;
+   $outputString .= '  <label>'.$atts['title'].'</label>'."\n";
+   $outputString .= '
    <div id="bbb-recordings-div" class="bbb-recordings">
    <table  class="stats" cellspacing="5">
      <tr>
@@ -781,11 +784,11 @@ function bigbluebutton_shortcode_output_recordings($bbb_posts, $atts, $current_u
        <th class="hed" colspan="1">Date</td>
        <th class="hed" colspan="1">Duration</td>';
    if ($current_user->allcaps["manage_recordings_bbb-room"] == true) {
-        $output_string  .= '
+        $outputString  .= '
        <th class="hedextra" colspan="1">Toolbar</td>';
    }
 
-   while ($bbb_posts->have_posts()) { //HAVE TO ADD THE CASE WHERE THERE ARE NO RECORDINGS
+   while ($bbb_posts->have_posts()) {
     $bbb_posts->the_post();
     $bbbRoomToken = get_post_meta($bbb_posts->post->ID, '_bbb_room_token', true);
     $meetingID = bigbluebutton_custom_post_type_normalizeMeetingID($bbbRoomToken);
@@ -795,32 +798,33 @@ function bigbluebutton_shortcode_output_recordings($bbb_posts, $atts, $current_u
 
        if ($recordingsArray['returncode'] == 'SUCCESS' && !$recordingsArray['messageKey']) {
          $listOfRecordings = $recordingsArray['recordings'];
-         $output_string .= bigbluebutton_print_meeting_data($listOfRecordings,$current_user);
-       }
-       else {
-         $output_string = '<p><strong>There are no recordings available.</strong></p>';
-         return $output_string;
+         $outputString .= bigbluebutton_print_meeting_data($listOfRecordings,$current_user);
+         array_push($listOfAllRecordings, $listOfRecordings);
        }
      }
     }
    }
  wp_reset_postdata();
- $output_string .= '
+ $outputString .= '
    </tr>
  </table></div>';
 
- return $output_string;
+ if((count($listOfAllRecordings) == 0)){
+   return '<p><strong>There are no recordings available.</strong></p>';
+ }
+
+ return $outputString;
 }
 
 function bigbluebutton_print_meeting_data($listOfRecordings, $current_user){
-   $output_string ='';
+   $outputString ='';
 
    foreach ($listOfRecordings as $recording) {
      $type = bigbluebutton_playback_recording_link($recording);
      $duration = bigbluebutton_meeting_duration($recording);
      $formatedStartDate = bigbluebutton_formatted_startdate($recording);
      if ($recording['published'] == 'true' || $current_user->allcaps["manage_recordings_bbb-room"] == true) {
-         $output_string .='
+         $outputString .='
          <tr id="actionbar-tr-'.$recording['recordID'].'">
            <td>'.$type.'</td>
            <td>'.$recording['meetingName'].'</td>
@@ -831,12 +835,12 @@ function bigbluebutton_print_meeting_data($listOfRecordings, $current_user){
              $action = ($recording['published'] == 'true') ? 'Hide' : 'Show';
              $actionbar = '<a id="actionbar-publish-a-'.$recording['recordID'].'" title="'.$action.'" href="#"><img id="actionbar-publish-img-'.$recording['recordID'].'" src="'.bigbluebutton_plugin_base_url()."/img/".strtolower($action).".gif\" class=\"iconsmall\" onClick=\"actionCall('publish', '".$recording['recordID']."'); return false;\" /></a>";
              $actionbar .= '<a id="actionbar-delete-a-'.$recording['recordID'].'" title="Delete" href="#"><img id="actionbar-delete-img-'.$recording['recordID'].'" src="'.bigbluebutton_plugin_base_url()."/img/delete.gif\" class=\"iconsmall\" onClick=\"actionCall('delete', '".$recording['recordID']."'); return false;\" /></a>";
-             $output_string  .= '<td>'.$actionbar.'</td>';
+             $outputString  .= '<td>'.$actionbar.'</td>';
         }
-         $output_string .= '</tr>';
+         $outputString .= '</tr>';
      }
    }
-   return $output_string;
+   return $outputString;
 }
 
 function bigbluebutton_playback_recording_link($recording){

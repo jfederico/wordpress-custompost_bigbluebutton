@@ -82,11 +82,6 @@ width:250px;}
 /**/
 
 
-
-/**/
-
-
-
 #room {
 	background-color: #f6f6f6;
 	border-radius: 5px;
@@ -99,22 +94,21 @@ width:250px;}
 
 #recording {
 	background-color: #f6f6f6;
-	bborder-radius: 10px;
 	border: 1px solid #ccc;
-	padding:30px 30px 10px 30px;
+	padding:20px 20px 5px 20px;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
 	border-radius: 10px;
-
+	width: 700px;
 }
 
 #roompw{
-color: #777;
-margin: 5px 0px 10px 0;
-padding-left:10px;
-width: 100%;
-height: 50px;
-border: 1px solid #c7d0d2;
-border-radius: 2px;
+	color: #777;
+	margin: 5px 0px 10px 0;
+	padding-left:10px;
+	width: 100%;
+	height: 50px;
+	border: 1px solid #c7d0d2;
+	border-radius: 2px;
 }
 
 #displayname{
