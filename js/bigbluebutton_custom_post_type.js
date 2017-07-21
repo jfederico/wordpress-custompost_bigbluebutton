@@ -1,19 +1,19 @@
-var pluginBaseUrl = bbbScript.pluginsUrl;//this variable is passed through the php file by   wp_localize_script
-var meetingDetails;
+var pluginbaseurl = bbbScript.pluginsUrl;//this variable is passed through the php file by   wp_localize_script
+var meetingdetails;
 var slug;
-var bbbPingInterval ='';
+var bbbpinginterval ='';
 
 jQuery(function($){
 //one id for both?
 	$("#bbbRooms").change(function(){
-			setMeetingSlug(this);
+			bigbluebutton_set_meeting_slug(this);
 	});
 
-	setMeetingSlug('input#hiddenInputSingle');
+	bigbluebutton_set_meeting_slug('input#hiddenInputSingle');
 
   //sets the slug
-	function setMeetingSlug(hiddenInput){
-		slug = $(hiddenInput).val();
+	function bigbluebutton_set_meeting_slug(hiddeninput){
+		slug = $(hiddeninput).val();
 	}
 
 });
@@ -23,61 +23,61 @@ jQuery(function($){
 * Joins/Views the meeting/room.
 *
 * @param  join join or view the room
-* @param  userSignedIn
-* @param  passwordRequired
+* @param  usersignedin
+* @param  passwordrequired
 * @param  page
 */
-function bigbluebutton_join_meeting(join, userSignedIn, passwordRequired, page){
+function bigbluebutton_join_meeting(join, usersignedin, passwordrequired, page){
 		var name = '';
 		var password = '';
 
 		//clean this up
 		if(page == "true")
 		{
-			if(userSignedIn == "false"){
+			if(usersignedin == "false"){
 				name = prompt("Please enter your name: ", "Enter name here");
 			}
 
-			if(passwordRequired == "true"){
+			if(passwordrequired == "true"){
 				password = prompt("Please enter the password of the meeting: ", "Enter password here");
 			}
 
 		}else{
-			if(userSignedIn == "false"){
+			if(usersignedin == "false"){
 				jQuery(function($) {
 						name = $('input#displayname').val();
 				});
 			}
 
-			if(passwordRequired == "true"){
+			if(passwordrequired == "true"){
 				jQuery(function($) {
 					password = $('input#roompw').val();
 				});
 			}
 		}
 
-		meetingDetails = '&slug=' + slug + '&join=' + join + '&password=' + password + '&name=' + name;
+		meetingdetails = '&slug=' + slug + '&join=' + join + '&password=' + password + '&name=' + name;
 
 		jQuery.ajax({
 			type: "POST",
-			url : pluginBaseUrl+'/broker.php?action=join',
+			url : pluginbaseurl+'/broker.php?action=join',
 			async : true,
-			data: meetingDetails,
+			data: meetingdetails,
 			dataType : "text",
 			success : function(data){
-				if(isUrl(data)){
+				if(isurl(data)){
 					window.open(data);
 				}
 				else {
-					var pollingImgPath = pluginBaseUrl+'/img/polling.gif';
+					var pollingimgpath = pluginbaseurl+'/img/polling.gif';
 					jQuery("div#bbb-join-container").append
 					("<center>Welcome to "+ slug +"!<br /><br /> \
 					 The session has not been started yet.<br /><br />\
-					 <center><img src="+ pollingImgPath +"\ /></center>\
+					 <center><img src="+ pollingimgpath +"\ /></center>\
 					 (Your browser will automatically refresh and join the meeting when it starts.)</center>");
 					jQuery("form#room").hide();
 					jQuery("input.bbb-shortcode-selector").hide();
-			    bbbPingInterval = setInterval("bigbluebutton_custom_post_type_ping()", 5000);
+			    bbbpinginterval = setInterval("bigbluebutton_ping()", 5000);
 				}
 			},
 			error : function() {
@@ -89,16 +89,16 @@ function bigbluebutton_join_meeting(join, userSignedIn, passwordRequired, page){
 /**
 * This function is pinged every 5 seconds to see if the meeting is running
 **/
-function bigbluebutton_custom_post_type_ping() {
+function bigbluebutton_ping() {
  	 jQuery.ajax({
 	   type: "POST",
-		 url : pluginBaseUrl + '/broker.php?action=ping',
+		 url : pluginbaseurl + '/broker.php?action=ping',
 		 async : true,
-		 data: meetingDetails,
+		 data: meetingdetails,
 		 dataType : "text",
 		 success : function(data){
-		 if(isUrl(data)){
-			  clearInterval(bbbPingInterval);
+		 if(isurl(data)){
+			  clearInterval(bbbpinginterval);
 				jQuery("div#bbb-join-container").remove();
 			  window.open(data);
 			}
@@ -115,7 +115,7 @@ function bigbluebutton_custom_post_type_ping() {
 * @param s String thats passed to see if its a URL
 * https://stackoverflow.com/questions/1701898/how-to-detect-whether-a-string-is-in-url-format-using-javascript
 **/
- function isUrl(s) {
+ function isurl(s) {
    var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
    return regexp.test(s);
 }
@@ -125,37 +125,37 @@ function bigbluebutton_custom_post_type_ping() {
 //================================================================================
 //
 
-function actionCall(action, recordingID) {
+function bigbluebutton_action_call(action, recordingid) {
 	action = (typeof action == 'undefined') ? 'publish' : action;
 	if (action == 'publish' || (action == 'delete' && confirm("Are you sure to delete this recording?"))) {
 		if (action == 'publish') {
-			 var actionbarPublish;
+			 var actionbarpublish;
 			 jQuery(function($) {
-					actionbarPublish = $('a#actionbar-publish-a-'+ recordingID);
+					actionbarpublish = $('a#actionbar-publish-a-'+ recordingid);
 				});
-			if (actionbarPublish) {
-				var actionbarImg ;
+			if (actionbarpublish) {
+				var actionbarimg ;
 				jQuery(function($) {
- 						actionbarImg = $('img#actionbar-publish-img-'+ recordingID);
+ 						actionbarimg = $('img#actionbar-publish-img-'+ recordingid);
  				});
-				if (actionbarPublish.attr('title') == 'Hide' ) {
+				if (actionbarpublish.attr('title') == 'Hide' ) {
 						action = 'unpublish';
-						actionbarPublish.attr('title', 'Show') ;
-						actionbarImg.attr('src', pluginBaseUrl + '/img/show.gif') ;
+						actionbarpublish.attr('title', 'Show') ;
+						actionbarimg.attr('src', pluginbaseurl + '/img/show.gif') ;
 				} else {
 						action = 'publish';
-						actionbarPublish.attr('title', 'Hide') ;
-					  actionbarImg.attr('src', pluginBaseUrl + '/img/hide.gif') ;
+						actionbarpublish.attr('title', 'Hide') ;
+					  actionbarimg.attr('src', pluginbaseurl + '/img/hide.gif') ;
 				}
 			}
 		} else {
 			 jQuery(function($) {
-					 $('tr#actionbar-tr-'+ recordingID).remove();
+					 $('tr#actionbar-tr-'+ recordingid).remove();
 			 });
 		}
-		var actionURL = pluginBaseUrl + "/broker.php?action=" + action + "&recordingID=" + recordingID;
+		var actionurl = pluginbaseurl + "/broker.php?action=" + action + "&recordingid=" + recordingid;
 		jQuery.ajax({
-			url : actionURL,
+			url : actionurl,
 			async : false,
 			success : function(){
 			},

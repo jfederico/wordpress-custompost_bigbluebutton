@@ -22,11 +22,11 @@ Versions:
 require 'includes/bbb_api.php';
 require($_SERVER['DOCUMENT_ROOT'].'/wordpress-test/wp-load.php');//MAKE SUREE TO CHNAGE THE PATH
 session_start();
-$bbbEndpointName = 'mt_bbb_endpoint';
-$bbbSecretName = 'mt_bbb_secret';
-$actionName = 'action';
-$recordingIDName = 'recordingID';
-$slugName = 'slug';
+$endpointname = 'mt_bbb_endpoint';
+$secretname = 'mt_bbb_secret';
+$actionname = 'action';
+$recordingidname = 'recordingID';
+$slugname = 'slug';
 $join = 'join';
 $password = 'password';
 
@@ -34,90 +34,90 @@ $password = 'password';
 //------------------------------------Main----------------------------------------
 //================================================================================
 //Retrieves the bigbluebutton url, and salt from the seesion
-if (!isset($_SESSION[$bbbSecretName]) || !isset($_SESSION[$bbbEndpointName])) {
+if (!isset($_SESSION[$secretname]) || !isset($_SESSION[$endpointname])) {
     header('HTTP/1.0 400 Bad Request. BigBlueButton_CPT Url or Salt are not accessible.');
-} elseif (!isset($_GET[$actionName])) {
+} elseif (!isset($_GET[$actionname])) {
     header('HTTP/1.0 400 Bad Request. [action] parameter was not included in this query.');
 } else {
-    $secretVal = $_SESSION[$bbbSecretName];
-    $endpointVal = $_SESSION[$bbbEndpointName];
-    $action = $_GET[$actionName];
+    $secretvalue = $_SESSION[$secretname];
+    $endpointvalue = $_SESSION[$endpointname];
+    $action = $_GET[$actionname];
     switch ($action) {
         case 'publish':
             header('Content-Type: text/plain; charset=utf-8');
-            if (!isset($_GET[$recordingIDName])) {
+            if (!isset($_GET[$recordingidname])) {
                 header('HTTP/1.0 400 Bad Request. [recordingID] parameter was not included in this query.');
             } else {
-                $recordingID = $_GET[$recordingIDName];
-                echo BigBlueButton::doPublishRecordings($recordingID, 'true', $endpointVal, $secretVal);
+                $recordingid = $_GET[$recordingidname];
+                echo BigBlueButton::doPublishRecordings($recordingid, 'true', $endpointvalue, $secretvalue);
             }
             break;
         case 'unpublish':
             header('Content-Type: text/plain; charset=utf-8');
-            if (!isset($_GET[$recordingIDName])) {
+            if (!isset($_GET[$recordingidname])) {
                 header('HTTP/1.0 400 Bad Request. [recordingID] parameter was not included in this query.');
             } else {
-                $recordingID = $_GET[$recordingIDName];
-                echo BigBlueButton::doPublishRecordings($recordingID, 'false', $endpointVal, $secretVal);
+                $recordingid = $_GET[$recordingidname];
+                echo BigBlueButton::doPublishRecordings($recordingid, 'false', $endpointvalue, $secretvalue);
             }
             break;
         case 'delete':
             header('Content-Type: text/plain; charset=utf-8');
-            if (!isset($_GET[$recordingIDName])) {
+            if (!isset($_GET[$recordingidname])) {
                 header('HTTP/1.0 400 Bad Request. [recordingID] parameter was not included in this query.');
             } else {
-                $recordingID = $_GET[$recordingIDName];
-                echo BigBlueButton::doDeleteRecordings($recordingID, $endpointVal, $secretVal);
+                $recordingid = $_GET[$recordingidname];
+                echo BigBlueButton::doDeleteRecordings($recordingid, $endpointvalue, $secretvalue);
             }
             break;
         case 'ping':
             $username = setUserName();
-            $meetingID = setMeetingID($_POST[$slugName]);
-            $password = setPassword($_POST[$slugName]);
-            $response = BigBlueButton::getMeetingXML($meetingID, $endpointVal, $secretVal);
+            $meetingid = setMeetingID($_POST[$slugname]);
+            $password = setPassword($_POST[$slugname]);
+            $response = BigBlueButton::getMeetingXML($meetingid, $endpointvalue, $secretvalue);
             if((strpos($response,"true") !== false)){
-              echo BigBlueButton::getJoinURL($meetingID, $username, $password , $secretVal, $endpointVal);
+              echo BigBlueButton::getJoinURL($meetingid, $username, $password , $secretvalue, $endpointvalue);
             }
             break;
         case 'join'://cant join when editor (in old plugin, it direcclty says "sorry you are not allowed to join this page)"
             //post is not recognizing '+' and '&'
-            if((!isset($_POST[$slugName]))){
+            if((!isset($_POST[$slugname]))){
                 header('HTTP/1.0 400 Bad Request. [slug] parameter was not included in this query.');
             }else if((!isset($_POST[$join]))){
                 header('HTTP/1.0 400 Bad Request. [join] parameter was not included in this query.');
             }else{
-              $post = get_page_by_path($_POST[$slugName], OBJECT, 'bbb-room');
+              $post = get_page_by_path($_POST[$slugname], OBJECT, 'bbb-room');
               if($_POST[$join] === "true"){
                 $username = setUserName();
-                $meetingID = setMeetingID($_POST[$slugName]);
-                $password = setPassword($_POST[$slugName]);
-                $meetingName = get_the_title($post->ID);
-                $welcomeString = get_post_meta($post->ID, '_bbb_room_welcome_msg', true);
-                $moderatorPassword = get_post_meta($post->ID, '_bbb_moderator_password', true);
-                $attendeePassword = get_post_meta($post->ID, '_bbb_attendee_password', true);
-                $bbbIsRecorded = get_post_meta($post->ID, '_bbb_is_recorded', true);
-                $logoutURL = (is_ssl() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout=true';
-                $bbbWaitForAdminStart = get_post_meta($post->ID, '_bbb_must_wait_for_admin_start', true);
-                $metaData = array(
+                $meetingid = setMeetingID($_POST[$slugname]);
+                $password = setPassword($_POST[$slugname]);
+                $meetingname = get_the_title($post->ID);
+                $welcomestring = get_post_meta($post->ID, '_bbb_room_welcome_msg', true);
+                $moderatorpassword = get_post_meta($post->ID, '_bbb_moderator_password', true);
+                $attendeepassword = get_post_meta($post->ID, '_bbb_attendee_password', true);
+                $isrecorded = get_post_meta($post->ID, '_bbb_is_recorded', true);
+                $logouturl = (is_ssl() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout=true';
+                $waitforadminstart = get_post_meta($post->ID, '_bbb_must_wait_for_admin_start', true);
+                $metadata = array(
                  'meta_origin' => 'WordPress',
                  'meta_origintag' => 'wp_plugin-bigbluebutton_custom_post_type ',
                  'meta_originservername' => home_url(),
                  'meta_originservercommonname' => get_bloginfo('name'),
-                 'meta_originurl' => $logoutURL,
+                 'meta_originurl' => $logouturl,
                 );
-                $response = BigBlueButton::createMeetingArray($username, $meetingID, $meetingName, $welcomeString, $moderatorPassword,$attendeePassword, $secretVal, $endpointVal, $logoutURL, $bbbIsRecorded ? 'true' : 'false', $duration = 0, $voiceBridge = 0, $metaData);
+                $response = BigBlueButton::createMeetingArray($username, $meetingid, $meetingname, $welcomestring, $moderatorpassword,$attendeepassword, $secretvalue, $endpointvalue, $logouturl, $isrecorded ? 'true' : 'false', $duration = 0, $voiceBridge = 0, $metadata);
 
                 if (!$response || $response['returncode'] == 'FAILED') {
                     echo "Sorry an error occured while creating the meeting room.";
                 }else {
-                    $bigbluebuttonJoinURL = BigBlueButton::getJoinURL($meetingID, $username, $password, $secretVal, $endpointVal);
-                    $isMeetingRunning = BigBlueButton::isMeetingRunning($meetingID, $endpointVal, $secretVal);
-                    if (($isMeetingRunning && ($moderatorPassword == $password || $attendeePassword == $password))
+                    $joinurl = BigBlueButton::getJoinURL($meetingid, $username, $password, $secretvalue, $endpointvalue);
+                    $ismeetingrunning = BigBlueButton::isMeetingRunning($meetingid, $endpointvalue, $secretvalue);
+                    if (($ismeetingrunning && ($moderatorpassword == $password || $attendeepassword == $password))
                          || $response['moderatorPW'] == $password
-                         || ($response['attendeePW'] == $password && !$bbbWaitForAdminStart)) {
-                          echo $bigbluebuttonJoinURL;
+                         || ($response['attendeePW'] == $password && !$waitforadminstart)) {
+                          echo $joinurl;
                     }
-                    elseif ($attendeePassword == $password) {
+                    elseif ($attendeepassword == $password) {
                         echo '';
                     }
                 }
@@ -132,7 +132,7 @@ if (!isset($_SESSION[$bbbSecretName]) || !isset($_SESSION[$bbbEndpointName])) {
             break;
         default:
             header('Content-Type: text/plain; charset=utf-8');
-            echo BigBlueButton::getServerVersion($endpointVal);
+            echo BigBlueButton::getServerVersion($endpointvalue);
     }
 }
 
@@ -141,34 +141,34 @@ if (!isset($_SESSION[$bbbSecretName]) || !isset($_SESSION[$bbbEndpointName])) {
 **/
 function setPassword($slug){
   $post = get_page_by_path($slug, OBJECT, 'bbb-room');
-  $current_user = wp_get_current_user();
+  $currentuser = wp_get_current_user();
   $password='';
-  $moderatorPassword = get_post_meta($post->ID, '_bbb_moderator_password', true);
-  $attendeePassword = get_post_meta($post->ID, '_bbb_attendee_password', true);
+  $moderatorpassword = get_post_meta($post->ID, '_bbb_moderator_password', true);
+  $attendeepassword = get_post_meta($post->ID, '_bbb_attendee_password', true);
 
   if(is_user_logged_in() == true) {
-    $userCapArray = $current_user->allcaps;
+    $usercaparray = $currentuser->allcaps;
 
   }else {
     $anonymousRole = get_role('anonymous');
-    $userCapArray = $anonymousRole->capabilities;
+    $usercaparray = $anonymousRole->capabilities;
   }
 
-  if($userCapArray["join_with_password_bbb-room"] == true ) {
-      if($userCapArray["join_as_moderator_bbb-room"] == true) {
-        if(strcmp($moderatorPassword,$_POST['password']) === 0) {
-            $password = $moderatorPassword;
+  if($usercaparray["join_with_password_bbb-room"] == true ) {
+      if($usercaparray["join_as_moderator_bbb-room"] == true) {
+        if(strcmp($moderatorpassword,$_POST['password']) === 0) {
+            $password = $moderatorpassword;
         }
       }else {
-        if(strcmp($attendeePassword,$_POST['password']) === 0) {
-            $password = $attendeePassword;
+        if(strcmp($attendeepassword,$_POST['password']) === 0) {
+            $password = $attendeepassword;
         }
       }
   }else {
-      if($userCapArray["join_as_moderator_bbb-room"] === true) {
-        $password = $moderatorPassword;
+      if($usercaparray["join_as_moderator_bbb-room"] === true) {
+        $password = $moderatorpassword;
       }else {
-        $password = $attendeePassword;
+        $password = $attendeepassword;
       }
   }
   return $password;
@@ -178,8 +178,8 @@ function setPassword($slug){
 * Sets the user name of the moderator or attendee
 **/
 function setUserName(){
-  $current_user = wp_get_current_user();
-  $username = $current_user->display_name;
+  $currentuser = wp_get_current_user();
+  $username = $currentuser->display_name;
   if($username == '' || $username == null){
     $username = $_POST['name'];
   }
@@ -192,10 +192,10 @@ function setUserName(){
 function setMeetingID($slug)
 {
   $post = get_page_by_path($slug, OBJECT, 'bbb-room');
-  $bbbRoomToken = get_post_meta($post->ID, '_bbb_room_token', true);
-  $meetingID = $bbbRoomToken;
-  if(strlen($meetingID) == 12){
-    $meetingID = sha1(home_url().$meetingID);
+  $roomtoken = get_post_meta($post->ID, '_bbb_room_token', true);
+  $meetingid = $roomtoken;
+  if(strlen($meetingid) == 12){
+    $meetingid = sha1(home_url().$meetingid);
   }
-  return $meetingID;
+  return $meetingid;
 }
