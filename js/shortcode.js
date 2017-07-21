@@ -13,22 +13,15 @@ jQuery(document).ready(function($){
 });
 
 function renderShortcode() {
-	  linktype = '';
-		linktypestring = '';
-		categories = [];
-		categories_string = '';
-		postids = [];
-		postsidstring = '';
-
-    linktype = $('input[name=bbb_link_type]:checked').val();
-    linktypestring = ' link_type="' +  linktype + '"';
-    categories = $('select#bbb-categories').val() || [];
-    categories_string = '';
+    var linktype = $('input[name=bbb_link_type]:checked').val();
+    var linktypestring = ' link_type="' +  linktype + '"';
+    var categories = $('select#bbb-categories').val() || [];
+    var categories_string = '';
     if (categories.length) {
         categories_string = ' bbb_categories="' + categories.join(",") + '" ';
     }
-    postids = $('select#bbb-post-ids').val() || [];
-    postsidstring = '';
+    var postids = $('select#bbb-post-ids').val() || [];
+    var postsidstring = '';
     if (postids.length) {
         postsidstring = ' bbb_posts="' + postids.join(",") +'" ';
     }

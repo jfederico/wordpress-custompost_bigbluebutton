@@ -496,8 +496,13 @@ add_filter('the_content', 'bigbluebutton_filter');
 if (is_admin() && (isset($_POST['endpoint']) || isset($_POST['secret']))) {
     $bbbsettings = get_option('bigbluebutton_custom_post_type_settings');
     $doupdate = 0;
-    bigbluebutton_update_settings($bbbsettings, $doupdate, 'secret');
-    bigbluebutton_update_settings($bbbsettings, $doupdate, 'endpoint');
+    if (isset($_POST['secret']) && ($bbbsettings['secret'] != $_POST['secret'])) {
+        $bbbsettings['secret'] = $_POST['secret'];
+        $doupdate = 1;
+    }if (isset($_POST['endpoint']) && ($bbbsettings['endpoint'] != $_POST['endpoint'])) {
+        $bbbsettings['endpoint'] = $_POST['endpoint'];
+        $doupdate = 1;
+    }
     if ($doupdate) {
         $updateresponse = update_option('bigbluebutton_custom_post_type_settings', $bbbsettings);
         if ($updateresponse) {
@@ -508,13 +513,6 @@ if (is_admin() && (isset($_POST['endpoint']) || isset($_POST['secret']))) {
     } else {
         add_action('admin_notices', 'bigbluebutton_update_notice_no_change');
     }
-}
-
-function bigbluebutton_update_settings($bbbsettings, $doupdate, $updatevalue){
-  if (isset($_POST[$updatevalue]) && ($bbbsettings[$updatevalue] != $_POST[$updatevalue])) {
-      $bbbsettings[$updatevalue] = $_POST[$updatevalue];
-      $doupdate = 1;
-  }
 }
 
 function bigbluebutton_update_notice_success()
