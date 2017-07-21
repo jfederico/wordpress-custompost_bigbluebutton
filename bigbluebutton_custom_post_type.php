@@ -771,9 +771,7 @@ function bigbluebutton_shortcode_output_form($bbb_posts, $atts, $current_user) {
 
 function bigbluebutton_shortcode_output_recordings($bbb_posts, $atts, $current_user, $endpointVal,$secretVal) {
    $outputString = '';
-   $listOfRecordings = array();
    $listOfAllRecordings = array();
-   $noRecordings = false;
    $outputString .= '  <label>'.$atts['title'].'</label>'."\n";
    $outputString .= '
    <div id="bbb-recordings-div" class="bbb-recordings">
