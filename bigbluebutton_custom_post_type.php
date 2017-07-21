@@ -773,18 +773,7 @@ function bigbluebutton_shortcode_output_recordings($bbb_posts, $atts, $current_u
    $outputString = '';
    $listOfAllRecordings = array();
    $outputString .= '  <label>'.$atts['title'].'</label>'."\n";
-   $outputString .= '
-   <div id="bbb-recordings-div" class="bbb-recordings">
-   <table  class="stats" cellspacing="5">
-     <tr>
-       <th class="hed" colspan="1">Recording</td>
-       <th class="hed" colspan="1">Meeting Room Name</td>
-       <th class="hed" colspan="1">Date</td>
-       <th class="hed" colspan="1">Duration</td>';
-   if ($current_user->allcaps["manage_recordings_bbb-room"] == true) {
-        $outputString  .= '
-       <th class="hedextra" colspan="1">Toolbar</td>';
-   }
+   $outputString .= bigbluebutton_print_recordings_table_headers($current_user);
 
    while ($bbb_posts->have_posts()) {
     $bbb_posts->the_post();
@@ -796,7 +785,7 @@ function bigbluebutton_shortcode_output_recordings($bbb_posts, $atts, $current_u
 
        if ($recordingsArray['returncode'] == 'SUCCESS' && !$recordingsArray['messageKey']) {
          $listOfRecordings = $recordingsArray['recordings'];
-         $outputString .= bigbluebutton_print_meeting_data($listOfRecordings,$current_user);
+         $outputString .= bigbluebutton_print_recordings_data($listOfRecordings,$current_user);
          array_push($listOfAllRecordings, $listOfRecordings);
        }
      }
@@ -814,7 +803,24 @@ function bigbluebutton_shortcode_output_recordings($bbb_posts, $atts, $current_u
  return $outputString;
 }
 
-function bigbluebutton_print_meeting_data($listOfRecordings, $current_user){
+function bigbluebutton_print_recordings_table_headers($current_user){
+  $outputString = '
+  <div id="bbb-recordings-div" class="bbb-recordings">
+  <table  class="stats" cellspacing="5">
+    <tr>
+      <th class="hed" colspan="1">Recording</td>
+      <th class="hed" colspan="1">Meeting Room Name</td>
+      <th class="hed" colspan="1">Date</td>
+      <th class="hed" colspan="1">Duration</td>';
+  if ($current_user->allcaps["manage_recordings_bbb-room"] == true) {
+       $outputString  .= '
+      <th class="hedextra" colspan="1">Toolbar</td>';
+  }
+   return $outputString;
+}
+
+
+function bigbluebutton_print_recordings_data($listOfRecordings, $current_user){
    $outputString ='';
 
    foreach ($listOfRecordings as $recording) {
