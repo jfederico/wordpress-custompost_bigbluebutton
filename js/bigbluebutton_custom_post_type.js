@@ -3,6 +3,11 @@ var meetingdetails;
 var slug;
 var bbbpinginterval ='';
 
+
+//================================================================================
+//--------------------------------- Rooms----------------------------------
+//================================================================================
+//
 jQuery(function($){
 //one id for both?
 	$("#bbbRooms").change(function(){
@@ -109,16 +114,7 @@ function bigbluebutton_ping() {
  	 });
  }
 
-/**
-* Detecting weather the passed string is a URL
-*
-* @param s String thats passed to see if its a URL
-* https://stackoverflow.com/questions/1701898/how-to-detect-whether-a-string-is-in-url-format-using-javascript
-**/
- function isurl(s) {
-   var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
-   return regexp.test(s);
-}
+
 
 //================================================================================
 //--------------------------------- Recordings----------------------------------
@@ -170,4 +166,20 @@ function bigbluebutton_action_call(action, recordingid) {
 			}
 		 });
 	}
+}
+
+//================================================================================
+//--------------------------------- Helpful functions----------------------------------
+//================================================================================
+//
+
+/**
+* Detecting weather the passed string is a URL
+*
+* @param s String thats passed to see if its a URL
+* https://stackoverflow.com/questions/1701898/how-to-detect-whether-a-string-is-in-url-format-using-javascript
+**/
+ function isurl(s) {
+   var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
+   return regexp.test(s);
 }
