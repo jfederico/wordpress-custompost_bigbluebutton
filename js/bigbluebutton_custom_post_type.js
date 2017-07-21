@@ -124,7 +124,13 @@ function bigbluebutton_ping() {
 //--------------------------------- Recordings----------------------------------
 //================================================================================
 //
+/**
+* Action call for recordings.
+*
+* @param  action publish/unpublish
+* @param  recordingid recording id or the specific recording
 
+*/
 function bigbluebutton_action_call(action, recordingid) {
 	action = (typeof action == 'undefined') ? 'publish' : action;
 	if (action == 'publish' || (action == 'delete' && confirm("Are you sure to delete this recording?"))) {
@@ -153,7 +159,7 @@ function bigbluebutton_action_call(action, recordingid) {
 					 $('tr#actionbar-tr-'+ recordingid).remove();
 			 });
 		}
-		var actionurl = pluginbaseurl + "/broker.php?action=" + action + "&recordingid=" + recordingid;
+		var actionurl = pluginbaseurl + "/broker.php?action=" + action + "&recordingID=" + recordingid;
 		jQuery.ajax({
 			url : actionurl,
 			async : false,

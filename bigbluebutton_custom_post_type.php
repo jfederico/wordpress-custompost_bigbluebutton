@@ -20,6 +20,7 @@ if (version_compare($wp_version, '2.5', '<')) {
 
 register_activation_hook(__FILE__, 'bigbluebutton_install');
 
+//BigBlueButoon Install
 function bigbluebutton_install()
 {
     $bbbsettings = get_option('bigbluebutton_custom_post_type_settings');
@@ -45,6 +46,7 @@ require_once 'includes/bbb_api.php';
 
 add_action('init', 'bigbluebutton_start_session', 1);
 
+//BigBlueButton Start Session
 function bigbluebutton_start_session()
 {
     if (!session_id()) {
@@ -267,7 +269,9 @@ function bigbluebutton_default_roles()
     $anonymousrole->add_cap('manage_recordings_bbb-room', false);
 }
 
-
+/**
+ * Error notices.
+ */
 function bigbluebutton_error_notice()
 {
     $screen = get_current_screen();
@@ -351,6 +355,9 @@ function bigbluebutton_room_details_metabox($post)
 	<?php
 }
 
+/**
+ * Room Status Metabox.
+ */
 function bigbluebutton_room_status_metabox($post)
 {
     $outputstring = '';
@@ -444,6 +451,9 @@ function bigbluebutton_save_data()
 
 add_action('save_post', 'bigbluebutton_save_data');
 
+/**
+ * Setting password.
+ */
 function bigbluebutton_set_password($postID, $password, $randomPassword)
 {
   if (empty($_POST[$password]) && (get_post_status($postID) === 'publish')) {
@@ -515,6 +525,9 @@ if (is_admin() && (isset($_POST['endpoint']) || isset($_POST['secret']))) {
     }
 }
 
+/**
+ * Update notice success.
+ */
 function bigbluebutton_update_notice_success()
 {
     echo '<div class="updated">
@@ -522,6 +535,9 @@ function bigbluebutton_update_notice_success()
     </div>';
 }
 
+/**
+ * Update notice fail.
+ */
 function bigbluebutton_update_notice_fail()
 {
     echo '<div class="error">
@@ -529,6 +545,9 @@ function bigbluebutton_update_notice_fail()
     </div>';
 }
 
+/**
+ * Update notice no change.
+ */
 function bigbluebutton_update_notice_no_change()
 {
     echo '<div class="updated">
@@ -752,6 +771,16 @@ function bigbluebutton_shortcode_output_form($bbbposts, $atts, $currentuser) {
     return $outputstring;
 }
 
+/**
+*   Shortcode output form for the recordings tag.
+*
+* @param  array  $bbbposts  Information about the post.
+* @param  array  $atts The shortcode attributes: type, title, join.
+* @param  array $currentuser Details fo the current user
+* @param  string $endpointvalue BBB endpoint value
+* @param  string $secretvalue BBB secret value
+* @return
+ */
 function bigbluebutton_shortcode_output_recordings($bbbposts, $atts, $currentuser, $endpointvalue,$secretvalue) {
    $outputstring = '';
    $listofallrecordings = array();
@@ -782,6 +811,12 @@ function bigbluebutton_shortcode_output_recordings($bbbposts, $atts, $currentuse
  return $outputstring;
 }
 
+/**
+*   Prints the headers of the recording table.
+*
+* @param  array $currentuser Details fo the current user
+* @return
+*/
 function bigbluebutton_print_recordings_table_headers($currentuser){
   $outputstring = '
   <div id="bbb-recordings-div" class="bbb-recordings">
@@ -798,7 +833,13 @@ function bigbluebutton_print_recordings_table_headers($currentuser){
    return $outputstring;
 }
 
-
+/**
+*   Prints the recordings data.
+*
+* @param  array $listofrecordings Recording details
+* @param  array $currentuser Details fo the current user
+* @return
+*/
 function bigbluebutton_print_recordings_data($listofrecordings, $currentuser){
    $outputstring ='';
 
@@ -826,6 +867,12 @@ function bigbluebutton_print_recordings_data($listofrecordings, $currentuser){
    return $outputstring;
 }
 
+/**
+*   Sets the link of the recording.
+*
+* @param  array $recording Recording details
+* @return
+*/
 function bigbluebutton_playback_recording_link($recording){
   $type = '';
   foreach ($recording['playbacks'] as $playback) {
@@ -838,6 +885,12 @@ function bigbluebutton_playback_recording_link($recording){
   return $type;
 }
 
+/**
+*   Sets the duration of the recording.
+*
+* @param  array $recording Recording details
+* @return
+*/
 function bigbluebutton_meeting_duration($recording){
   $endtime = isset($recording['endTime']) ? floatval($recording['endTime']) : 0;
   $endtime = $endtime - ($endtime % 1000);
@@ -846,6 +899,12 @@ function bigbluebutton_meeting_duration($recording){
   return intval(($endtime - $starttime) / 60000);
 }
 
+/**
+*   Sets the formatted date of the recording.
+*
+* @param  array $recording Recording details
+* @return
+*/
 function bigbluebutton_formatted_startdate($recording){
   if (!is_numeric($recording['startTime'])) {
       $date = new DateTime($recording['startTime']);
@@ -860,6 +919,8 @@ function bigbluebutton_formatted_startdate($recording){
 *
 * @param  array  $bbbposts  Information about the post.
 * @param  array  $atts The shortcode attributes: type, title, join.
+* @param  array $currentuser Details of the current user
+* @param  string $joinorview join or view stirng on the button
 * @return
 */
 function bigbluebutton_shortcode_output_form_single($bbbposts,$atts, $currentuser, $joinorview) {
@@ -905,6 +966,13 @@ add_shortcode('bigbluebutton', 'bigbluebutton_shortcode');
 add_shortcode('bigbluebutton_recordings', 'bigbluebutton_shortcode');
 add_shortcode('bigbluebuttonrooms', 'bigbluebutton_shortcode');
 
+/**
+*   Sets the password form for the Room widget.
+*
+* @param  array $currentuser Details fo the current user
+* @param  array  $atts The shortcode attributes: type, title, join.
+* @return
+*/
 function bigbluebutton_form_setup($currentuser,$atts){
   $outputstring = '';
   $userArray = array();
@@ -931,7 +999,7 @@ function bigbluebutton_form_setup($currentuser,$atts){
 
 }
 
-
+//Returning the base url of the plugin
 function bigbluebutton_plugin_base_url()
 {
     return "".pathinfo(plugins_url(plugin_basename(__FILE__), dirname(__FILE__)))['dirname'];

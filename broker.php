@@ -43,7 +43,7 @@ if (!isset($_SESSION[$secretname]) || !isset($_SESSION[$endpointname])) {
     $endpointvalue = $_SESSION[$endpointname];
     $action = $_GET[$actionname];
     switch ($action) {
-        case 'publish':
+        case 'publish'://join plublis/unpublish together
             header('Content-Type: text/plain; charset=utf-8');
             if (!isset($_GET[$recordingidname])) {
                 header('HTTP/1.0 400 Bad Request. [recordingID] parameter was not included in this query.');
