@@ -1,3 +1,4 @@
+/**/
 table.bbb-shortcode th,
 table.bbb-shortcode td {
 	vertical-align:top;
@@ -27,18 +28,22 @@ table.bbb-shortcode small {
 table.bbb-shortcode p#shortcode {
 	background-color:#F9F954;
 }
-
+/**/
 textarea[name="bbb_room_welcome_msg"] {
     width:230px;
     height:100px;
 }
+/**/
 
-.bbb-recordings table.stats th,
-.bbb-recordings table.stats td,
 table.custom-admin-table th,
 table.custom-admin-table td{
     text-align:left;
     padding-right:10px;
+}
+
+
+table.custom-admin-table p{
+    margin-top:0;
 }
 
 table.custom-admin-table th,
@@ -47,184 +52,214 @@ table.custom-admin-table td{
    vertical-align: top;
 }
 
-.bbb-recordings table.stats p,
-table.custom-admin-table p{
-    margin-top:0;
+.bbb-recordings table.stats th,
+.bbb-recordings table.stats td,
+.bbb-recordings table.stats p
+{
+    text-align:center;
+    padding-right:10px;
+}
+
+table.stats td.hed
+{background-color: #666;
+color: #fff;
+padding: 4px;
+text-align: center;
+border-bottom: 2px #fff solid;
+font-size: 12px;
+font-weight: bold;}
+
+table.stats td.hedextra
+{background-color: #666;
+color: #fff;
+padding: 4px;
+text-align: center;
+border-bottom: 2px #fff solid;
+font-size: 12px;
+font-weight: bold;
+width:250px;}
+
+/**/
+
+
+#room {
+	background-color: #f6f6f6;
+	border-radius: 5px;
+	border: 1px solid #ccc;
+	padding:20px 30px 30px 30px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+	border-radius: 5px;
+	width: 300px;
+}
+
+#recording {
+	background-color: #f6f6f6;
+	border: 1px solid #ccc;
+	padding:20px 20px 5px 20px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+	border-radius: 10px;
+	width: 700px;
+}
+
+#roompw{
+	color: #777;
+	margin: 5px 0px 10px 0;
+	padding-left:10px;
+	width: 100%;
+	height: 50px;
+	border: 1px solid #c7d0d2;
+	border-radius: 2px;
+}
+
+#displayname{
+color: #777;
+margin: 5px 0px 10px 0;
+padding-left:10px;
+width: 100%;
+height: 50px;
+border: 1px solid #c7d0d2;
+border-radius: 2px;
+}
+
+#roomMeetingErrorMsg{
+	color: red;
+	text-align: center;
+	font-weight: bold;
+}
+
+#bbb-join-form {
+  background: #f6f6f6;
+  padding:20px 30px 30px 30px;
+  width: 300px;
+  margin:0 auto;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  -moz-box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+  -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+}
+
+#bbb-join-form label {
+  color: #555;
+  display: block;
+  padding-top: 10px;
+  font-size: 14px;
+}
+
+#bbb-join-form input[type=text], #bbb-join-form input[type=password] {
+  color: #777;
+  margin: 5px 0px 10px 0;
+  padding-left:10px;
+  width: 95%;
+  height: 30px;
+  border: 1px solid #c7d0d2;
+  border-radius: 2px;
 }
 
 
-a.end-meeting {
-    background-color: #EA1729;
-    border-radius: 4px 4px 4px 4px;
-    color: #000000;
-    padding: 10px;
-    text-decoration: none;
+#bbb-join-form select {
+  color: #777;
+  margin: 5px 0px 10px 0;
+  padding-left:10px;
+  width: 100%;
+  height: 40px;
+  border: 1px solid #c7d0d2;
+  border-radius: 2px;
+  background: #fff;
 }
 
-    a.end-meeting:hover {
-        background-color:#ED3645;
 
-    }
-
-		.center {
-		    text-align: center;
-		    color: red;
-		}
-
-	 .oldshortcode{
-			border-radius: 2px;
-			width: 100%;
-			margin-top: 20px;
-		}
-
-		#form1 {
-			background-color: #f6f6f6;
-			border-radius: 5px;
-			border: 1px solid #ccc;
-			padding:20px 30px 30px 30px;
-			box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
-			border-radius: 5px;
-			width: 300px;
-		}
-		#roomMeetingErrorMsg{
-			color: red;
-			text-align: center;
-			font-weight: bold;
-		}
-
-		#bbb-join-form {
-		  background: #f6f6f6;
-		  padding:20px 30px 30px 30px;
-		  width: 300px;
-		  margin:0 auto;
-		  -webkit-border-radius: 5px;
-		  -moz-border-radius: 5px;
-		  border-radius: 5px;
-		  border: 1px solid #ccc;
-		  -moz-box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
-		  -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
-		  box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
-		}
-
-		#bbb-join-form label {
-		  color: #555;
-		  display: block;
-		  padding-top: 10px;
-		  font-size: 14px;
-		}
-
-		#bbb-join-form input[type=text], #bbb-join-form input[type=password] {
-		  color: #777;
-		  margin: 5px 0px 10px 0;
-		  padding-left:10px;
-		  width: 95%;
-		  height: 30px;
-		  border: 1px solid #c7d0d2;
-		  border-radius: 2px;
-		}
+#bbb-join-form input[type=submit] {
+  margin-top:15px;
+  display:block;
+  width:100%;
+  height: 40px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #acd6ef;
+  background-image: -webkit-gradient(linear, left top, left bottom, from(#acd6ef), to(#6ec2e8));
+  background-image: -moz-linear-gradient(top left 90deg, #acd6ef 0%, #6ec2e8 100%);
+  background-image: linear-gradient(top left 90deg, #acd6ef 0%, #6ec2e8 100%);
+  border: 1px solid #66add6;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .5);
+  cursor: pointer;
+}
 
 
-		#bbb-join-form select {
-		  color: #777;
-		  margin: 5px 0px 10px 0;
-		  padding-left:10px;
-		  width: 100%;
-		  height: 40px;
-		  border: 1px solid #c7d0d2;
-		  border-radius: 2px;
-		  background: #fff;
-		}
+#bbb-join-form input[type=submit]:hover {
+  background-image: -webkit-gradient(linear, left top, left bottom, from(#b6e2ff), to(#6ec2e8));
+  background-image: -moz-linear-gradient(top left 90deg, #b6e2ff 0%, #6ec2e8 100%);
+  background-image: linear-gradient(top left 90deg, #b6e2ff 0%, #6ec2e8 100%);
+}
 
 
-		#bbb-join-form input[type=submit] {
-		  margin-top:15px;
-		  display:block;
-		  width:100%;
-		  height: 40px;
-		  font-size: 14px;
-		  font-weight: bold;
-		  color: #fff;
-		  background-color: #acd6ef;
-		  background-image: -webkit-gradient(linear, left top, left bottom, from(#acd6ef), to(#6ec2e8));
-		  background-image: -moz-linear-gradient(top left 90deg, #acd6ef 0%, #6ec2e8 100%);
-		  background-image: linear-gradient(top left 90deg, #acd6ef 0%, #6ec2e8 100%);
-		  border: 1px solid #66add6;
-		  box-shadow: 0 1px 2px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .5);
-		  cursor: pointer;
-		}
+#bbb-join-form-widget {
+  background: #f6f6f6;
+  padding:5px 10px 10px 10px;
+  width: 95%;
+  margin:0 auto;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  -moz-box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+  -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+}
+
+#bbb-join-form-widget label {
+  color: #555;
+  display: block;
+  padding-top: 10px;
+  font-size: 14px;
+}
+
+#bbb-join-form-widget input[type=text], #bbb-join-form-widget input[type=password] {
+  color: #777;
+  margin: 5px 0px 10px 0;
+  padding-left:10px;
+  width: 95%;
+  height: 25px;
+  border: 1px solid #c7d0d2;
+  border-radius: 2px;
+}
 
 
-		#bbb-join-form input[type=submit]:hover {
-		  background-image: -webkit-gradient(linear, left top, left bottom, from(#b6e2ff), to(#6ec2e8));
-		  background-image: -moz-linear-gradient(top left 90deg, #b6e2ff 0%, #6ec2e8 100%);
-		  background-image: linear-gradient(top left 90deg, #b6e2ff 0%, #6ec2e8 100%);
-		}
+#bbb-join-form-widget select {
+  color: #777;
+  margin: 5px 0px 10px 0;
+  padding-left:10px;
+  width: 100%;
+  height: 25px;
+  border: 1px solid #c7d0d2;
+  border-radius: 2px;
+  background: #fff;
+}
 
 
-		#bbb-join-form-widget {
-		  background: #f6f6f6;
-		  padding:5px 10px 10px 10px;
-		  width: 95%;
-		  margin:0 auto;
-		  -webkit-border-radius: 5px;
-		  -moz-border-radius: 5px;
-		  border-radius: 5px;
-		  border: 1px solid #ccc;
-		  -moz-box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
-		  -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
-		  box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
-		}
-
-		#bbb-join-form-widget label {
-		  color: #555;
-		  display: block;
-		  padding-top: 10px;
-		  font-size: 14px;
-		}
-
-		#bbb-join-form-widget input[type=text], #bbb-join-form-widget input[type=password] {
-		  color: #777;
-		  margin: 5px 0px 10px 0;
-		  padding-left:10px;
-		  width: 95%;
-		  height: 25px;
-		  border: 1px solid #c7d0d2;
-		  border-radius: 2px;
-		}
+#bbb-join-form-widget input[type=submit] {
+  margin-top:15px;
+  display:block;
+  width:100%;
+  height: 30px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #acd6ef;
+  background-image: -webkit-gradient(linear, left top, left bottom, from(#acd6ef), to(#6ec2e8));
+  background-image: -moz-linear-gradient(top left 90deg, #acd6ef 0%, #6ec2e8 100%);
+  background-image: linear-gradient(top left 90deg, #acd6ef 0%, #6ec2e8 100%);
+  border: 1px solid #66add6;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .5);
+  cursor: pointer;
+}
 
 
-		#bbb-join-form-widget select {
-		  color: #777;
-		  margin: 5px 0px 10px 0;
-		  padding-left:10px;
-		  width: 100%;
-		  height: 25px;
-		  border: 1px solid #c7d0d2;
-		  border-radius: 2px;
-		  background: #fff;
-		}
-
-
-		#bbb-join-form-widget input[type=submit] {
-		  margin-top:15px;
-		  display:block;
-		  width:100%;
-		  height: 30px;
-		  font-size: 14px;
-		  font-weight: bold;
-		  color: #fff;
-		  background-color: #acd6ef;
-		  background-image: -webkit-gradient(linear, left top, left bottom, from(#acd6ef), to(#6ec2e8));
-		  background-image: -moz-linear-gradient(top left 90deg, #acd6ef 0%, #6ec2e8 100%);
-		  background-image: linear-gradient(top left 90deg, #acd6ef 0%, #6ec2e8 100%);
-		  border: 1px solid #66add6;
-		  box-shadow: 0 1px 2px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .5);
-		  cursor: pointer;
-		}
-
-
-		#bbb-join-form-widget input[type=submit]:hover {
-		  background-image: -webkit-gradient(linear, left top, left bottom, from(#b6e2ff), to(#6ec2e8));
-		  background-image: -moz-linear-gradient(top left 90deg, #b6e2ff 0%, #6ec2e8 100%);
-		  background-image: linear-gradient(top left 90deg, #b6e2ff 0%, #6ec2e8 100%);
-		}
+#bbb-join-form-widget input[type=submit]:hover {
+  background-image: -webkit-gradient(linear, left top, left bottom, from(#b6e2ff), to(#6ec2e8));
+  background-image: -moz-linear-gradient(top left 90deg, #b6e2ff 0%, #6ec2e8 100%);
+  background-image: linear-gradient(top left 90deg, #b6e2ff 0%, #6ec2e8 100%);
+}
