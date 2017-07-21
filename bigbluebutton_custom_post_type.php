@@ -362,14 +362,14 @@ function bigbluebutton_room_status_metabox($post)
 {
     $outputstring = '';
     $bbbsettings = get_option('bigbluebutton_custom_post_type_settings');
-    $endpointvalueue = $bbbsettings['endpoint'];
-    $secretvalueue = $bbbsettings['secret'];
+    $endpointvalue = $bbbsettings['endpoint'];
+    $secretvalue = $bbbsettings['secret'];
     $roomtoken = get_post_meta($post->ID, '_bbb_room_token', true);
     $currentuser = wp_get_current_user();
     $meetingid = bigbluebutton_normalize_meeting_id($roomtoken);
 
     if ($_POST['SubmitList'] == 'End Meeting Now') {
-       BigBlueButton::endMeeting(bigbluebutton_normalize_meeting_id($_POST['bbb_room_token']), $_POST['bbb_moderator_password'], $endpointvalueue, $secretvalueue);
+       BigBlueButton::endMeeting(bigbluebutton_normalize_meeting_id($_POST['bbb_room_token']), $_POST['bbb_moderator_password'], $endpointvalue, $secretvalue);
     }
     //if people can register let them option when not signed in
     if (get_post_status($post->ID) === 'publish') {
@@ -379,7 +379,7 @@ function bigbluebutton_room_status_metabox($post)
       $outputstring .= '<input type="button" style=" left: 0;padding: 5x 100px;" class="button-primary" value="Join"  onClick="bigbluebutton_join_meeting(\'true\',\''.json_encode(is_user_logged_in()).'\',
       \''.json_encode($usercapabilitiesarray["join_with_password_bbb-room"]).'\',\'true\'); setTimeout(function() {document.location.reload(true);}, 5000);" />';
     }
-    if (BigBlueButton::isMeetingRunning($meetingid, $endpointvalueue, $secretvalueue)) {
+    if (BigBlueButton::isMeetingRunning($meetingid, $endpointvalue, $secretvalue)) {
         $outputstring .= '<input type="submit" name="SubmitList" style="position: absolute; left: 70px;padding: 5x;" class="button-primary" value="End Meeting Now" />&nbsp';
     }
     echo $outputstring;
@@ -407,8 +407,8 @@ function bigbluebutton_save_data()
     $attendeepassword = get_post_meta($postid, '_bbb_attendee_password', true);
     $moderatorpassword = get_post_meta($postid, '_bbb_moderator_password', true);
     $bbbsettings = get_option('bigbluebutton_custom_post_type_settings');
-    $endpointvalueue = $bbbsettings['endpoint'];
-    $secretvalueue = $bbbsettings['secret'];
+    $endpointvalue = $bbbsettings['endpoint'];
+    $secretvalue = $bbbsettings['secret'];
     $newnonce = wp_create_nonce('bbb');
 
     if ($_POST['"bbb-noncename'] == $newnonce) {
@@ -438,7 +438,7 @@ function bigbluebutton_save_data()
         bigbluebutton_set_password($postid, 'bbb_moderator_password', $moderatorPW);
 
         if (($moderatorpassword !== $_POST['bbb_moderator_password']) || ($attendeepassword !== $_POST['bbb_attendee_password'])) {
-            BigBlueButton::endMeeting(bigbluebutton_normalize_meeting_id($_POST['bbb_room_token']), $moderatorpassword, $endpointvalueue, $secretvalueue);
+            BigBlueButton::endMeeting(bigbluebutton_normalize_meeting_id($_POST['bbb_room_token']), $moderatorpassword, $endpointvalue, $secretvalue);
         }
 
         update_post_meta($postid, '_bbb_must_wait_for_admin_start', esc_attr($_POST['bbb_must_wait_for_admin_start']));
@@ -478,9 +478,9 @@ function bigbluebutton_filter($content)
       $post = get_page_by_path($slug, OBJECT, 'bbb-room');
       $meetingname = get_the_title($post->ID);
       $bigbluebuttonsettings = get_option('bigbluebutton_custom_post_type_settings');
-      $endpointvalueue = $bigbluebuttonsettings['endpoint'];
-      $secretvalueue = $bigbluebuttonsettings['secret'];
-      bigbluebutton_session_setup($endpointvalueue,$secretvalueue);
+      $endpointvalue = $bigbluebuttonsettings['endpoint'];
+      $secretvalue = $bigbluebuttonsettings['secret'];
+      bigbluebutton_session_setup($endpointvalue,$secretvalue);
       $currentuser = wp_get_current_user();
       $usercapabilitiesarray = bigbluebutton_assign_capabilities_array($currentuser);
       $outputstring .= '<div id="bbb-join-container"></div>';
@@ -1060,10 +1060,10 @@ function bigbluebutton_generateToken($tokenlength = 6)
 }
 
 //Set up SESSIONS array
-function bigbluebutton_session_setup($endpointvalueue,$secretvalueue)
+function bigbluebutton_session_setup($endpointvalue,$secretvalue)
 {
-  $_SESSION['mt_bbb_endpoint'] = $endpointvalueue;
-  $_SESSION['mt_bbb_secret'] = $secretvalueue;
+  $_SESSION['mt_bbb_endpoint'] = $endpointvalue;
+  $_SESSION['mt_bbb_secret'] = $secretvalue;
 }
 
 //generates random password
