@@ -168,14 +168,9 @@ function bigbluebutton_init()
 add_action('init', 'bigbluebutton_init',1);
 
 /**
- * Fix it
+ * Map meta cap function
  */
-function bigbluebutton_map_meta_cap()
-{
-    $caps = array();
-    return $caps;
-}
-
+function bigbluebutton_map_meta_cap(){}
 add_filter('map_meta_cap', 'bigbluebutton_map_meta_cap', 10, 4);
 
 /*
@@ -739,6 +734,8 @@ function bigbluebutton_shortcode_output($bbbposts, $atts) {
     bigbluebutton_session_setup($endpointvalue,$secretvalue);
     if ($atts['type'] == 'recordings') {
         return '<form id="recording">'.bigbluebutton_shortcode_output_recordings($bbbposts, $atts, $currentuser, $endpointvalue,$secretvalue).'</form>';
+    //  return bigbluebutton_shortcode_output_recordings($bbbposts, $atts, $currentuser, $endpointvalue,$secretvalue);
+
     }
     return bigbluebutton_shortcode_output_form($bbbposts, $atts, $currentuser);
 }
@@ -790,6 +787,7 @@ function bigbluebutton_shortcode_output_recordings($bbbposts, $atts, $currentuse
     $bbbposts->the_post();
     $roomtoken = get_post_meta($bbbposts->post->ID, '_bbb_room_token', true);
     $meetingID = bigbluebutton_normalize_meeting_id($roomtoken);
+
     if($atts['token'] == null||(strpos($atts['token'],$roomtoken) !== false)) {
       if ($meetingID != '') {
        $recordingsarray = BigBlueButton::getRecordingsArray($meetingID, $endpointvalue, $secretvalue);
@@ -801,20 +799,20 @@ function bigbluebutton_shortcode_output_recordings($bbbposts, $atts, $currentuse
      }
     }
    }
- wp_reset_postdata();
- $outputstring .= '
-   </tr>
- </table></div>';
- if((count($listofallrecordings) == 0)){
-   return '<p><strong>There are no recordings available.</strong></p>';
- }
- return $outputstring;
+   wp_reset_postdata();
+   $outputstring .= '
+     </tr>
+   </table></div>';
+   if((count($listofallrecordings) == 0)){
+     return '<p><strong>There are no recordings available.</strong></p>';
+   }
+   return $outputstring;
 }
 
 /**
 *   Prints the headers of the recording table.
 *
-* @param  array $currentuser Details fo the current user
+* @param  array $currentuser Details of the current user
 * @return
 */
 function bigbluebutton_print_recordings_table_headers($currentuser){
@@ -857,8 +855,10 @@ function bigbluebutton_print_recordings_data($listofrecordings, $currentuser){
 
          if ($currentuser->allcaps["manage_recordings_bbb-room"] == true) {
              $action = ($recording['published'] == 'true') ? 'Hide' : 'Show';
-             $actionbar = '<a id="actionbar-publish-a-'.$recording['recordID'].'" title="'.$action.'" href="#"><img id="actionbar-publish-img-'.$recording['recordID'].'" src="'.bigbluebutton_plugin_base_url()."/img/".strtolower($action).".gif\" class=\"iconsmall\" onClick=\"bigbluebutton_action_call('publish', '".$recording['recordID']."'); return false;\" /></a>";
-             $actionbar .= '<a id="actionbar-delete-a-'.$recording['recordID'].'" title="Delete" href="#"><img id="actionbar-delete-img-'.$recording['recordID'].'" src="'.bigbluebutton_plugin_base_url()."/img/delete.gif\" class=\"iconsmall\" onClick=\"bigbluebutton_action_call('delete', '".$recording['recordID']."'); return false;\" /></a>";
+             $actionbar = '<table><tr>';
+             $actionbar .= '<th><a id="actionbar-publish-a-'.$recording['recordID'].'" title="'.$action.'" href="#"><img id="actionbar-publish-img-'.$recording['recordID'].'" src="'.bigbluebutton_plugin_base_url()."/img/".strtolower($action).".gif\" class=\"iconsmall\" onClick=\"bigbluebutton_action_call('publish', '".$recording['recordID']."'); return false;\" /></a></th>";
+             $actionbar .= '<th><a id="actionbar-delete-a-'.$recording['recordID'].'" title="Delete" href="#"><img id="actionbar-delete-img-'.$recording['recordID'].'" src="'.bigbluebutton_plugin_base_url()."/img/delete.gif\" class=\"iconsmall\" onClick=\"bigbluebutton_action_call('delete', '".$recording['recordID']."'); return false;\" /></a></th>";
+             $actionbar .= '</tr></table>';
              $outputstring  .= '<td>'.$actionbar.'</td>';
         }
          $outputstring .= '</tr>';
