@@ -481,6 +481,7 @@ function bigbluebutton_filter($content)
       $currentuser = wp_get_current_user();
       $usercapabilitiesarray = bigbluebutton_assign_capabilities_array($currentuser);
       $outputstring .= '<div id="bbb-join-container"></div>';
+      $outputstring .= '<div id="bbb-error-container"></div>';
       $outputstring .= '<input type="hidden" name="hiddenInputSingle" id="hiddenInputSingle" value="'.$slug.'" />';
       $outputstring .= '<input class="bbb-shortcode-selector" type="button" onClick="bigbluebutton_join_meeting(\'true\',\''.json_encode(is_user_logged_in()).'\',\''.json_encode($usercapabilitiesarray["join_with_password_bbb-room"]).'\',\'true\')" value="Join  '.$meetingname.'"/>'."\n";
     }
@@ -761,6 +762,7 @@ function bigbluebutton_shortcode_output_form($bbbposts, $atts, $currentuser) {
       $joinorview = "View";
     }
     $outputstring = '<div id="bbb-join-container"></div>';
+    $outputstring .= '<div id="bbb-error-container"></div>';
     $outputstring .= '<form id="room" class="bbb-shortcode">'."\n".
                      '  <label>'.$atts['title'].'</label>'."\n";
     $posts = $bbbposts->get_posts();

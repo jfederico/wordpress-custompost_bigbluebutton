@@ -84,6 +84,10 @@ function bigbluebutton_join_meeting(join, usersignedin, passwordrequired, page){
 					jQuery("input.bbb-shortcode-selector").hide();
 			    bbbpinginterval = setInterval("bigbluebutton_ping()", 5000);
 				}
+				else{
+					jQuery("div#bbb-error-container").append(data);
+				}
+				console.log("DATAT: "+data);
 			},
 			error : function() {
 				console.error("Ajax was not successful: JOIN");
