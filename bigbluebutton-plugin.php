@@ -171,11 +171,12 @@ function bigbluebutton_init()
 
 add_action('init', 'bigbluebutton_init',1);
 
-/**
- * Map meta cap function
- * NOTE: This method cannot be deleted as it is needed for the hook
- */
-function bigbluebutton_map_meta_cap(){}
+
+function bigbluebutton_map_meta_cap(){
+  /**
+   * NOTE: This method cannot be deleted as it is needed for the hook
+   */
+}
 add_filter('map_meta_cap', 'bigbluebutton_map_meta_cap', 10, 4);
 
 /*
@@ -464,7 +465,7 @@ function bigbluebutton_set_password($postid, $password, $randompassword)
 function before_bbb_delete()
 {
     /*
-     * If we want to do anything when the BBB post in wordpress is deleted, we can hook into here.
+     * NOTE: If we want to do anything when the BBB post in wordpress is deleted, we can hook into here.
      */
 }
 add_action('before_delete_post', 'before_bbb_delete');
