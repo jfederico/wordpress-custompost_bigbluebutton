@@ -79,10 +79,11 @@ function bigbluebutton_join_meeting(join, usersignedin, passwordrequired, page){
 			success : function(data){
 				if(isurl(data)){
 					window.open(data);
+					jQuery("div#bbb-error-container").text('');
 				}
 				else if(data == 'wait') {
 					var pollingimgpath = pluginbaseurl+'/img/polling.gif';
-					jQuery("div#bbb-join-container").append
+					jQuery("div#bbb-join-container").text
 					("<center>Welcome to "+ slug +"!<br /><br /> \
 					 The session has not been started yet.<br /><br />\
 					 <center><img src="+ pollingimgpath +"\ /></center>\
@@ -94,7 +95,6 @@ function bigbluebutton_join_meeting(join, usersignedin, passwordrequired, page){
 				else{
 					jQuery("div#bbb-error-container").text(data);
 				}
-				console.log("DATAT: "+data);
 			},
 			error : function() {
 				console.error("Ajax was not successful: JOIN");
