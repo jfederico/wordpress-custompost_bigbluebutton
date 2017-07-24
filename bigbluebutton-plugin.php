@@ -72,9 +72,9 @@ add_action('admin_notices', 'bigbluebutton_admin_notices');
  */
 function bigbluebutton_css_enqueue()
 {
-    $css = plugins_url('css/bigbluebutton_custom_post_type.css', __FILE__);
-    wp_register_style('bigbluebutton_custom_post_type_css', $css);
-    wp_enqueue_style('bigbluebutton_custom_post_type_css');
+    $css = plugins_url('css/bigbluebutton.css', __FILE__);
+    wp_register_style('bigbluebutton_css', $css);
+    wp_enqueue_style('bigbluebutton_css');
 }
 add_action('init', 'bigbluebutton_css_enqueue');
 
@@ -83,9 +83,9 @@ add_action('init', 'bigbluebutton_css_enqueue');
  */
 function bigbluebutton_frontend_css_enqueue()
 {
-    $css = plugins_url('css/bigbluebutton_custom_post_type_frontend.css', __FILE__);
-    wp_enqueue_style('bigbluebutton_custom_post_type_frontend_css', $css);
-    wp_enqueue_style('bigbluebutton_custom_post_type_frontend_css');
+    $css = plugins_url('css/bigbluebutton_frontend.css', __FILE__);
+    wp_enqueue_style('bigbluebutton_frontend_css', $css);
+    wp_enqueue_style('bigbluebutton_frontend_css');
 }
 add_action('init', 'bigbluebutton_frontend_css_enqueue');
 
@@ -95,10 +95,10 @@ add_action('init', 'bigbluebutton_frontend_css_enqueue');
 function bigbluebutton_scripts()
 {
 	  wp_enqueue_script('jquery');
-    $js = plugins_url('js/bigbluebutton_custom_post_type.js', __FILE__);
-    wp_register_script('bigbluebutton_custom_post_type_script', $js);
-    wp_enqueue_script('bigbluebutton_custom_post_type_script');
-    wp_localize_script('bigbluebutton_custom_post_type_script', 'bbbScript', array(
+    $js = plugins_url('js/bigbluebutton-plugin.js', __FILE__);
+    wp_register_script('bigbluebutton-plugin_script', $js);
+    wp_enqueue_script('bigbluebutton-plugin_script');
+    wp_localize_script('bigbluebutton-plugin_script', 'bbbScript', array(
     'pluginsUrl' => bigbluebutton_plugin_base_url()
     ));
 }
@@ -449,12 +449,12 @@ add_action('save_post', 'bigbluebutton_save_data');
 /**
  * Setting password.
  */
-function bigbluebutton_set_password($postID, $password, $randompassword)
+function bigbluebutton_set_password($postid, $password, $randompassword)
 {
-  if (empty($_POST[$password]) && (get_post_status($postID) === 'publish')) {
-      update_post_meta($postID, '_'.$password, $randompassword); //random generated
+  if (empty($_POST[$password]) && (get_post_status($postid) === 'publish')) {
+      update_post_meta($postid, '_'.$password, $randompassword); //random generated
   } else {
-      update_post_meta($postID, '_'.$password, esc_attr($_POST[$password]));
+      update_post_meta($postid, '_'.$password, esc_attr($_POST[$password]));
   }
 
 }
