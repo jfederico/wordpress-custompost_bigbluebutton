@@ -20,7 +20,7 @@ Versions:
 //------------------Required Libraries and Global Variables-----------------------
 //================================================================================
 require 'includes/bbb_api.php';
-require($_SERVER['DOCUMENT_ROOT'].'/wordpress-test/wp-load.php');//MAKE SUREE TO CHNAGE THE PATH
+require($_SERVER['DOCUMENT_ROOT'].'/wordpress-test/wp-load.php');
 session_start();
 $endpointname = 'mt_bbb_endpoint';
 $secretname = 'mt_bbb_secret';
@@ -71,16 +71,15 @@ if (!isset($_SESSION[$secretname]) || !isset($_SESSION[$endpointname])) {
             }
             break;
         case 'ping':
-            $username = setUserName();
-            $meetingid = setMeetingID($_POST[$slugname]);
-            $password = setPassword($_POST[$slugname]);
+            $username = bigbluebutton_set_user_name();
+            $meetingid = bigbluebutton_set_meeting_id($_POST[$slugname]);
+            $password = bigbluebutton_set_password_broker($_POST[$slugname]);
             $response = BigBlueButton::getMeetingXML($meetingid, $endpointvalue, $secretvalue);
             if((strpos($response,"true") !== false)){
               echo BigBlueButton::getJoinURL($meetingid, $username, $password , $secretvalue, $endpointvalue);
             }
             break;
-        case 'join'://cant join when editor (in old plugin, it direcclty says "sorry you are not allowed to join this page)"
-            //post is not recognizing '+' and '&'
+        case 'join':
             if((!isset($_POST[$slugname]))){
                 header('HTTP/1.0 400 Bad Request. [slug] parameter was not included in this query.');
             }else if((!isset($_POST[$join]))){
@@ -88,15 +87,15 @@ if (!isset($_SESSION[$secretname]) || !isset($_SESSION[$endpointname])) {
             }else{
               $post = get_page_by_path($_POST[$slugname], OBJECT, 'bbb-room');
               if($_POST[$join] === "true"){
-                $username = setUserName();
-                $meetingid = setMeetingID($_POST[$slugname]);
-                $password = setPassword($_POST[$slugname]);
+                $username = bigbluebutton_set_user_name();
+                $meetingid = bigbluebutton_set_meeting_id($_POST[$slugname]);
+                $password = bigbluebutton_set_password_broker($_POST[$slugname]);
                 $meetingname = get_the_title($post->ID);
                 $welcomestring = get_post_meta($post->ID, '_bbb_room_welcome_msg', true);
                 $moderatorpassword = get_post_meta($post->ID, '_bbb_moderator_password', true);
                 $attendeepassword = get_post_meta($post->ID, '_bbb_attendee_password', true);
                 $isrecorded = get_post_meta($post->ID, '_bbb_is_recorded', true);
-                $logouturl = (is_ssl() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout=true';
+                $logouturl = (is_ssl() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
                 $waitforadminstart = get_post_meta($post->ID, '_bbb_must_wait_for_admin_start', true);
                 $metadata = array(
                  'meta_origin' => 'WordPress',
@@ -118,7 +117,7 @@ if (!isset($_SESSION[$secretname]) || !isset($_SESSION[$endpointname])) {
                           echo $joinurl;
                     }
                     elseif ($attendeepassword == $password) {
-                        echo '';
+                        echo 'wait';
                     }
                 }
               }else {
@@ -139,7 +138,7 @@ if (!isset($_SESSION[$secretname]) || !isset($_SESSION[$endpointname])) {
 /**
 * Sets the password of the meeting
 **/
-function setPassword($slug){
+function bigbluebutton_set_password_broker($slug){
   $post = get_page_by_path($slug, OBJECT, 'bbb-room');
   $currentuser = wp_get_current_user();
   $password='';
@@ -177,7 +176,7 @@ function setPassword($slug){
 /**
 * Sets the user name of the moderator or attendee
 **/
-function setUserName(){
+function bigbluebutton_set_user_name(){
   $currentuser = wp_get_current_user();
   $username = $currentuser->display_name;
   if($username == '' || $username == null){
@@ -189,7 +188,7 @@ function setUserName(){
 /**
 * Sets the meetingID
 **/
-function setMeetingID($slug)
+function bigbluebutton_set_meeting_id($slug)
 {
   $post = get_page_by_path($slug, OBJECT, 'bbb-room');
   $roomtoken = get_post_meta($post->ID, '_bbb_room_token', true);
