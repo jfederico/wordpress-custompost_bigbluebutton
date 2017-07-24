@@ -73,7 +73,7 @@ function bigbluebutton_join_meeting(join, usersignedin, passwordrequired, page){
 				if(isurl(data)){
 					window.open(data);
 				}
-				else {
+				else if(data == 'wait') {
 					var pollingimgpath = pluginbaseurl+'/img/polling.gif';
 					jQuery("div#bbb-join-container").append
 					("<center>Welcome to "+ slug +"!<br /><br /> \

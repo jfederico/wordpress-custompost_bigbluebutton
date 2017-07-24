@@ -20,7 +20,9 @@ if (version_compare($wp_version, '2.5', '<')) {
 
 register_activation_hook(__FILE__, 'bigbluebutton_install');
 
-//BigBlueButoon Install
+/**
+* BigBlueButton Install
+*/
 function bigbluebutton_install()
 {
     $bbbsettings = get_option('bigbluebutton_custom_post_type_settings');
@@ -46,7 +48,9 @@ require_once 'includes/bbb_api.php';
 
 add_action('init', 'bigbluebutton_start_session', 1);
 
-//BigBlueButton Start Session
+/**
+* BigBlueButton Start Session
+*/
 function bigbluebutton_start_session()
 {
     if (!session_id()) {
@@ -104,9 +108,9 @@ function bigbluebutton_scripts()
 }
 add_action('init', 'bigbluebutton_scripts');
 
-/*******************************
-BBB ROOM CUSTOM POST TYPE DECLARATION
-********************************/
+/*
+* BBB Room Cutom Post Type Declaration
+*/
 function bigbluebutton_init()
 {
     $singular = 'Room';
@@ -169,14 +173,13 @@ add_action('init', 'bigbluebutton_init',1);
 
 /**
  * Map meta cap function
+ * NOTE: This method cannot be deleted as it is needed for the hook
  */
 function bigbluebutton_map_meta_cap(){}
 add_filter('map_meta_cap', 'bigbluebutton_map_meta_cap', 10, 4);
 
 /*
- * ***********************************
- * BBB ROOM TAXONOMY
- * ***********************************
+ * BBB room taxonomy
  *
  * */
 function bigbluebutton_room_taxonomies()
@@ -213,10 +216,7 @@ function bigbluebutton_room_taxonomies()
                     'delete_terms' => 'delete_bbb-cat',
                     'assign_terms' => 'assign_bbb-cat', ),
     ));
-    /*
-     * Again, we will need an additional plugin such as http://wordpress.org/plugins/members/  to map the bbb-room-category
-     * capabilities to roles
-     */
+
 }
 
 add_action('init', 'bigbluebutton_room_taxonomies', 0);
@@ -395,7 +395,9 @@ function bigbluebutton_meta_boxes()
 
 add_action('add_meta_boxes', 'bigbluebutton_meta_boxes');
 
-// Add to admin_init function
+/**
+* Add to admin_init function
+*/
 function bigbluebutton_save_data()
 {
     $postid = get_the_ID();
@@ -463,7 +465,7 @@ function bigbluebutton_set_password($postid, $password, $randompassword)
 add_action('before_delete_post', 'before_bbb_delete');
 
 /*
- * CONTENT FILTER TO ADD BBB BUTTON
+ * Content filter to add BBB Button
  */
 function bigbluebutton_filter($content)
 {
@@ -485,7 +487,9 @@ function bigbluebutton_filter($content)
   return $content.$outputstring;
 }
 
-//Assignes the correct capabilities array
+/*
+ * Assignes the correct capabilities array
+ */
 function bigbluebutton_assign_capabilities_array($currentuser)
 {
   if(is_user_logged_in() == true) {
@@ -551,7 +555,7 @@ function bigbluebutton_update_notice_no_change()
 }
 
 /*
- *  OPTIONS PAGE
+ *  Options page
  */
 function bigbluebutton_options_page_callback()
 {
@@ -586,6 +590,9 @@ function bigbluebutton_options_page_callback()
 <?php
 }
 
+/*
+ *  BigBlueButton register site option page.
+ */
 function bigbluebutton_register_site_options_page()
 {
     add_submenu_page('options-general.php', 'Site Options', 'BigBlueButton', 'edit_pages', 'site-options', 'bigbluebutton_options_page_callback');
@@ -734,8 +741,6 @@ function bigbluebutton_shortcode_output($bbbposts, $atts) {
     bigbluebutton_session_setup($endpointvalue,$secretvalue);
     if ($atts['type'] == 'recordings') {
         return '<form id="recording">'.bigbluebutton_shortcode_output_recordings($bbbposts, $atts, $currentuser, $endpointvalue,$secretvalue).'</form>';
-    //  return bigbluebutton_shortcode_output_recordings($bbbposts, $atts, $currentuser, $endpointvalue,$secretvalue);
-
     }
     return bigbluebutton_shortcode_output_form($bbbposts, $atts, $currentuser);
 }
@@ -999,24 +1004,17 @@ function bigbluebutton_form_setup($currentuser,$atts){
 
 }
 
-//Returning the base url of the plugin
+/**
+*   Returning the base url of the plugin
+*/
 function bigbluebutton_plugin_base_url()
 {
     return "".pathinfo(plugins_url(plugin_basename(__FILE__), dirname(__FILE__)))['dirname'];
 }
 
-//================================================================================
-//---------------------------------List Recordings----------------------------------
-//================================================================================
-// Displays all the recordings available in the bigbluebutton_custom_post_type server
 /*
- * Keep in mind that although this has the same function name as the previous version of the plugin,
- * this functions quite differently. It only lists the recordings for the specific post, not all of the
- * recordings on the server.
- *
- * Also, editing controls are only displayed in the backend, to users with the appropriate permissions
- *
- * Right now this does not seem to be functional.
+ * List the specific posts recordings
+ * @param  array  $post all the posts available
  */
  function bigbluebutton_list_room_recordings($post)
  {
@@ -1039,7 +1037,9 @@ function bigbluebutton_plugin_base_url()
 //================================================================================
 //------------------------------- Helping functions ------------------------------
 //================================================================================
-//Validation methods
+/*
+ * Generates token
+ */
 function bigbluebutton_generateToken($tokenlength = 6)
 {
     $token = '';
@@ -1059,14 +1059,18 @@ function bigbluebutton_generateToken($tokenlength = 6)
     return $token;
 }
 
-//Set up SESSIONS array
+/*
+ * Set up SESSIONS array
+ */
 function bigbluebutton_session_setup($endpointvalue,$secretvalue)
 {
   $_SESSION['mt_bbb_endpoint'] = $endpointvalue;
   $_SESSION['mt_bbb_secret'] = $secretvalue;
 }
 
-//generates random password
+/*
+ * Generates random password
+ */
 function bigbluebutton_generatePasswd($numalpha = 6, $numnonalpha = 2, $salt = '')
 {
     $listalpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -1078,13 +1082,17 @@ function bigbluebutton_generatePasswd($numalpha = 6, $numnonalpha = 2, $salt = '
     return $pepper;
 }
 
-//normalizing meeting ID
+/*
+ * Normalizing meeting ID
+ */
 function bigbluebutton_normalize_meeting_id($meetingid)
 {
     return (strlen($meetingid) == 12) ? sha1(home_url().$meetingid) : $meetingid;
 }
 
-//Returns current plugin version.
+/*
+ * Returns current plugin version.
+ */
 function bigbluebutton_get_version()
 {
     if (!function_exists('get_plugins')) {

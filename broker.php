@@ -71,9 +71,9 @@ if (!isset($_SESSION[$secretname]) || !isset($_SESSION[$endpointname])) {
             }
             break;
         case 'ping':
-            $username = setUserName();
-            $meetingid = setMeetingID($_POST[$slugname]);
-            $password = setPassword($_POST[$slugname]);
+            $username = bigbluebutton_set_user_name();
+            $meetingid = bigbluebutton_set_meeting_id($_POST[$slugname]);
+            $password = bigbluebutton_set_password($_POST[$slugname]);
             $response = BigBlueButton::getMeetingXML($meetingid, $endpointvalue, $secretvalue);
             if((strpos($response,"true") !== false)){
               echo BigBlueButton::getJoinURL($meetingid, $username, $password , $secretvalue, $endpointvalue);
@@ -88,9 +88,9 @@ if (!isset($_SESSION[$secretname]) || !isset($_SESSION[$endpointname])) {
             }else{
               $post = get_page_by_path($_POST[$slugname], OBJECT, 'bbb-room');
               if($_POST[$join] === "true"){
-                $username = setUserName();
-                $meetingid = setMeetingID($_POST[$slugname]);
-                $password = setPassword($_POST[$slugname]);
+                $username = bigbluebutton_set_user_name();
+                $meetingid = bigbluebutton_set_meeting_id($_POST[$slugname]);
+                $password = bigbluebutton_set_password($_POST[$slugname]);
                 $meetingname = get_the_title($post->ID);
                 $welcomestring = get_post_meta($post->ID, '_bbb_room_welcome_msg', true);
                 $moderatorpassword = get_post_meta($post->ID, '_bbb_moderator_password', true);
@@ -118,7 +118,7 @@ if (!isset($_SESSION[$secretname]) || !isset($_SESSION[$endpointname])) {
                           echo $joinurl;
                     }
                     elseif ($attendeepassword == $password) {
-                        echo '';
+                        echo 'wait';
                     }
                 }
               }else {
@@ -139,7 +139,7 @@ if (!isset($_SESSION[$secretname]) || !isset($_SESSION[$endpointname])) {
 /**
 * Sets the password of the meeting
 **/
-function setPassword($slug){
+function bigbluebutton_set_password($slug){
   $post = get_page_by_path($slug, OBJECT, 'bbb-room');
   $currentuser = wp_get_current_user();
   $password='';
@@ -177,7 +177,7 @@ function setPassword($slug){
 /**
 * Sets the user name of the moderator or attendee
 **/
-function setUserName(){
+function bigbluebutton_set_user_name(){
   $currentuser = wp_get_current_user();
   $username = $currentuser->display_name;
   if($username == '' || $username == null){
@@ -189,7 +189,7 @@ function setUserName(){
 /**
 * Sets the meetingID
 **/
-function setMeetingID($slug)
+function bigbluebutton_set_meeting_id($slug)
 {
   $post = get_page_by_path($slug, OBJECT, 'bbb-room');
   $roomtoken = get_post_meta($post->ID, '_bbb_room_token', true);
