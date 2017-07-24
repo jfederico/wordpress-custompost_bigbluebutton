@@ -20,7 +20,7 @@ Versions:
 //------------------Required Libraries and Global Variables-----------------------
 //================================================================================
 require 'includes/bbb_api.php';
-require($_SERVER['DOCUMENT_ROOT'].'/wordpress-test/wp-load.php');//MAKE SUREE TO CHNAGE THE PATH
+require($_SERVER['DOCUMENT_ROOT'].'/wordpress-test/wp-load.php');
 session_start();
 $endpointname = 'mt_bbb_endpoint';
 $secretname = 'mt_bbb_secret';
@@ -73,14 +73,13 @@ if (!isset($_SESSION[$secretname]) || !isset($_SESSION[$endpointname])) {
         case 'ping':
             $username = bigbluebutton_set_user_name();
             $meetingid = bigbluebutton_set_meeting_id($_POST[$slugname]);
-            $password = bigbluebutton_set_password($_POST[$slugname]);
+            $password = bigbluebutton_set_password_broker($_POST[$slugname]);
             $response = BigBlueButton::getMeetingXML($meetingid, $endpointvalue, $secretvalue);
             if((strpos($response,"true") !== false)){
               echo BigBlueButton::getJoinURL($meetingid, $username, $password , $secretvalue, $endpointvalue);
             }
             break;
-        case 'join'://cant join when editor (in old plugin, it direcclty says "sorry you are not allowed to join this page)"
-            //post is not recognizing '+' and '&'
+        case 'join':
             if((!isset($_POST[$slugname]))){
                 header('HTTP/1.0 400 Bad Request. [slug] parameter was not included in this query.');
             }else if((!isset($_POST[$join]))){
@@ -90,7 +89,7 @@ if (!isset($_SESSION[$secretname]) || !isset($_SESSION[$endpointname])) {
               if($_POST[$join] === "true"){
                 $username = bigbluebutton_set_user_name();
                 $meetingid = bigbluebutton_set_meeting_id($_POST[$slugname]);
-                $password = bigbluebutton_set_password($_POST[$slugname]);
+                $password = bigbluebutton_set_password_broker($_POST[$slugname]);
                 $meetingname = get_the_title($post->ID);
                 $welcomestring = get_post_meta($post->ID, '_bbb_room_welcome_msg', true);
                 $moderatorpassword = get_post_meta($post->ID, '_bbb_moderator_password', true);
@@ -139,7 +138,7 @@ if (!isset($_SESSION[$secretname]) || !isset($_SESSION[$endpointname])) {
 /**
 * Sets the password of the meeting
 **/
-function bigbluebutton_set_password($slug){
+function bigbluebutton_set_password_broker($slug){
   $post = get_page_by_path($slug, OBJECT, 'bbb-room');
   $currentuser = wp_get_current_user();
   $password='';
