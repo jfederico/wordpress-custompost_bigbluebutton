@@ -27,11 +27,11 @@ function bigbluebutton_install()
 {
     $bbbsettings = get_option('bigbluebutton_custom_post_type_settings');
     if (!isset($bbbsettings)) {
-        $bbbsettings['endpoint'] = 'http://bigbluebutton_custom_post_type_settings-install.blindsidenetworks.com/bigbluebutton/';
+        $bbbsettings['endpoint'] = 'http://test-install.blindsidenetworks.com/bigbluebutton/';
         $bbbsettings['secret'] = '8cd8ef52e8e101574e400365b55e11a6';
     } else {
         if (!isset($bbbsettings['endpoint'])) {
-            $bbbsettings['endpoint'] = 'http://bigbluebutton_custom_post_type_settings-install.blindsidenetworks.com/bigbluebutton/';
+            $bbbsettings['endpoint'] = 'http://test-install.blindsidenetworks.com/bigbluebutton/';
         }
         if (!isset($bbbsettings['secret'])) {
             $bbbsettings['secret'] = '8cd8ef52e8e101574e400365b55e11a6';
@@ -42,7 +42,7 @@ function bigbluebutton_install()
 }
 
 //constant definition
-define('BIGBLUEBUTTON_CUSTOM_POST_TYPE_PLUGIN_VERSION', bigbluebutton_get_version());
+define('BIGBLUEBUTTON_PLUGIN_VERSION', bigbluebutton_get_version());
 
 require_once 'includes/bbb_api.php';
 
@@ -570,7 +570,7 @@ function bigbluebutton_options_page_callback()
                 <th scope="row">Endpoint</th>
                 <td>
                     <input type="text" size="56" name="endpoint" value="<?php echo $bbbsettings['endpoint']; ?>" />
-                    <p>Example: http://bigbluebutton_custom_post_type_settings-install.blindsidenetworks.com/bigbluebutton/</p>
+                    <p>Example: http://test-install.blindsidenetworks.com/bigbluebutton/</p>
                 </td>
             </tr>
             <tr>
@@ -581,7 +581,7 @@ function bigbluebutton_options_page_callback()
                 </td>
             </tr>
         </table>
-        <p>Note that the values included by default are for bigbluebutton_custom_post_type_settingsing this plugin using a FREE BigBlueButton server provided by Blindside Networks. They have to be replaced with the parameters obtained from a server better suited for production.</p>
+        <p>Note that the values included by default are for bigbluebutton_custom_post_type_settings this plugin using a FREE BigBlueButton server provided by Blindside Networks. They have to be replaced with the parameters obtained from a server better suited for production.</p>
         <p class="submit">
             <input type="submit" name="submit" id="submit" class="button button-primary" value="Save Settings">
         </p>
