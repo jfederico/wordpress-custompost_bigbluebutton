@@ -449,10 +449,10 @@ add_action('save_post', 'bigbluebutton_save_data');
 /**
  * Setting password.
  */
-function bigbluebutton_set_password($postID, $password, $randomPassword)
+function bigbluebutton_set_password($postID, $password, $randompassword)
 {
   if (empty($_POST[$password]) && (get_post_status($postID) === 'publish')) {
-      update_post_meta($postID, '_'.$password, $randomPassword); //random generated
+      update_post_meta($postID, '_'.$password, $randompassword); //random generated
   } else {
       update_post_meta($postID, '_'.$password, esc_attr($_POST[$password]));
   }
