@@ -41,10 +41,17 @@ function bigbluebutton_join_meeting(join, usersignedin, passwordrequired, page){
 		{
 			if(usersignedin == "false"){
 				name = prompt("Please enter your name: ", "Enter name here");
+				console.log("");
+				if (name === null) { //hit cancel
+        	return;
+    		}
 			}
 
 			if(passwordrequired == "true"){
 				password = prompt("Please enter the password of the meeting: ", "Enter password here");
+				if (password === null) { //hit cancel
+        	return;
+    		}
 			}
 
 		}else{
@@ -85,7 +92,7 @@ function bigbluebutton_join_meeting(join, usersignedin, passwordrequired, page){
 			    bbbpinginterval = setInterval("bigbluebutton_ping()", 5000);
 				}
 				else{
-					jQuery("div#bbb-error-container").append(data);
+					jQuery("div#bbb-error-container").text(data);
 				}
 				console.log("DATAT: "+data);
 			},
