@@ -461,7 +461,12 @@ function bigbluebutton_set_password($postid, $password, $randompassword)
 
 }
 
-
+function before_bbb_delete()
+{
+    /*
+     * If we want to do anything when the BBB post in wordpress is deleted, we can hook into here.
+     */
+}
 add_action('before_delete_post', 'before_bbb_delete');
 
 /*
