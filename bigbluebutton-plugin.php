@@ -18,8 +18,27 @@ if (version_compare($wp_version, '2.5', '<')) {
     exit($exitmessage);
 }
 
-register_activation_hook(__FILE__, 'bigbluebutton_install');
+register_activation_hook(__FILE__, 'bigbluebutton_plugin_activate');
 
+/**
+* On activation functionality that needs to be added
+*/
+function bigbluebutton_plugin_activate($network_wide) {
+
+    if ( is_multisite() && $network_wide ) {
+        global $wpdb;
+
+        foreach ($wpdb->get_col("SELECT blog_id FROM $wpdb->blogs") as $blog_id) {
+            switch_to_blog($blog_id);
+            bigbluebutton_install();
+            restore_current_blog();
+        }
+
+    } else {
+        bigbluebutton_install();
+    }
+
+}
 /**
 * BigBlueButton Install
 */
