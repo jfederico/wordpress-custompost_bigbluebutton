@@ -89,6 +89,7 @@ function bigbluebutton_join_meeting(join, usersignedin, passwordrequired, page){
 					 (Your browser will automatically refresh and join the meeting when it starts.)</center>");
 					jQuery("form#room").hide();
 					jQuery("input.bbb-shortcode-selector").hide();
+					jQuery("div#bbb-error-container").text('');
 			    bbbpinginterval = setInterval("bigbluebutton_ping()", 5000);
 				}
 				else{
