@@ -82,7 +82,7 @@ function bigbluebutton_join_meeting(join, usersignedin, passwordrequired, page){
 				}
 				else if(data == 'wait') {
 					var pollingimgpath = pluginbaseurl+'/img/polling.gif';
-					jQuery("div#bbb-join-container").text
+					jQuery("div#bbb-join-container").append
 					("<center>Welcome to "+ slug +"!<br /><br /> \
 					 The session has not been started yet.<br /><br />\
 					 <center><img src="+ pollingimgpath +"\ /></center>\
