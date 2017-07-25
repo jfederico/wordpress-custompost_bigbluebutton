@@ -20,7 +20,8 @@ Versions:
 //------------------Required Libraries and Global Variables-----------------------
 //================================================================================
 require 'includes/bbb_api.php';
-require($_SERVER['DOCUMENT_ROOT'].'/wordpress-test/wp-load.php');
+$parse_uri = explode( 'wp-content', $_SERVER['SCRIPT_FILENAME'] );
+require_once( $parse_uri[0] . 'wp-load.php' );
 session_start();
 $endpointname = 'mt_bbb_endpoint';
 $secretname = 'mt_bbb_secret';
@@ -106,6 +107,7 @@ if (!isset($_SESSION[$secretname]) || !isset($_SESSION[$endpointname])) {
                 );
                 $response = BigBlueButton::createMeetingArray($meetingid, $meetingname, $welcomestring, $moderatorpassword,$attendeepassword, $secretvalue, $endpointvalue, $logouturl, $isrecorded ? 'true' : 'false', $duration = 0, $voiceBridge = 0, $metadata);
                 if (!$response || $response['returncode'] == 'FAILED') {
+                  error_log("\n\n *********2 **********". json_encode()."\n\n");
                     echo "Sorry an error occured while creating the meeting room.";
                 }else {
                     $joinurl = BigBlueButton::getJoinURL($meetingid, $username, $password, $secretvalue, $endpointvalue);
@@ -121,6 +123,8 @@ if (!isset($_SESSION[$secretname]) || !isset($_SESSION[$endpointname])) {
                     else{
                       if($password==''){
                         echo 'Incorrect Password';
+                      }elseif($username=''){
+                        echo 'Username';
                       }
                     }
                 }

@@ -477,8 +477,9 @@ function bigbluebutton_filter($content)
 {
     $outputstring = '';
     if (('bbb-room' == get_post_type()) && (is_single())) {
-      $slug = basename(get_permalink());
-      $post = get_page_by_path($slug, OBJECT, 'bbb-room');
+      $postid = get_the_ID();
+      $post = get_post($postid);
+      $slug = $post->post_name;
       $meetingname = get_the_title($post->ID);
       $bigbluebuttonsettings = get_option('bigbluebutton_custom_post_type_settings');
       $endpointvalue = $bigbluebuttonsettings['endpoint'];

@@ -41,7 +41,6 @@ function bigbluebutton_join_meeting(join, usersignedin, passwordrequired, page){
 		{
 			if(usersignedin == "false"){
 				name = prompt("Please enter your name: ", "Enter name here");
-				console.log("");
 				if (name === null) { //hit cancel
         	return;
     		}
