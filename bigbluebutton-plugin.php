@@ -44,7 +44,7 @@ function bigbluebutton_plugin_activate($network_wide) {
 */
 function bigbluebutton_install()
 {
-    $bbbsettings = get_option('bigbluebutton_custom_post_type_settings');
+    $bbbsettings = get_option('bigbluebutton_settings');
     if (!isset($bbbsettings)) {
         $bbbsettings['endpoint'] = 'http://test-install.blindsidenetworks.com/bigbluebutton/';
         $bbbsettings['secret'] = '8cd8ef52e8e101574e400365b55e11a6';
@@ -56,7 +56,7 @@ function bigbluebutton_install()
             $bbbsettings['secret'] = '8cd8ef52e8e101574e400365b55e11a6';
         }
     }
-    update_option('bigbluebutton_custom_post_type_settings', $bbbsettings);
+    update_option('bigbluebutton_settings', $bbbsettings);
     bigbluebutton_default_roles();
 }
 
@@ -91,7 +91,7 @@ function bigbluebutton_admin_notices()
 add_action('admin_notices', 'bigbluebutton_admin_notices');
 
 /*
- * This displays some CSS needed for the BigBlueButton Custom Post Type plugin, in the backend
+ * This displays some CSS needed for the BigBlueButton plugin, in the backend
  */
 function bigbluebutton_css_enqueue()
 {
@@ -102,7 +102,7 @@ function bigbluebutton_css_enqueue()
 add_action('init', 'bigbluebutton_css_enqueue');
 
 /*
- * This displays some CSS needed for the BigBlueButton Custom Post Type plugin, in the frontend
+ * This displays some CSS needed for the BigBlueButton plugin, in the frontend
  */
 function bigbluebutton_frontend_css_enqueue()
 {
@@ -113,7 +113,7 @@ function bigbluebutton_frontend_css_enqueue()
 add_action('init', 'bigbluebutton_frontend_css_enqueue');
 
 /*
- * This displays some JavaScript needed for the BigBlueButton Custom Post Type plugin, in the backend
+ * This displays some JavaScript needed for the BigBlueButton plugin, in the backend
  */
 function bigbluebutton_scripts()
 {
@@ -376,7 +376,7 @@ function bigbluebutton_room_details_metabox($post)
 function bigbluebutton_room_status_metabox($post)
 {
     $outputstring = '';
-    $bbbsettings = get_option('bigbluebutton_custom_post_type_settings');
+    $bbbsettings = get_option('bigbluebutton_settings');
     $endpointvalue = $bbbsettings['endpoint'];
     $secretvalue = $bbbsettings['secret'];
     $roomtoken = get_post_meta($post->ID, '_bbb_room_token', true);
@@ -404,7 +404,8 @@ add_action('save_post', 'bigbluebutton_room_status_metabox', 999);
 
 /*
  * This adds the 'Room Details' box and 'Room Recordings' box below the main content
-* area in a BigBlueButton Custom Post Type post
+* area in a BigBlueButton
+ post
 */
 function bigbluebutton_meta_boxes()
 {
@@ -423,7 +424,7 @@ function bigbluebutton_save_data()
     $postid = get_the_ID();
     $attendeepassword = get_post_meta($postid, '_bbb_attendee_password', true);
     $moderatorpassword = get_post_meta($postid, '_bbb_moderator_password', true);
-    $bbbsettings = get_option('bigbluebutton_custom_post_type_settings');
+    $bbbsettings = get_option('bigbluebutton_settings');
     $endpointvalue = $bbbsettings['endpoint'];
     $secretvalue = $bbbsettings['secret'];
     $newnonce = wp_create_nonce('bbb');
@@ -500,7 +501,7 @@ function bigbluebutton_filter($content)
       $post = get_post($postid);
       $slug = $post->post_name;
       $meetingname = get_the_title($post->ID);
-      $bigbluebuttonsettings = get_option('bigbluebutton_custom_post_type_settings');
+      $bigbluebuttonsettings = get_option('bigbluebutton_settings');
       $endpointvalue = $bigbluebuttonsettings['endpoint'];
       $secretvalue = $bigbluebuttonsettings['secret'];
       bigbluebutton_session_setup($endpointvalue,$secretvalue);
@@ -530,7 +531,7 @@ add_filter('the_content', 'bigbluebutton_filter');
 
 //should also check to make sure we are on the BBB settings page
 if (is_admin() && (isset($_POST['endpoint']) || isset($_POST['secret']))) {
-    $bbbsettings = get_option('bigbluebutton_custom_post_type_settings');
+    $bbbsettings = get_option('bigbluebutton_settings');
     $doupdate = 0;
     if (isset($_POST['secret']) && ($bbbsettings['secret'] != $_POST['secret'])) {
         $bbbsettings['secret'] = $_POST['secret'];
@@ -540,7 +541,7 @@ if (is_admin() && (isset($_POST['endpoint']) || isset($_POST['secret']))) {
         $doupdate = 1;
     }
     if ($doupdate) {
-        $updateresponse = update_option('bigbluebutton_custom_post_type_settings', $bbbsettings);
+        $updateresponse = update_option('bigbluebutton_settings', $bbbsettings);
         if ($updateresponse) {
             add_action('admin_notices', 'bigbluebutton_update_notice_success');
         } else {
@@ -586,7 +587,7 @@ function bigbluebutton_update_notice_no_change()
  */
 function bigbluebutton_options_page_callback()
 {
-    $bbbsettings = get_option('bigbluebutton_custom_post_type_settings'); ?>
+    $bbbsettings = get_option('bigbluebutton_settings'); ?>
     <div class="wrap">
     <div id="icon-options-general" class="icon32"><br /></div><h2>BigBlueButton Settings</h2>
     <form  action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post" name="site_options_page" >
@@ -608,7 +609,7 @@ function bigbluebutton_options_page_callback()
                 </td>
             </tr>
         </table>
-        <p>Note that the values included by default are for bigbluebutton_custom_post_type_settings this plugin using a FREE BigBlueButton server provided by Blindside Networks. They have to be replaced with the parameters obtained from a server better suited for production.</p>
+        <p>Note that the values included by default are for bigbluebutton_settings this plugin using a FREE BigBlueButton server provided by Blindside Networks. They have to be replaced with the parameters obtained from a server better suited for production.</p>
         <p class="submit">
             <input type="submit" name="submit" id="submit" class="button button-primary" value="Save Settings">
         </p>
@@ -733,7 +734,7 @@ function bigbluebutton_shortcode_defaults(&$atts, $tag) {//handle spelling mista
     if ( !array_key_exists('join', $atts) ) {
         $atts['join'] = 'true';
     }
-    $atts['bigbluebutton_custom_post_type_settings'] = 'bigbluebutton_custom_post_type_settings-install';
+    $atts['bigbluebutton_settings'] = 'bigbluebutton_settings-install';
 }
 
 /**
@@ -762,7 +763,7 @@ function bigbluebutton_shortcode($atts, $content, $tag) {
 */
 function bigbluebutton_shortcode_output($bbbposts, $atts) {
     $currentuser = wp_get_current_user();
-    $bbbsettings = get_option('bigbluebutton_custom_post_type_settings');
+    $bbbsettings = get_option('bigbluebutton_settings');
     $endpointvalue = $bbbsettings['endpoint'];
     $secretvalue = $bbbsettings['secret'];
     bigbluebutton_session_setup($endpointvalue,$secretvalue);
@@ -1055,7 +1056,7 @@ function bigbluebutton_plugin_base_url()
    $roomtoken = get_post_meta($post->ID, '_bbb_room_token', true);
    $atts = array('token' => $roomtoken);
    $currentuser  = wp_get_current_user();
-   $bbbsettings = get_option('bigbluebutton_custom_post_type_settings');
+   $bbbsettings = get_option('bigbluebutton_settings');
    $endpointvalue = $bbbsettings['endpoint'];
    $secretvalue = $bbbsettings['secret'];
    echo bigbluebutton_shortcode_output_recordings($bbbposts, $atts, $currentuser, $endpointvalue,$secretvalue);
