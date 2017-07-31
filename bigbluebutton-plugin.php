@@ -29,25 +29,7 @@ require_once 'includes/bbb_api.php';
 //------------------------------------Main----------------------------------------
 //================================================================================
 
-//action definitions
-add_action('init', 'bigbluebutton_init');
-add_action('admin_menu', 'bigbluebutton_register_settings_page', 1);
-add_action('add_meta_boxes', 'bigbluebutton_meta_boxes');
-add_action('save_post', 'bigbluebutton_save_data');
-add_action('save_post', 'bigbluebutton_room_status_metabox', 999);
-add_action('admin_notices', 'bigbluebutton_admin_notices');
-add_action('admin_notices', 'bigbluebutton_error_notice');
-add_action('widgets_init', 'bigbluebutton_widget_init');
-add_action('before_delete_post', 'before_bbb_delete');
 
-//shortcode definitions
-add_shortcode('bigbluebutton', 'bigbluebutton_shortcode');
-add_shortcode('bigbluebutton_recordings', 'bigbluebutton_shortcode');
-add_shortcode('bigbluebuttonrooms', 'bigbluebutton_shortcode');
-
-//filter definitions
-add_filter('map_meta_cap', 'bigbluebutton_map_meta_cap', 10, 4);
-add_filter('the_content', 'bigbluebutton_filter');
 
 
 $urlval = get_option('bigbluebutton_url');//old plugins values
@@ -108,6 +90,26 @@ function bigbluebutton_install()
     update_option('bigbluebutton_settings', $bbbsettings);
     bigbluebutton_default_roles();
 }
+
+//action definitions
+add_action('init', 'bigbluebutton_init');
+add_action('admin_menu', 'bigbluebutton_register_settings_page', 1);
+add_action('add_meta_boxes', 'bigbluebutton_meta_boxes');
+add_action('save_post', 'bigbluebutton_save_data');
+add_action('save_post', 'bigbluebutton_room_status_metabox', 999);
+add_action('admin_notices', 'bigbluebutton_admin_notices');
+add_action('admin_notices', 'bigbluebutton_error_notice');
+add_action('widgets_init', 'bigbluebutton_widget_init');
+add_action('before_delete_post', 'before_bbb_delete');
+
+//shortcode definitions
+add_shortcode('bigbluebutton', 'bigbluebutton_shortcode');
+add_shortcode('bigbluebutton_recordings', 'bigbluebutton_shortcode');
+add_shortcode('bigbluebuttonrooms', 'bigbluebutton_shortcode');
+
+//filter definitions
+add_filter('map_meta_cap', 'bigbluebutton_map_meta_cap', 10, 4);
+add_filter('the_content', 'bigbluebutton_filter');
 
 /**
 * Old plugin's information to be transfered in the new plugin
