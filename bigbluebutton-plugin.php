@@ -17,38 +17,13 @@ if (version_compare($wp_version, '2.5', '<')) {
     exit($exitmessage);
 }
 
-define('BIGBLUEBUTTON_PLUGIN_VERSION', bigbluebutton_get_version());
-
-
-//================================================================================
-//------------------Required Libraries and Global Variables-----------------------
-//================================================================================
 require_once 'includes/bbb_api.php';
 
+define('BIGBLUEBUTTON_PLUGIN_VERSION', bigbluebutton_get_version());
+
 //================================================================================
-//------------------------------------Main----------------------------------------
+//--------------------------------Plugin Activation--------------------------------------
 //================================================================================
-
-
-
-
-$urlval = get_option('bigbluebutton_url');//old plugins values
-$saltval = get_option('bigbluebutton_salt');//old plugins values
-$permissions = get_option('bigbluebutton_permissions');
-
-//clean this up
-if((!$urlval||!$saltval)&&(!$permissions)){//these options are deleted //not working when one of the value is not set
-}else{
-  $bbbsettings = array(
-    'endpoint' => $urlval,
-    'secret' => $saltval
-  );
-  add_option('bigbluebutton_settings',$bbbsettings);
-  bigbluebutton_migrate_old_plugin_data();
-  delete_option('bigbluebutton_url');
-  delete_option('bigbluebutton_salt');
-  delete_option('bigbluebutton_permissions');
-}
 
 register_activation_hook(__FILE__, 'bigbluebutton_plugin_activate');
 
@@ -58,9 +33,9 @@ register_activation_hook(__FILE__, 'bigbluebutton_plugin_activate');
 function bigbluebutton_plugin_activate($network_wide) {
   if (is_multisite() && $network_wide) {
       global $wpdb;
-
-      foreach ($wpdb->get_col("SELECT blog_id FROM $wpdb->blogs") as $blog_id) {
-          switch_to_blog($blog_id);
+      $multisiteblogs = $wpdb->get_col("SELECT blog_id FROM $wpdb->blogs");
+      foreach ($multisiteblogs as $blogid) {
+          switch_to_blog($blogid);
           bigbluebutton_install();
           restore_current_blog();
       }
@@ -74,22 +49,37 @@ function bigbluebutton_plugin_activate($network_wide) {
 */
 function bigbluebutton_install()
 {
-    $bbbsettings = get_option('bigbluebutton_settings');
-
-    if (!isset($bbbsettings)) {
-        $bbbsettings['endpoint'] = 'http://test-install.blindsidenetworks.com/bigbluebutton/';
-        $bbbsettings['secret'] = '8cd8ef52e8e101574e400365b55e11a6';
+  if((strcmp("1.4.2",  bigbluebutton_get_version()) <= 0)){
+    $urlval = get_option('bigbluebutton_url');//old plugins endpoint value
+    $saltval = get_option('bigbluebutton_salt');//old plugins secret value
+    $bbbsettings = array(
+      'endpoint' => $urlval,
+      'secret' => $saltval
+    );
+    add_option('bigbluebutton_settings',$bbbsettings);
+    bigbluebutton_migrate_old_plugin_data();
+  }else{
+   $bbbsettings = get_option('bigbluebutton_settings');
+   if (!isset($bbbsettings)) {
+      $bbbsettings['endpoint'] = 'http://test-install.blindsidenetworks.com/bigbluebutton/';
+      $bbbsettings['secret'] = '8cd8ef52e8e101574e400365b55e11a6';
     } else {
-        if (!isset($bbbsettings['endpoint'])) {
-            $bbbsettings['endpoint'] = 'http://test-install.blindsidenetworks.com/bigbluebutton/';
-        }
-        if (!isset($bbbsettings['secret'])) {
-            $bbbsettings['secret'] = '8cd8ef52e8e101574e400365b55e11a6';
-        }
-    }
-    update_option('bigbluebutton_settings', $bbbsettings);
-    bigbluebutton_default_roles();
+      if (!isset($bbbsettings['endpoint'])) {
+          $bbbsettings['endpoint'] = 'http://test-install.blindsidenetworks.com/bigbluebutton/';
+      }
+      if (!isset($bbbsettings['secret'])) {
+          $bbbsettings['secret'] = '8cd8ef52e8e101574e400365b55e11a6';
+      }
+   }
+   update_option('bigbluebutton_settings', $bbbsettings);
+   bigbluebutton_default_roles();
+ }
 }
+
+
+//================================================================================
+//--------------------------------Hooks----------------------------------------
+//================================================================================
 
 //action definitions
 add_action('init', 'bigbluebutton_init');
@@ -111,6 +101,11 @@ add_shortcode('bigbluebuttonrooms', 'bigbluebutton_shortcode');
 add_filter('map_meta_cap', 'bigbluebutton_map_meta_cap', 10, 4);
 add_filter('the_content', 'bigbluebutton_filter');
 
+
+//================================================================================
+//--------------------------------Migration----------------------------------------
+//================================================================================
+
 /**
 * Old plugin's information to be transfered in the new plugin
 **/
@@ -124,24 +119,25 @@ function bigbluebutton_migrate_old_plugin_data(){
 **/
 function bigbluebutton_meetings_data_old_plugin(){
   global $wpdb;
-  $table_name = $wpdb->prefix . "bigbluebutton";
-  $listofmeetings = $wpdb->get_results("SELECT * FROM ".$table_name." ORDER BY id");
+  $tablename = $wpdb->prefix . "bigbluebutton";
+  $listofmeetings = $wpdb->get_results("SELECT * FROM ".$tablename." ORDER BY id");
 
   if(count($listofmeetings) != 0) {
     foreach ($listofmeetings as $meeting) {
-      $meetingarray = array_merge(array (
-         'ID'=> $meeting->id,
-         'post_type' => 'bbb-room',
-         'post_title' => $meeting->meetingName,
-         'post_status' => 'publish'
-      ));
-      update_post_meta($meeting->id, '_bbb_room_token', $meeting->meetingID);
-      update_post_meta($meeting->id, '_bbb_attendee_password', $meeting->attendeePW);
-      update_post_meta($meeting->id, '_bbb_moderator_password', $meeting->moderatorPW);
-      update_post_meta($meeting->id, '_bbb_must_wait_for_admin_start', $meeting->waitForModerator);
-      update_post_meta($meeting->id, '_bbb_is_recorded', $meeting->recorded);
+     $postarry = array(
+       'import_id' => $meeting->id,
+       'post_title' => $meeting->meetingName,
+       'post_type' => 'bbb-room',
+       'post_status' => 'publish',
+     );
 
-      wp_insert_post($meetingarray);
+     wp_insert_post( $postarry );
+
+     update_post_meta($meeting->id, '_bbb_room_token', $meeting->meetingID);
+     update_post_meta($meeting->id, '_bbb_attendee_password', $meeting->attendeePW);
+     update_post_meta($meeting->id, '_bbb_moderator_password', $meeting->moderatorPW);
+     update_post_meta($meeting->id, '_bbb_must_wait_for_admin_start', $meeting->waitForModerator);
+     update_post_meta($meeting->id, '_bbb_is_recorded', $meeting->recorded);
     }
   }
 }
@@ -150,39 +146,40 @@ function bigbluebutton_meetings_data_old_plugin(){
 * Old capabilities assigned to new plugins capabilities
 **/
 function bigbluebutton_default_roles_old_plugin(){
-    $permissions = get_option('bigbluebutton_permissions');
+  $permissions = get_option('bigbluebutton_permissions');
 
-    $adminrole = get_role('administrator');
-    bigbluebutton_assign_role($adminrole, 'administrator',$permissions);
-    $adminrole->add_cap('join_with_password_bbb-room', false);
-    $adminrole->add_cap('manage_recordings_bbb-room', $permissions["administrator"]["manageRecordings"]);
+  $adminrole = get_role('administrator');
+  bigbluebutton_assign_role($adminrole, 'administrator',$permissions);
+  $adminrole->add_cap('join_with_password_bbb-room', false);
+  $adminrole->add_cap('manage_recordings_bbb-room', $permissions["administrator"]["manageRecordings"]);
 
-    $authorrole = get_role('author');
-    bigbluebutton_assign_role($authorrole, 'author',$permissions);
-    $authorrole->add_cap('join_with_password_bbb-room', false);
-    $authorrole->add_cap('manage_recordings_bbb-room', $permissions["author"]["manageRecordings"]);
+  $authorrole = get_role('author');
+  bigbluebutton_assign_role($authorrole, 'author',$permissions);
+  $authorrole->add_cap('join_with_password_bbb-room', false);
+  $authorrole->add_cap('manage_recordings_bbb-room', $permissions["author"]["manageRecordings"]);
 
-    $contributorrole = get_role('contributor');
-    bigbluebutton_assign_role($contributorrole, 'contributor',$permissions);
-    $contributorrole->add_cap('join_with_password_bbb-room', false);
-    $contributorrole->add_cap('manage_recordings_bbb-room', $permissions["contributor"]["manageRecordings"]);
+  $contributorrole = get_role('contributor');
+  bigbluebutton_assign_role($contributorrole, 'contributor',$permissions);
+  $contributorrole->add_cap('join_with_password_bbb-room', false);
+  $contributorrole->add_cap('manage_recordings_bbb-room', $permissions["contributor"]["manageRecordings"]);
 
-    $editorrole = get_role('editor');
-    bigbluebutton_assign_role($editorrole, 'editor',$permissions);
-    $editorrole->add_cap('join_with_password_bbb-room', false);
-    $editorrole->add_cap('manage_recordings_bbb-room', $permissions["editor"]["manageRecordings"]);
+  $editorrole = get_role('editor');
+  bigbluebutton_assign_role($editorrole, 'editor',$permissions);
+  $editorrole->add_cap('join_with_password_bbb-room', false);
+  $editorrole->add_cap('manage_recordings_bbb-room', $permissions["editor"]["manageRecordings"]);
 
-    $subscriberrole = get_role('subscriber');
-    bigbluebutton_assign_role($subscriberrole, 'subscriber',$permissions);
-    $subscriberrole->add_cap('join_with_password_bbb-room', false);
-    $subscriberrole->add_cap('manage_recordings_bbb-room', $permissions["subscriber"]["manageRecordings"]);
+  $subscriberrole = get_role('subscriber');
+  bigbluebutton_assign_role($subscriberrole, 'subscriber',$permissions);
+  $subscriberrole->add_cap('join_with_password_bbb-room', false);
+  $subscriberrole->add_cap('manage_recordings_bbb-room', $permissions["subscriber"]["manageRecordings"]);
 
-    add_role( 'anonymous', 'Anonymous', array());
-    $anonymousrole = get_role('anonymous');
-    bigbluebutton_assign_role($anonymousrole, 'anonymous',$permissions);
-    $anonymousrole->add_cap('join_with_password_bbb-room', true);
-    $anonymousrole->add_cap('manage_recordings_bbb-room', $permissions["anonymous"]["manageRecordings"]);
+  add_role( 'anonymous', 'Anonymous', array());
+  $anonymousrole = get_role('anonymous');
+  bigbluebutton_assign_role($anonymousrole, 'anonymous',$permissions);
+  $anonymousrole->add_cap('join_with_password_bbb-room', true);
+  $anonymousrole->add_cap('manage_recordings_bbb-room', $permissions["anonymous"]["manageRecordings"]);
 }
+
 /**
 * Assign role
 **/
@@ -197,7 +194,7 @@ function bigbluebutton_assign_role($role, $rolename,$permissions){
 }
 
 //================================================================================
-//------------------------------ Main Functions ----------------------------------
+//------------------------------ Main ----------------------------------
 //================================================================================
 
 /**
