@@ -103,9 +103,9 @@ You should enable the curl extension in php.ini.
 1. Login form for anonymous users.
 2. Login form for registered users.
 3. General settings.
-4. Permission settings.
-5. Create meeting room form and list of meeting rooms.
-6. Recordings in a front end page.
+4. Create a meeting room.
+5. Recordings in a front end page.
+6. Setting up meeting room details.
 
 == Changelog ==
 
