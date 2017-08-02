@@ -111,7 +111,7 @@ add_filter('the_content', 'bigbluebutton_filter');
 //================================================================================
 
 /**
-* Old plugin's information to be transfered in the new plugin
+* Previous plugin's information to be transfered in the new plugin
 **/
 function bigbluebutton_migrate_old_plugin_data(){
   bigbluebutton_meetings_data_old_plugin();
@@ -119,7 +119,7 @@ function bigbluebutton_migrate_old_plugin_data(){
 }
 
 /**
-* Old meeting's rooms information assigned to new plugins data strucure
+* Previous meeting's rooms information assigned to new plugins data strucure
 **/
 function bigbluebutton_meetings_data_old_plugin(){
   global $wpdb;
@@ -148,7 +148,7 @@ function bigbluebutton_meetings_data_old_plugin(){
 }
 
 /**
-* Old capabilities assigned to new plugins capabilities
+* Previous capabilities assigned to new plugins capabilities
 **/
 function bigbluebutton_default_roles_old_plugin(){
   $permissions = get_option('bigbluebutton_permissions');
@@ -186,7 +186,11 @@ function bigbluebutton_default_roles_old_plugin(){
 }
 
 /**
-* Assign role
+* Assign roles
+* @param  array  $role The role that needs to be assigned the role.
+* @param  string  $rolename  String format of the role name.
+* @param  array $permissions  Permissions array.
+* @return
 **/
 function bigbluebutton_assign_role($role, $rolename,$permissions){
   if($permissions[$rolename]["defaultRole"] == "moderator"){
