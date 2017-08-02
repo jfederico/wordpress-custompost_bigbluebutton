@@ -3,7 +3,7 @@
 Plugin Name: BigBlueButton Rooms
 Plugin URI: http://blindsidenetworks.com/integration
 Description: BigBlueButton is an open source web conferencing system. This plugin integrates BigBlueButton into WordPress allowing bloggers to create and manage meetings rooms by using a Custom Post Type. For more information on setting up your own BigBlueButton server or for using an external hosting provider visit http://bigbluebutton.org/support
-Version: 1.4.2
+Version: 2.0
 Author: Blindside Networks
 Author URI: http://blindsidenetworks.com/
 License: GPLv2 or later
@@ -49,14 +49,17 @@ function bigbluebutton_plugin_activate($network_wide) {
 */
 function bigbluebutton_install()
 {
-  if((strcmp("1.4.2",  bigbluebutton_get_version()) <= 0)){
-    $urlval = get_option('bigbluebutton_url');//old plugins endpoint value
-    $saltval = get_option('bigbluebutton_salt');//old plugins secret value
+  $bbbsettings = array();
+  $urlval = get_option('bigbluebutton_url');//old plugins endpoint value
+  $saltval = get_option('bigbluebutton_salt');//old plugins secret value
+  if((strcmp("1.4.2",  bigbluebutton_get_version()) <= 0) && $urlval && $saltval){
     $bbbsettings = array(
       'endpoint' => $urlval,
       'secret' => $saltval
     );
     add_option('bigbluebutton_settings',$bbbsettings);
+    delete_option('bigbluebutton_url');
+    delete_option('bigbluebutton_salt');
     bigbluebutton_migrate_old_plugin_data();
   }else{
    $bbbsettings = get_option('bigbluebutton_settings');
@@ -71,9 +74,9 @@ function bigbluebutton_install()
           $bbbsettings['secret'] = '8cd8ef52e8e101574e400365b55e11a6';
       }
    }
-   update_option('bigbluebutton_settings', $bbbsettings);
    bigbluebutton_default_roles();
  }
+ update_option('bigbluebutton_settings', $bbbsettings);
 }
 
 
