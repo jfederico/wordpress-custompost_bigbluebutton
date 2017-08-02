@@ -106,7 +106,7 @@ if (!isset($_SESSION[$secretname]) || !isset($_SESSION[$endpointname])) {
                  'meta_originurl' => $logouturl,
                 );
                 $response = BigBlueButton::createMeetingArray($meetingid, $meetingname, $welcomestring, $moderatorpassword,$attendeepassword, $secretvalue, $endpointvalue, $logouturl, $isrecorded ? 'true' : 'false', $duration = 0, $voiceBridge = 0, $metadata);
-                
+
                 if (!$response || $response['returncode'] == 'FAILED') {
                     echo "Sorry an error occured while creating the meeting room.";
                 }else {

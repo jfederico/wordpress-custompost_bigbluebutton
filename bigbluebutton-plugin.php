@@ -77,6 +77,7 @@ function bigbluebutton_install()
    bigbluebutton_default_roles();
  }
  update_option('bigbluebutton_settings', $bbbsettings);
+ bigbluebutton_session_setup($bbbsettings['endpoint'],$bbbsettings['secret']);
 }
 
 
@@ -127,6 +128,7 @@ function bigbluebutton_meetings_data_old_plugin(){
 
   if(count($listofmeetings) != 0) {
     foreach ($listofmeetings as $meeting) {
+
      $postarry = array(
        'import_id' => $meeting->id,
        'post_title' => $meeting->meetingName,
@@ -134,13 +136,13 @@ function bigbluebutton_meetings_data_old_plugin(){
        'post_status' => 'publish',
      );
 
-     wp_insert_post( $postarry );
+     $postid = wp_insert_post( $postarry );
 
-     update_post_meta($meeting->id, '_bbb_room_token', $meeting->meetingID);
-     update_post_meta($meeting->id, '_bbb_attendee_password', $meeting->attendeePW);
-     update_post_meta($meeting->id, '_bbb_moderator_password', $meeting->moderatorPW);
-     update_post_meta($meeting->id, '_bbb_must_wait_for_admin_start', $meeting->waitForModerator);
-     update_post_meta($meeting->id, '_bbb_is_recorded', $meeting->recorded);
+     update_post_meta($postid, '_bbb_room_token', $meeting->meetingID);
+     update_post_meta($postid, '_bbb_attendee_password', $meeting->attendeePW);
+     update_post_meta($postid, '_bbb_moderator_password', $meeting->moderatorPW);
+     update_post_meta($postid, '_bbb_must_wait_for_admin_start', $meeting->waitForModerator);
+     update_post_meta($postid, '_bbb_is_recorded', $meeting->recorded);
     }
   }
 }
@@ -976,6 +978,7 @@ function bigbluebutton_room_details_metabox($post)
    $bbbsettings = get_option('bigbluebutton_settings');
    $endpointvalue = $bbbsettings['endpoint'];
    $secretvalue = $bbbsettings['secret'];
+   bigbluebutton_session_setup($endpointvalue,$secretvalue);
    echo bigbluebutton_shortcode_output_recordings($bbbposts, $atts, $currentuser, $endpointvalue,$secretvalue);
  }
 
@@ -988,6 +991,7 @@ function bigbluebutton_room_details_metabox($post)
      $bbbsettings = get_option('bigbluebutton_settings');
      $endpointvalue = $bbbsettings['endpoint'];
      $secretvalue = $bbbsettings['secret'];
+     bigbluebutton_session_setup($endpointvalue,$secretvalue);
      $roomtoken = get_post_meta($post->ID, '_bbb_room_token', true);
      $currentuser = wp_get_current_user();
      $meetingid = bigbluebutton_normalize_meeting_id($roomtoken);
@@ -1003,6 +1007,7 @@ function bigbluebutton_room_details_metabox($post)
        $outputstring .= '<input type="button" style=" left: 0;padding: 5x 100px;" class="button-primary" value="Join"  onClick="bigbluebutton_join_meeting(\'true\',\''.json_encode(is_user_logged_in()).'\',
        \''.json_encode($usercapabilitiesarray["join_with_password_bbb-room"]).'\',\'true\'); setTimeout(function() {document.location.reload(true);}, 5000);" />';
      }
+
      if (BigBlueButton::isMeetingRunning($meetingid, $endpointvalue, $secretvalue)) {
          $outputstring .= '<input type="submit" name="SubmitList" style="position: absolute; left: 70px;padding: 5x;" class="button-primary" value="End Meeting Now" />&nbsp';
      }
@@ -1025,6 +1030,7 @@ function bigbluebutton_room_details_metabox($post)
      $bbbsettings = get_option('bigbluebutton_settings');
      $endpointvalue = $bbbsettings['endpoint'];
      $secretvalue = $bbbsettings['secret'];
+     bigbluebutton_session_setup($endpointvalue,$secretvalue);
      $newnonce = wp_create_nonce('bbb');
 
      if ($_POST['"bbb-noncename'] == $newnonce) {
