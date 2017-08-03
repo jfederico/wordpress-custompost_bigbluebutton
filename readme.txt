@@ -98,6 +98,10 @@ So as an example:
 
 You should enable the curl extension in php.ini. 
 
+**When click "Preview Changes" through a meeting room, what do I get if I get the error "Oops, This Page Could Not Be Found!"?
+
+Try chnaging the Permalinks structure through the Dashboard from Settings > Permalinks > Choose any other permalink > Save Changes.
+
 == Screenshots ==
 
 1. Login form for anonymous users.
